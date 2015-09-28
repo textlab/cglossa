@@ -91,7 +91,7 @@
          strings    (:strings params)
          _          (assert (or (nil? strings) (map? strings))
                             "String params should be provided in a map")
-         _          (doseq [s (vals strings)] (assert (not (re-find #"[\W]" s))
+         _          (doseq [s (vals strings)] (assert (not (re-find #"\W" s))
                                                       (str "Invalid string param: " s)))
          sql-params (:sql-params params)
          sql*       (-> sql
