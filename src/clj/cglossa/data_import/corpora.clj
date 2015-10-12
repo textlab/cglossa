@@ -23,7 +23,8 @@
                    :wal                 false
                    :useLightweightEdges true
                    :classes             [{:name "Corpus" :extends "V"}
-                                         {:name "Search" :extends "V"}]
+                                         {:name "Search" :extends "V"}
+                                         {:name "InCorpus" :extends "E"}]
                    :indexes             [{:class "Corpus" :fields ["code:string"] :type "UNIQUE"}]}}})
 
 (defn- create-config! [config-path tsv-path]
