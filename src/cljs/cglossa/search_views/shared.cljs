@@ -5,4 +5,4 @@
   model/domain state map - and dispatches to the correct method based
   on the value of :search-engine in the corpus map found in the
   model/domain state map. The :default case implements CWB support."
-  (fn [_ {corpus :corpus}] (:search-engine @corpus)))
+  (fn [_ {corpus :corpus}] (keyword (:search-engine @corpus))))

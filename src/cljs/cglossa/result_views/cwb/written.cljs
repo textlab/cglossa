@@ -1,6 +1,7 @@
 (ns cglossa.result-views.cwb.written
   (:require [clojure.string :as str]
-            [cglossa.result-views.cwb.core :refer [concordance-rows]]
+            [cglossa.react-adapters.bootstrap :as b]
+            [cglossa.results :refer [concordance-table]]
             [cglossa.result-views.cwb.shared :as shared]))
 
 (defn- monolingual-or-first-multilingual [res]
@@ -34,12 +35,29 @@
    (shared/id-column result)
    (shared/text-columns result)])
 
-(defmethod concordance-rows :default [a m res index]
+(defn- process-field [field]
+  "Processes a pre-match, match, or post-match field."
+  (as-> field $
+        (str/split $ #"\s+")
+        (map #(first (str/split % #"/")) $)
+        (str/join \space $)))
+
+(defn single-result-rows [a m res index]
   "Returns one or more rows representing a single search result."
-  (let [[s-id [pre match post]] (extract-fields res)
+  (let [[s-id fields] (extract-fields res)
+        [pre match post] (map process-field fields)
         res-info {:s-id       s-id
                   :pre-match  pre
                   :match      match
                   :post-match post}
         main     (main-row res-info index a m)]
     main))
+
+(defmethod concordance-table :default [{{:keys [results page-no]} :results-view :as a} m]
+  (let [res (get @results @page-no)]
+    [:div.row>div.col-sm-12.search-result-table-container
+     [b/table {:striped true :bordered true}
+      [:tbody
+       (doall (map (partial single-result-rows a m)
+                   res
+                   (range (count res))))]]]))

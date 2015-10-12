@@ -1,11 +1,16 @@
 (ns cglossa.result-views.cwb.speech
   (:require [clojure.string :as str]
+            [reagent.core :as r]
             [cglossa.react-adapters.bootstrap :as b]
-            [cglossa.result-views.cwb.core :refer [concordance-rows]]
-            [cglossa.result-views.cwb.shared :as shared]))
+            [cglossa.results :refer [concordance-table]]
+            [cglossa.result-views.cwb.shared :as shared]
+            react-jplayer))
+
+(def jplayer (r/adapt-react-class js/Jplayer))
 
 (defn- toggle-player [index player-type media-type
-                      {{:keys [player-row-index current-player-type current-media-type]} :media}]
+                      {{{:keys [player-row-index
+                                current-player-type current-media-type]} :media} :results-view}]
   (let [row-no         (when-not (and (= index @player-row-index)
                                       (= player-type @current-player-type)
                                       (= media-type @current-media-type))
@@ -14,17 +19,16 @@
                          media-type)]
     (reset! player-row-index row-no)
     (reset! current-player-type player-type)
-    (reset! current-media-type media-type)))
+    (reset! current-media-type new-media-type)))
 
 (defn- extract-fields [res]
-  (let [m (re-find #"<who_name\s+(.*?)>(.*)\{\{(.+?)\}\}(.*?)</who_name>$" (:text res))]
+  (let [m (re-find #"<who_name\s+(.*?)>(.*)\{\{(.+?)\}\}(.*?)</who_name>" (:text res))]
     (let [[_ s-id pre match post] m]
       [(str/trim s-id) [pre match post]])))
 
-(defn- main-row [result index a {:keys [corpus] :as m}]
-  (let [corpus* @corpus
-        sound?  (:has-sound corpus*)
-        video?  (:has-video corpus*)]
+(defn- main-row [result index a {:keys [corpus]}]
+  (let [sound? (:has-sound @corpus)
+        video? (:has-video @corpus)]
     ^{:key (hash result)}
     [:tr
      (if (or sound? video?)
@@ -34,19 +38,20 @@
                      :on-click #(toggle-player index "jplayer" "video" a)}
            [b/glyphicon {:glyph "film"}]])
         (when sound?
-          [b/button {:bs-size  "xsmall" :title "Play audio" :style {:width "100%"}
-                     :on-click #(toggle-player index "jplayer" "audio" a)}
-           [b/glyphicon {:glyph "volume-up"}]]
-          [b/button {:bs-size  "xsmall" :title "Show waveform" :style {:width "100%"}
-                     :on-click #(toggle-player index "wfplayer" "audio" a)}
-           [:img {:src "img/waveform.png"}]])])
+          (list ^{:key :audio-btn}
+                [b/button {:bs-size  "xsmall" :title "Play audio" :style {:width "100%"}
+                           :on-click #(toggle-player index "jplayer" "audio" a)}
+                 [b/glyphicon {:glyph "volume-up"}]]
+                ^{:key :waveform-btn}
+                [b/button {:bs-size  "xsmall" :title "Show waveform" :style {:width "100%"}
+                           :on-click #(toggle-player index "wfplayer" "audio" a)}
+                 [:img {:src "img/waveform.png"}]]))])
      (shared/id-column result)
      (shared/text-columns result)]))
 
 (defn- extra-row [result attr {:keys [corpus]}]
-  (let [corpus*      @corpus
-        sound?       (:has-sound corpus*)
-        video?       (:has-video corpus*)
+  (let [sound?       (:has-sound @corpus)
+        video?       (:has-video @corpus)
         match        (first (filter (fn [_ v] (:is-match v))
                                     (get-in result [:media-obj :divs :annotation])))
         row-contents (str/join " " (for [[_ v] (:line match)]
@@ -78,8 +83,8 @@
         (str/join \space $)
         (str/replace $ #"span_class=" "span class=")))
 
-(defmethod concordance-rows :cwb_speech
-  [{:keys [player-row-index current-player-type current-media-type] :as a}
+(defn single-result-rows
+  [{{{:keys [player-row-index current-player-type current-media-type]} :media} :results-view :as a}
    {:keys [corpus] :as m} res index]
   "Returns one or more rows representing a single search result."
   (let [[s-id fields] (extract-fields res)
@@ -91,18 +96,45 @@
         main      (main-row res-info index a m)
         extras    (for [attr []]                            ; TODO: Handle extra attributes
                     (extra-row res-info attr m))
-        media-row (if (= index player-row-index)
-                    (condp = current-player-type
-                      "jplayer"
-                      [:tr
-                       [:td {:col-span 10}
-                        [:Jplayer {:media-obj  (:media-obj res-info)
-                                   :media-type current-media-type
-                                   :ctx_lines  (:initial-context-size @corpus 1)}]]]
-
-                      "wfplayer"
-                      [:tr
-                       [:td {:col-span 10}
-                        [:WFplayer {:media-obj (:media-obj res-info)}]]]))]
+        media-row (when (= index @player-row-index)
+                    )]
     #_(flatten [main extras media-row])
-    main))
+    (list main media-row)))
+
+(defmethod concordance-table :speech_cwb
+  [{{:keys [results page-no] {:keys [player-row-index
+                                     current-player-type
+                                     current-media-type]} :media} :results-view :as a}
+   {:keys [corpus] :as m}]
+  (let [res         (get @results @page-no)
+        hide-player (fn []
+                      (reset! player-row-index nil)
+                      (reset! current-player-type nil)
+                      (reset! current-media-type nil))]
+    [:span
+     (when @player-row-index
+       (let [media-obj (:media-obj (nth res @player-row-index))]
+         [b/modal {:show    true
+                   :on-hide hide-player}
+          [b/modalheader {:close-button true}
+           [b/modaltitle "Video"]]
+          [b/modalbody (condp = @current-player-type
+                         "jplayer"
+                         [:tr
+                          [:td {:col-span 10}
+                           [jplayer {:media-obj  media-obj
+                                     :media-type @current-media-type
+                                     :ctx_lines  (:initial-context-size @corpus 1)}]]]
+
+                         "wfplayer"
+                         [:tr
+                          [:td {:col-span 10}
+                           [:WFplayer {:media-obj media-obj}]]])]
+          [b/modalfooter
+           [b/button {:on-click hide-player} "Close"]]]))
+     [:div.row>div.col-sm-12.search-result-table-container
+      [b/table {:striped true :bordered true}
+       [:tbody
+        (doall (map (partial single-result-rows a m)
+                    res
+                    (range (count res))))]]]]))

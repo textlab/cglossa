@@ -20,6 +20,7 @@
                  [reagent "0.5.1-rc" :exclusions [cljsjs/react]]
                  [cljsjs/react-bootstrap "0.23.7-0"]
                  [cljsjs/jquery "1.9.0-0"]
+                 [cljsjs/jquery-ui "1.11.3-1"]
                  [environ "1.0.0"]
                  [http-kit "2.1.19"]
                  [cljs-http "0.1.35"]
@@ -62,7 +63,14 @@
                     :foreign-libs         [{:file     "resources/public/js/select2.js"
                                             :file-min "resources/public/js/select2-min.js"
                                             :provides ["js-select2"]
-                                            :requires ["cljsjs.jquery"]}]
+                                            :requires ["cljsjs.jquery"]}
+                                           {:file     "resources/public/js/jquery.jplayer.min.js"
+                                            :requires ["cljsjs.jquery"]
+                                            :provides ["js-jplayer"]}
+                                           {:file     "resources/public/js/jplayer.js"
+                                            :provides ["react-jplayer"]
+                                            :requires ["js-jplayer" "cljsjs.react"
+                                                       "cljsjs.jquery-ui"]}]
                     :externs              ["resources/public/js/externs/select2.ext.js"]
                     :pretty-print         true}}}}
 
