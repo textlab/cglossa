@@ -22,6 +22,11 @@
 ;; TODO: Make this configurable?
 (def page-size 50)
 
+;; If the search returns fewer results than we asked for, we assume that no more can be found.
+;; However, since CQP may actually return fewer results than we asked for (even though more can
+;; actually be found), we subtract this margin to be on the safe side.
+(def result-margin 200)
+
 (defn- search-step3 [url params total searching? search-id]
   "Performs an unrestricted search."
   (go
@@ -52,8 +57,9 @@
           ;; Just set the total ratom - we'll postpone fetching any results until the user switches
           ;; to a different result page.
           (reset! total res)
-          (if (< res (* 20 page-size))
-            ;; We found less than 20 search pages of results, so stop searching
+          (if (< res (- (* 20 page-size) result-margin))
+            ;; We found less than 20 search pages (minus the safety margin) of results,
+            ;; so stop searching
             (reset! searching? false)
             (search-step3 url params total searching? search-id)))))))
 
@@ -70,10 +76,9 @@
           ;; Set the results ratom to those results and the total ratom to the number of results.
           (reset! current-results {1 (map cleanup-result result)})
           (reset! total (count result))
-          (if (< (count result) page-size)
-            ;; We found less than one search page of results, so stop searching
-            (reset! searching? false)
-            (search-step2 url params total searching? (:rid search))))))))
+          ;; Since CQP may return fewer than the number or results we asked for, always do at
+          ;; least one more search
+          (search-step2 url params total searching? (:rid search)))))))
 
 (defn- search! [{{queries :queries}                  :search-view
                  {:keys [show? results total page-no
