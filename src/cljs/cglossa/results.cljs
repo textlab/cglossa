@@ -49,9 +49,9 @@
                           (subs search-id 1) "/results")
           start      (* (dec new-page-no) page-size)
           end        (+ start (dec page-size))
-          results-ch (http/get url {:query-params {:start     start
-                                                   :end       end
-                                                   :sort-by   (name @sort-by)}})
+          results-ch (http/get url {:query-params {:start   start
+                                                   :end     end
+                                                   :sort-by (name @sort-by)}})
           {:keys [status success] {{results :result} :search_results} :body} (<! results-ch)]
       (if-not success
         (.log js/console status)
