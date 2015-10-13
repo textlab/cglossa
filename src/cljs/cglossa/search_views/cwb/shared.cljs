@@ -27,16 +27,15 @@
   (go
     (let [results-ch (http/post url {:json-params (merge params {:step      3
                                                                  :cut       nil
-                                                                 :search_id search-id})
-                                     :headers     {"Accept" "application/json"}})
-          {:keys [status success] {{{num-hits :num_hits} :table} :search} :body} (<! results-ch)]
+                                                                 :search-id search-id})})
+          {:keys [status success] {res :result} :body} (<! results-ch)]
       (if-not success
         (.log js/console status)
         (do
           ;; The results from the third request should be the number of results found so far.
           ;; Just set the total ratom (we'll postpone fetching any results until the user switches
           ;; to a different result page) and mark searching as finished.
-          (reset! total num-hits)
+          (reset! total res)
           (reset! searching? false))))))
 
 (defn- search-step2 [url params total searching? search-id]
@@ -44,17 +43,16 @@
   (go
     (let [results-ch (http/post url {:json-params (merge params {:step      2
                                                                  :cut       (* 20 page-size)
-                                                                 :search_id search-id})
-                                     :headers     {"Accept" "application/json"}})
-          {:keys [status success] {{{num-hits :num_hits} :table} :search} :body} (<! results-ch)]
+                                                                 :search-id search-id})})
+          {:keys [status success] {res :result} :body} (<! results-ch)]
       (if-not success
         (.log js/console status)
         (do
           ;; The response from the second request should be the number of results found so far.
           ;; Just set the total ratom - we'll postpone fetching any results until the user switches
           ;; to a different result page.
-          (reset! total num-hits)
-          (if (< num-hits (* 20 page-size))
+          (reset! total res)
+          (if (< res (* 20 page-size))
             ;; We found less than 20 search pages of results, so stop searching
             (reset! searching? false)
             (search-step3 url params total searching? search-id)))))))
@@ -62,10 +60,8 @@
 (defn- search-step1 [url params total searching? current-search current-results]
   "Performs a search restricted to one page of search results."
   (go
-    (let [results-ch (http/post url {:json-params (merge params {:step 1 :cut page-size})
-                                     :headers     {"Accept" "application/json"}})
-          {:keys [status success] {{search :table} :search
-                                   :keys           [result]} :body :as response} (<! results-ch)]
+    (let [results-ch (http/post url {:json-params (merge params {:step 1 :cut page-size})})
+          {:keys [status success] {:keys [search result]} :body :as response} (<! results-ch)]
       (if-not success
         (.log js/console status)
         (do
@@ -95,11 +91,10 @@
                                str/replace #"\bphon=\"([^0-9\"]+)\"" "phon=\"$1[1-4]?\""))
                      ;; For other languages, leave the queries unmodified
                      @queries)
-            url    (str "search_engines/" (:search-engine @corpus "cwb") "_searches")
-            params {:corpus_id (:rid @corpus)
+            url    "/search"
+            params {:corpus-id (:rid @corpus)
                     :queries   q
-                    :max_hits  2000
-                    :sort_by   (name @sort-by)}]
+                    :sort-by   @sort-by}]
         (reset! show? true)
         (reset! results nil)
         (reset! searching? true)
