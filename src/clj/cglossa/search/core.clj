@@ -31,7 +31,7 @@
                            (transform-results corpus results-or-count)
                            ;; On subsequent searches, which just retrieve more results from
                            ;; the same query, we just get the number of results found (so far)
-                           (first results-or-count))]
+                           (Integer/parseInt (first results-or-count)))]
     {:search (dissoc search :class)
      :result result}))
 

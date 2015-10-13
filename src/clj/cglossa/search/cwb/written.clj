@@ -12,7 +12,7 @@
         named-query (cwb-query-name corpus search-id)
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
                      (cwb-corpus-name corpus queries)
-                     (construct-query-commands corpus queries named-query search-id 100)
+                     (construct-query-commands corpus queries named-query search-id cut)
                      (when (> step 1)
                        (str "save " named-query))
                      (str "set Context 1 s")
