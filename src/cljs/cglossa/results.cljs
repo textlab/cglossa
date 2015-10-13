@@ -11,9 +11,11 @@
 (defn- results-info [{{total :total} :results-view searching? :searching?}]
   [:div.col-sm-5
    (if (pos? @total)
-     (if @searching?
-       (str "Showing the first " @total " matches; searching for more...")
-       (str "Found " @total " matches"))
+     (let [npages    (-> (/ @total page-size) Math/ceil int)
+           pages-str (if (= npages 1) " page" " pages")]
+       (if @searching?
+         (str "Showing the first " @total " matches (" npages pages-str "); searching for more...")
+         (str "Found " @total " matches (" npages " pages)")))
      (when @searching? "Searching..."))])
 
 (defn- sort-button [{{sb :sort-by total :total} :results-view searching? :searching? :as a} m]
