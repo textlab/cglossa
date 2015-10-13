@@ -25,7 +25,7 @@
                  [http-kit "2.1.19"]
                  [cljs-http "0.1.35"]
                  [prone "0.8.2"]
-                 [com.orientechnologies/orientdb-graphdb "2.1-rc3"]
+                 [com.orientechnologies/orientdb-graphdb "2.1.2"]
                  [org.clojure/data.csv "0.1.2"]
                  [me.raynes/conch "0.8.0"]
                  [me.raynes/fs "1.4.6"]
