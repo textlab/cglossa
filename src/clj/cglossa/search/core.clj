@@ -4,15 +4,15 @@
 (defmulti run-queries
   "Multimethod for actually running the received queries in a way that is
   appropriate for the search engine of the corpus in question."
-  (fn [corpus _ _ _ _ _] (keyword (:search_engine corpus))))
+  (fn [corpus _ _ _ _ _] (:search_engine corpus)))
 
 (defmulti get-results
-  (fn [corpus _ _ _ _] (keyword (:search_engine corpus))))
+  (fn [corpus _ _ _ _] (:search_engine corpus)))
 
 (defmulti transform-results
   "Multimethod for transforming search results in a way that is
   appropriate for the search engine of the corpus in question."
-  (fn [corpus _] (keyword (:search_engine corpus))))
+  (fn [corpus _] (:search_engine corpus)))
 
 (defn- create-search [corpus queries]
   (let [search (db/vertex->map (db/run-sql "create vertex Search set queries = ?" [(str queries)]))]

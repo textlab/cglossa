@@ -101,7 +101,7 @@
     #_(flatten [main extras media-row])
     (list main media-row)))
 
-(defmethod concordance-table :speech_cwb
+(defmethod concordance-table :cwb-speech
   [{{:keys [results page-no] {:keys [player-row-index
                                      current-player-type
                                      current-media-type]} :media} :results-view :as a}
