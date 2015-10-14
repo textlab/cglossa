@@ -99,20 +99,14 @@
                :on-click   #(set-page % (dec @paginator-page-no))}
            [:span {:aria-hidden "true"} "‹"]]]
          [:li
-          [:select.form-control.input-sm {:style     {:direction        "rtl"
-                                                      :width            60
-                                                      :float            "left"
-                                                      :border-radius    0
-                                                      :height           27
-                                                      :line-height      27
-                                                      :border           0
-                                                      :outline          "1px solid #ddd"
-                                                      :margin-top       1
-                                                      :background-color "white"}
-                                          :value     @paginator-page-no
-                                          :on-change #(set-page % (.-target.value %))}
-           (for [i (range 1 (inc (last-page-no)))]
-             ^{:key i} [:option {:value i} i])]]
+          [:input.form-control.input-sm {:style     {:text-align    "right"
+                                                     :width         60
+                                                     :float         "left"
+                                                     :height        29
+                                                     :border-radius 0}
+                                         :value     @paginator-page-no
+                                         :on-click  #(.select (.-target %))
+                                         :on-change #(set-page % (.-target.value %))}]]
          [:li {:class-name (when (= @paginator-page-no (last-page-no))
                              "disabled")}
           [:a {:href       "#"
