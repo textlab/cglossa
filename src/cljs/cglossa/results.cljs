@@ -1,6 +1,7 @@
 (ns cglossa.results
   (:require-macros [cljs.core.async.macros :refer [go]])
-  (:require [reagent.core :as r]
+  (:require [clojure.string :as str]
+            [reagent.core :as r]
             [cljs-http.client :as http]
             [cljs.core.async :refer [<!]]
             [cglossa.search-views.shared :refer [search-inputs]]
@@ -74,7 +75,8 @@
             (when (= new-page-no @paginator-page-no)
               (reset! page-no new-page-no))))))))
 
-(defn- pagination [{{:keys [results total page-no paginator-page-no]} :results-view :as a}
+(defn- pagination [{{:keys [results total page-no
+                            paginator-page-no paginator-text-val]} :results-view :as a}
                    {:keys [search]}]
   (let [last-page-no #(inc (quot @total page-size))
         set-page     (fn [e n]
@@ -85,13 +87,29 @@
                            ;; differ from the page shown in the result table until we have
                            ;; actually fetched the data from the server
                            (reset! paginator-page-no new-page-no)
+                           (reset! paginator-text-val new-page-no)
                            (if (get @results new-page-no)
                              ;; The selected result page has already been fetched from the
                              ;; server and can be shown in the result table immediately
                              (reset! page-no new-page-no)
                              ;; Otherwise, we need to fetch the results from the server
                              ;; before setting page-no in the top-level app-data structure
-                             (fetch-results! a (:rid @search) new-page-no)))))]
+                             (fetch-results! a (:rid @search) new-page-no)))))
+        on-key-down  (fn [e]
+                       (when (= "Enter" (.-key e))
+                         (if (str/blank? @paginator-text-val)
+                           ;; If the text field is blank when we hit Enter, set its value
+                           ;; to the last selected page number instead
+                           (reset! paginator-text-val @paginator-page-no)
+                           ;; Otherwise, make sure the entered number is within valid
+                           ;; bounds and set it to be the new selected page
+                           (let [last    (last-page-no)
+                                 new-val (as-> @paginator-text-val v
+                                               (js/parseInt v)
+                                               (if (pos? v) v 1)
+                                               (if (<= v last) v last))]
+                             (set-page e new-val)))))
+        ]
     (when (> @total page-size)
       [:div.pull-right
        [:nav
@@ -111,14 +129,21 @@
                :on-click   #(set-page % (dec @paginator-page-no))}
            [:span {:aria-hidden "true"} "‹"]]]
          [:li
-          [:input.form-control.input-sm {:style     {:text-align    "right"
-                                                     :width         60
-                                                     :float         "left"
-                                                     :height        29
-                                                     :border-radius 0}
-                                         :value     @paginator-page-no
-                                         :on-click  #(.select (.-target %))
-                                         :on-change #(set-page % (.-target.value %))}]]
+          [:input.form-control.input-sm
+           {:style       {:text-align    "right"
+                          :width         60
+                          :float         "left"
+                          :height        29
+                          :border-radius 0}
+            :value       @paginator-text-val
+            :on-click    #(.select (.-target %))
+            :on-change   (fn [e]
+                           (let [v (.-target.value e)]
+                             ;; Allow the text field to contain a number or be blank while
+                             ;; we are editing it
+                             (when (or (integer? (js/parseInt v)) (str/blank? v))
+                               (reset! paginator-text-val v))))
+            :on-key-down on-key-down}]]
          [:li {:class-name (when (= @paginator-page-no (last-page-no))
                              "disabled")}
           [:a {:href       "#"

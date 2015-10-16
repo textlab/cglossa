@@ -80,10 +80,11 @@
           ;; least one more search
           (search-step2 url params total searching? (:rid search)))))))
 
-(defn- search! [{{queries :queries}                  :search-view
+(defn- search! [{{queries :queries}                   :search-view
                  {:keys [show? results total page-no
-                         paginator-page-no sort-by]} :results-view
-                 searching?                          :searching?}
+                         paginator-page-no
+                         paginator-text-val sort-by]} :results-view
+                 searching?                           :searching?}
                 {:keys [corpus search]}]
   (let [first-query (:query (first @queries))]
     (when (and first-query
@@ -106,6 +107,7 @@
         (reset! total 0)
         (reset! page-no 1)
         (reset! paginator-page-no 1)
+        (reset! paginator-text-val 1)
         (search-step1 url params total searching? search results)))))
 
 (defn on-key-down [event a m]

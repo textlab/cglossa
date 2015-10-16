@@ -15,16 +15,25 @@
 
 (defonce app-state {:narrow-view?      (r/atom (narrow-view?))
                     :showing-sidebar?  (r/atom false)
-                    :results-view      {:show?             (r/atom false)
-                                        :results           (r/atom nil)
-                                        :total             (r/atom 0)
-                                        :page-no           (r/atom 1)
-                                        :paginator-page-no (r/atom 1)
-                                        :sort-by           (r/atom :position)
-                                        :freq-attr         (r/atom nil)
-                                        :media             {:player-row-index    (r/atom nil)
-                                                            :current-player-type (r/atom nil)
-                                                            :current-media-type  (r/atom nil)}}
+                    :results-view      {:show?              (r/atom false)
+                                        :results            (r/atom nil)
+                                        :total              (r/atom 0)
+                                        :page-no            (r/atom 1)
+                                        ;; This is the page selected in the result paginator;
+                                        ;; it may differ from the one shown in the result table
+                                        ;; until the selected page has been fetched from the server
+                                        :paginator-page-no  (r/atom 1)
+                                        ;; This is the value shown in the paginator text input.
+                                        ;; It may differ from paginator-page-no while we are
+                                        ;; manually editing the value, but will be set equal
+                                        ;; to paginator-page-no when we hit Enter after editing
+                                        ;; or we select a different page using the paging buttons.
+                                        :paginator-text-val (r/atom 1)
+                                        :sort-by            (r/atom :position)
+                                        :freq-attr          (r/atom nil)
+                                        :media              {:player-row-index    (r/atom nil)
+                                                             :current-player-type (r/atom nil)
+                                                             :current-media-type  (r/atom nil)}}
                     :search-view       {:view-type (r/atom :simple)
                                         :queries   (r/atom [#_{:query "[word=\"han\" %c] []{1,2} [word=\"er\" %c]"}
                                                             #_{:query "[word=\"de\" %c] [word=\"sa\" %c]"}
