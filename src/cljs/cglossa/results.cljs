@@ -45,24 +45,37 @@
      [b/menuitem {:event-key :lemma, :on-select on-select} "Lemmas"]
      [b/menuitem {:event-key :pos, :on-select on-select} "Parts-of-speech"]]))
 
-(defn- fetch-results! [corpus search-id current-results page-no new-page-no sort-by]
-  (go
-    (let [url        (str "search_engines/" (:search-engine @corpus "cwb") "_searches/"
-                          (subs search-id 1) "/results")
-          start      (* (dec new-page-no) page-size)
-          end        (+ start (dec page-size))
-          results-ch (http/get url {:query-params {:start   start
-                                                   :end     end
-                                                   :sort-by (name @sort-by)}})
-          {:keys [status success] {{results :result} :search_results} :body} (<! results-ch)]
-      (if-not success
-        (.log js/console status)
-        (do
-          (swap! current-results assoc new-page-no results)
-          (reset! page-no new-page-no))))))
+;; Set of result pages currently being fetched. This is temporary application state that we
+;; don't want as part of the top-level app-state ratom
+(def fetching-pages (atom #{}))
 
-(defn- pagination [{{:keys [results total page-no paginator-page-no sort-by]} :results-view}
-                   {:keys [corpus search]}]
+(defn- fetch-results! [{{:keys [paginator-page-no]} :results-view}
+                       search-id current-results page-no new-page-no sort-by]
+  ;; Don't fetch the page if we already have a request for the same page in flight
+  (when-not (get @fetching-pages new-page-no)
+    ;; Register the new page as being fetched
+    (swap! fetching-pages conj new-page-no)
+    (go
+     (let [start      (* (dec new-page-no) page-size)
+           end        (+ start (dec page-size))
+           results-ch (http/get "/results" {:query-params {:search-id search-id
+                                                           :start     start
+                                                           :end       end
+                                                           :sort-by   sort-by}})
+           {:keys [status success] results :body} (<! results-ch)]
+       ;; Remove the new page from the set of pages currently being fetched
+       (swap! fetching-pages disj new-page-no)
+       (if-not success
+         (.log js/console status)
+         (do
+           (swap! current-results assoc new-page-no results)
+           ;; Don't show the fetched page if we have already selected another page in the
+           ;; paginator while we were waiting for the request to finish
+           (when (= new-page-no @paginator-page-no)
+             (reset! page-no new-page-no))))))))
+
+(defn- pagination [{{:keys [results total page-no paginator-page-no sort-by]} :results-view :as a}
+                   {:keys [search]}]
   (let [last-page-no #(inc (quot @total page-size))
         set-page     (fn [e n]
                        (.preventDefault e)
@@ -78,7 +91,7 @@
                              (reset! page-no new-page-no)
                              ;; Otherwise, we need to fetch the results from the server
                              ;; before setting page-no in the top-level app-data structure
-                             (fetch-results! corpus (:rid @search) results
+                             (fetch-results! a (:rid @search) results
                                              page-no new-page-no sort-by)))))]
     (when (> @total page-size)
       [:div.pull-right
