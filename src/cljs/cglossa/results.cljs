@@ -108,8 +108,7 @@
                                                (js/parseInt v)
                                                (if (pos? v) v 1)
                                                (if (<= v last) v last))]
-                             (set-page e new-val)))))
-        ]
+                             (set-page e new-val)))))]
     (when (> @total page-size)
       [:div.pull-right
        [:nav
