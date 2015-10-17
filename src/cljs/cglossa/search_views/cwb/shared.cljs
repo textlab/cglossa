@@ -66,15 +66,18 @@
 (defn- search-step1 [url params total searching? current-search current-results]
   "Performs a search restricted to one page of search results."
   (go
-    (let [results-ch (http/post url {:json-params (merge params {:step 1 :cut page-size})})
-          {:keys [status success] {:keys [search result]} :body :as response} (<! results-ch)]
+    (let [results-ch (http/post url {:json-params (merge params {:step 1 :cut (* 2 page-size)})})
+          {:keys [status success] {:keys [search result]} :body} (<! results-ch)]
       (if-not success
         (.log js/console status)
         (do
           (swap! current-search merge search)
-          ;; The response from the first request should be (at most) one page of search results.
+          ;; The response from the first request should be (at most) two pages of search results.
           ;; Set the results ratom to those results and the total ratom to the number of results.
-          (reset! current-results {1 (map cleanup-result result)})
+          (reset! current-results (into {} (map (fn [page-index res]
+                                                  [(inc page-index) (map cleanup-result res)])
+                                                (range)
+                                                (partition-all page-size result))))
           (reset! total (count result))
           ;; Since CQP may return fewer than the number or results we asked for, always do at
           ;; least one more search
