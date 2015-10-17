@@ -119,8 +119,7 @@
     {:corpus              {:rid                 (:corpus_rid res)
                            :name                (:corpus_name res)
                            :logo                (:logo res)
-                           :search-engine       (keyword (str/replace (:search_engine res :cwb)
-                                                                      "_" "-"))
+                           :search-engine       (:search_engine res :cwb)
                            :has-phonetic        (:has_phonetic res)
                            :has-headword-search (:has_headword_search res)}
      :metadata-categories (-> (map (fn [rid name] {:rid rid :name name})

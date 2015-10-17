@@ -11,7 +11,7 @@
 (def ^:private display-attrs [:lemma :phon :pos :gender :num :type :defn
                               :temp :pers :case :degr :descr :nlex :mood :voice])
 
-(defmethod run-queries :cwb-speech [corpus search queries step cut sort-by]
+(defmethod run-queries "cwb_speech" [corpus search queries step cut sort-by]
   (let [search-id   (:rid search)
         named-query (cwb-query-name corpus search-id)
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
@@ -33,7 +33,7 @@
                        "size Last")]]
     (run-cqp-commands corpus (flatten commands))))
 
-(defmethod get-results :cwb-speech [corpus search-id start end sort-by]
+(defmethod get-results "cwb_speech" [corpus search-id start end sort-by]
   (let [named-query (cwb-query-name corpus search-id)
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
                      (str/upper-case (:code corpus))
@@ -100,7 +100,7 @@
      :min_start         0
      :max_end           last-line-index}))
 
-(defmethod transform-results :cwb-speech [corpus results]
+(defmethod transform-results "cwb_speech" [corpus results]
   (for [result results
         :let [result*           (fix-brace-positions result)
               [starttimes endtimes] (find-timestamps result*)
