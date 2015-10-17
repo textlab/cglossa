@@ -48,32 +48,62 @@
 
 ;; Set of result pages currently being fetched. This is temporary application state that we
 ;; don't want as part of the top-level app-state ratom
-(def fetching-pages (atom #{}))
+(def ^:private fetching-pages (atom #{}))
+(def ^:private result-window-halfsize 1)
 
-(defn- fetch-results! [{{:keys [results page-no paginator-page-no sort-by]} :results-view}
-                       search-id new-page-no]
-  ;; Don't fetch the page if we already have a request for the same page in flight
-  (when-not (get @fetching-pages new-page-no)
-    ;; Register the new page as being fetched
-    (swap! fetching-pages conj new-page-no)
-    (go
-      (let [start      (* (dec new-page-no) page-size)
-            end        (+ start (dec page-size))
-            results-ch (http/get "/results" {:query-params {:search-id search-id
-                                                            :start     start
-                                                            :end       end
-                                                            :sort-by   sort-by}})
-            {:keys [status success] page-results :body} (<! results-ch)]
-        ;; Remove the new page from the set of pages currently being fetched
-        (swap! fetching-pages disj new-page-no)
-        (if-not success
-          (.log js/console status)
-          (do
-            (swap! results assoc new-page-no page-results)
-            ;; Don't show the fetched page if we have already selected another page in the
-            ;; paginator while we were waiting for the request to finish
-            (when (= new-page-no @paginator-page-no)
-              (reset! page-no new-page-no))))))))
+(defn- fetch-result-window!
+  "Fetches a window of search result pages centred on centre-page-no. Ignores pages that have
+  already been fetched or that are currently being fetched in another request (note that such
+  pages can only be located at the edges of the window, and not as 'holes' within the window,
+  since they must have been fetched as part of an earlier window)."
+  [{{:keys [results sort-by]} :results-view} search-id centre-page-no last-page-no]
+  ;; Enclose the whole procedure in a go block. This way, the function will return the channel
+  ;; returned by the go block, which will receive
+  (go
+    (let [;; Make sure the edges of the window are between 1 and last-page-no
+          start-page (max (- centre-page-no result-window-halfsize) 1)
+          end-page   (min (+ centre-page-no result-window-halfsize) last-page-no)
+          _          (.log js/console start-page)
+          _          (.log js/console end-page)
+          page-nos   (as-> (range start-page (inc end-page)) $
+                           ;; Ignore pages currently being fetched by another request
+                           (remove #(contains? @fetching-pages %) $)
+                           ;; Ignore pages that have already been fetched
+                           (remove #(contains? @results %) $)
+                           ;; Create a new sequence to make sure we didn't create any "holes" in
+                           ;; it (although that should not really happen in practice since we
+                           ;; always fetch whole windows of pages)
+                           (if (empty? $)
+                             $
+                             (range (first $) (inc (last $)))))]
+      (if (empty? page-nos)
+        ;; All pages are either being fetched or already fetched, so just return a keyword on the
+        ;; channel returned by the go block and hence the function
+        ::no-pages-to-fetch
+
+        (let [;; Calculate the first and last result index (zero-based) to request from the server
+              first-result (* page-size (dec (first page-nos)))
+              last-result  (dec (* page-size (last page-nos)))
+              _            (.log js/console page-nos)
+              _            (.log js/console first-result)
+              _            (.log js/console last-result)
+              results-ch   (http/get "/results" {:query-params {:search-id search-id
+                                                                :start     first-result
+                                                                :end       last-result
+                                                                :sort-by   @sort-by}})
+              ;; Parks until results are available on the core.async channel
+              {:keys [status success] req-result :body} (<! results-ch)]
+          ;; Register the pages as being fetched
+          (swap! fetching-pages #(apply conj % page-nos))
+          ;; Remove the pages from the set of pages currently being fetched
+          (swap! fetching-pages #(apply disj % page-nos))
+          (if-not success
+            (.log js/console status)
+            ;; Add the fetched pages to the top-level results ratom
+            (swap! results merge (zipmap page-nos (partition-all page-size req-result))))
+          ;; This keyword will be put on the channel returned by the go block
+          ;; and hence the function
+          ::fetched-pages)))))
 
 (defn- pagination [{{:keys [results total page-no
                             paginator-page-no paginator-text-val]} :results-view :as a}
@@ -81,20 +111,32 @@
   (let [last-page-no #(inc (quot @total page-size))
         set-page     (fn [e n]
                        (.preventDefault e)
-                       (let [new-page-no (js/parseInt n)]
-                         (when (<= 1 new-page-no (last-page-no))
+                       (let [new-page-no (js/parseInt n)
+                             last        (last-page-no)]
+                         (when (<= 1 new-page-no last)
                            ;; Set the value of the page number shown in the paginator; it may
                            ;; differ from the page shown in the result table until we have
                            ;; actually fetched the data from the server
                            (reset! paginator-page-no new-page-no)
                            (reset! paginator-text-val new-page-no)
-                           (if (get @results new-page-no)
-                             ;; The selected result page has already been fetched from the
-                             ;; server and can be shown in the result table immediately
-                             (reset! page-no new-page-no)
-                             ;; Otherwise, we need to fetch the results from the server
-                             ;; before setting page-no in the top-level app-data structure
-                             (fetch-results! a (:rid @search) new-page-no)))))
+                           (if (contains? @results new-page-no)
+                             (do
+                               ;; If the selected result page has already been fetched from the
+                               ;; server, it can be shown in the result table immediately
+                               (reset! page-no new-page-no)
+                               ;; If necessary, fetch any result pages in a window centred around
+                               ;; the selected page in order to speed up pagination to nearby
+                               ;; pages. No need to wait for it to finish though.
+                               (fetch-result-window! a (:rid @search) new-page-no last))
+                             (go
+                               ;; Otherwise, we need to park until the results from the server
+                               ;; arrive before setting the page to be shown in the result table
+                               (<! (fetch-result-window! a (:rid @search) new-page-no last))
+                               ;; Don't show the fetched page if we have already selected another
+                               ;; page in the paginator while we were waiting for the request
+                               ;; to finish
+                               (when (= new-page-no @paginator-page-no)
+                                 (reset! page-no new-page-no)))))))
         on-key-down  (fn [e]
                        (when (= "Enter" (.-key e))
                          (if (str/blank? @paginator-text-val)
