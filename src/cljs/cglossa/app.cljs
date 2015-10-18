@@ -1,5 +1,5 @@
 (ns cglossa.app
-  (:require [cglossa.left :refer [metadata-list]]
+  (:require [cglossa.metadata-list :refer [metadata-list]]
             [cglossa.start :refer [start]]
             [cglossa.results :refer [results]]
             [cglossa.react-adapters.bootstrap :as b]))

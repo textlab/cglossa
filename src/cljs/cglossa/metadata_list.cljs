@@ -1,4 +1,4 @@
-(ns cglossa.left
+(ns cglossa.metadata-list
   (:require [reagent.core :as r]
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.select2 :as s]))
