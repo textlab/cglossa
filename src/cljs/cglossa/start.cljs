@@ -12,7 +12,6 @@
      (:name @corpus)
      (when-let [logo (:logo @corpus)]
        (let [logo-path (if (or (.startsWith logo "http:") (.startsWith logo "https:")) logo (str "img/" logo))]
-         (.log js/console logo-path)
          [:img.corpus-logo {:src (str logo-path)}]))]]])
 
 (defn start [{:keys [num-resets] :as a} m]
