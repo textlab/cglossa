@@ -20,17 +20,16 @@
       [start a m])]])
 
 (defn app [a {:keys [corpus] :as m}]
-  (let [cls (if (empty? (:metadata-categories @corpus)) "span12" "span9")]
-    [:div
-     [header]
-     (when @corpus
-       [:div.table-display
-        [:div.table-row
-         [css-transition-group {:transitionName "metadata"}
-          (when (showing-metadata? a m)
-            ^{:key "metadata-list"}
-            [:div.table-cell.metadata
-             [metadata-list a m]])]
-         [:div.table-cell
-          [main-area a m]]]])
-     [:div.app-footer>img.textlab-logo {:src "img/tekstlab.gif"}]]))
+  [:div
+   [header]
+   (when @corpus
+     [:div.table-display
+      [:div.table-row
+       [css-transition-group {:transitionName "metadata"}
+        (when (showing-metadata? a m)
+          ^{:key "metadata-list"}
+          [:div.table-cell.metadata
+           [metadata-list a m]])]
+       [:div.table-cell
+        [main-area a m]]]])
+   [:div.app-footer>img.textlab-logo {:src "img/tekstlab.gif"}]])
