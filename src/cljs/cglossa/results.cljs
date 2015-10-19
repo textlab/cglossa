@@ -65,8 +65,6 @@
     (let [;; Make sure the edges of the window are between 1 and last-page-no
           start-page (max (- centre-page-no result-window-halfsize) 1)
           end-page   (min (+ centre-page-no result-window-halfsize) last-page-no)
-          _          (.log js/console start-page)
-          _          (.log js/console end-page)
           page-nos   (as-> (range start-page (inc end-page)) $
                            ;; Ignore pages currently being fetched by another request
                            (remove #(contains? @fetching-pages %) $)
@@ -86,9 +84,6 @@
         (let [;; Calculate the first and last result index (zero-based) to request from the server
               first-result (* page-size (dec (first page-nos)))
               last-result  (dec (* page-size (last page-nos)))
-              _            (.log js/console page-nos)
-              _            (.log js/console first-result)
-              _            (.log js/console last-result)
               results-ch   (http/get "/results" {:query-params {:search-id search-id
                                                                 :start     first-result
                                                                 :end       last-result
