@@ -58,7 +58,9 @@
   since they must have been fetched as part of an earlier window)."
   [{{:keys [results sort-by]} :results-view} search-id centre-page-no last-page-no]
   ;; Enclose the whole procedure in a go block. This way, the function will return the channel
-  ;; returned by the go block, which will receive
+  ;; returned by the go block, which will receive the value of the body of the go block when
+  ;; it is done parking on channels. Hence, by reading from that channel we know when the
+  ;; results have arrived.
   (go
     (let [;; Make sure the edges of the window are between 1 and last-page-no
           start-page (max (- centre-page-no result-window-halfsize) 1)
