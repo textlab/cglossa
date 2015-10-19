@@ -1,17 +1,21 @@
 (ns cglossa.shared
   (:require [cglossa.react-adapters.bootstrap :as b]))
 
-(defn showing-metadata? [{:keys [show-metadata? narrow-view?]}
+(defn showing-metadata? [{:keys [show-metadata? narrow-view?]
+                          {:keys [show-results?]} :results-view}
                          {:keys [metadata-categories]}]
   (cond
     ;; Don't show metadata if the corpus doesn't have any (duh!)
     (empty? @metadata-categories) false
     ;; If show-metadata is non-nil, the user has explicitly chosen whether to see metadata,
-    ;; so we unconditionally respect that
+    ;; so we respect that unconditionally
     (some? @show-metadata?) @show-metadata?
-    ;; Now that we know that we have metadata and that the user has not explicitly chosen
-    ;; whether to see them, we let the window size decide
-    :else (not @narrow-view?)))
+    ;; Now we know that we have metadata, and that the user has not explicitly chosen
+    ;; whether to see them. If we are showing search results, we hide the metadata if the
+    ;; window is narrow; if instead we are showing the start page, we show the metadata
+    ;; regardless of window size.
+    @show-results? (not @narrow-view?)
+    :else true))
 
 (defn top-toolbar [{:keys [num-resets show-metadata?] {:keys [queries]} :search-view :as a} m]
   [:div.col-sm-5
