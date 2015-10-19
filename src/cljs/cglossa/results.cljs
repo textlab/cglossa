@@ -51,12 +51,19 @@
 (def ^:private fetching-pages (atom #{}))
 (def ^:private result-window-halfsize 1)
 
+(defmulti cleanup-result
+  "Multimethod that accepts two arguments - a model/domain state map and a
+  single search result - and dispatches to the correct method based on the
+  value of :search-engine in the corpus map found in the model/domain state
+  map. The :default case implements CWB support."
+  (fn [{corpus :corpus} _] (:search-engine @corpus)))
+
 (defn- fetch-result-window!
   "Fetches a window of search result pages centred on centre-page-no. Ignores pages that have
   already been fetched or that are currently being fetched in another request (note that such
   pages can only be located at the edges of the window, and not as 'holes' within the window,
   since they must have been fetched as part of an earlier window)."
-  [{{:keys [results sort-by]} :results-view} search-id centre-page-no last-page-no]
+  [{{:keys [results sort-by]} :results-view} m search-id centre-page-no last-page-no]
   ;; Enclose the whole procedure in a go block. This way, the function will return the channel
   ;; returned by the go block, which will receive the value of the body of the go block when
   ;; it is done parking on channels. Hence, by reading from that channel we know when the
@@ -97,14 +104,17 @@
           (if-not success
             (.log js/console status)
             ;; Add the fetched pages to the top-level results ratom
-            (swap! results merge (zipmap page-nos (partition-all page-size req-result))))
+            (swap! results merge (zipmap page-nos
+                                         (partition-all page-size
+                                                        (map (partial cleanup-result m)
+                                                             req-result)))))
           ;; This keyword will be put on the channel returned by the go block
           ;; and hence the function
           ::fetched-pages)))))
 
 (defn- pagination [{{:keys [results total page-no
                             paginator-page-no paginator-text-val]} :results-view :as a}
-                   {:keys [search]}]
+                   {:keys [search] :as m}]
   (let [last-page-no #(inc (quot (dec @total) page-size))
         set-page     (fn [e n]
                        (.preventDefault e)
@@ -124,11 +134,11 @@
                                ;; If necessary, fetch any result pages in a window centred around
                                ;; the selected page in order to speed up pagination to nearby
                                ;; pages. No need to wait for it to finish though.
-                               (fetch-result-window! a (:rid @search) new-page-no last))
+                               (fetch-result-window! a m (:rid @search) new-page-no last))
                              (go
                                ;; Otherwise, we need to park until the results from the server
                                ;; arrive before setting the page to be shown in the result table
-                               (<! (fetch-result-window! a (:rid @search) new-page-no last))
+                               (<! (fetch-result-window! a m (:rid @search) new-page-no last))
                                ;; Don't show the fetched page if we have already selected another
                                ;; page in the paginator while we were waiting for the request
                                ;; to finish

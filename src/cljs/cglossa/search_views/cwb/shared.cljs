@@ -3,9 +3,10 @@
   (:require [clojure.string :as str]
             [cljs-http.client :as http]
             [cljs.core.async :refer [<!]]
+            [cglossa.results :refer [cleanup-result]]
             [cglossa.react-adapters.bootstrap :as b]))
 
-(defn- cleanup-result [result]
+(defmethod cleanup-result :default [_ result]
   (update result :text
           #(-> %
                ;; Remove the beginning of the search result, which will be a position number in the
@@ -63,7 +64,7 @@
             (reset! searching? false)
             (search-step3 url params total searching? search-id)))))))
 
-(defn- search-step1 [url params total searching? current-search current-results]
+(defn- search-step1 [m url params total searching? current-search current-results]
   "Performs a search restricted to one page of search results."
   (go
     (let [results-ch (http/post url {:json-params (merge params {:step 1 :cut (* 2 page-size)})})
@@ -75,7 +76,8 @@
           ;; The response from the first request should be (at most) two pages of search results.
           ;; Set the results ratom to those results and the total ratom to the number of results.
           (reset! current-results (into {} (map (fn [page-index res]
-                                                  [(inc page-index) (map cleanup-result res)])
+                                                  [(inc page-index)
+                                                   (map (partial cleanup-result m) res)])
                                                 (range)
                                                 (partition-all page-size result))))
           (reset! total (count result))
@@ -88,7 +90,7 @@
                          paginator-page-no
                          paginator-text-val sort-by]} :results-view
                  searching?                           :searching?}
-                {:keys [corpus search]}]
+                {:keys [corpus search] :as m}]
   (let [first-query (:query (first @queries))]
     (when (and first-query
                (not= first-query "\"\""))
@@ -111,7 +113,7 @@
         (reset! page-no 1)
         (reset! paginator-page-no 1)
         (reset! paginator-text-val 1)
-        (search-step1 url params total searching? search results)))))
+        (search-step1 m url params total searching? search results)))))
 
 (defn on-key-down [event a m]
   (when (= "Enter" (.-key event))
