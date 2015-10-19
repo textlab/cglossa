@@ -225,7 +225,7 @@
 (defn results [{:keys [num-resets] :as a} m]
   [:div
    [:div.row
-    [top-toolbar a]
+    [top-toolbar a m]
     [results-info a]]
    ^{:key @num-resets} [search-inputs a m]                  ; See comments in cglossa.start
    [b/tabbedarea {:style              {:margin-top 15}

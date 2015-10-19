@@ -99,7 +99,7 @@ div.interval {
 
 .metadata-category {
   margin-top: 10px;
-  margin-left: 10px;
+  margin-left: 15px;
 }
 
 .multiword-search-form {
@@ -142,11 +142,6 @@ div.interval {
 }
 
 .row-fluid {
-  /* Remove the left margin when we collapse the sidebar */
-  .no-sidebar {
-    margin-left: 0;
-  }
-
   input.max-hits[class*="span"] {
     margin-top: 7px;
     margin-left: 2px;
@@ -183,16 +178,26 @@ div.interval {
   }
 }
 
-.sidebar {
-  transition: width .1s;
+.metadata {
+  width: 170px;
+}
 
-  &.sidebar-enter {
-    width: 0 !important;
-  }
+.metadata-enter {
+  max-width: 0;
+  transition: max-width .1s ease;
+}
 
-  &.sidebar-leave-active {
-    width: 0 !important;
-  }
+.metadata-enter.metadata-enter-active {
+  max-width: 170px;
+}
+
+.metadata-leave {
+  max-width: 170px;
+  transition: max-width .1s ease;
+}
+
+.metadata-leave.metadata-leave-active {
+  max-width: 0;
 }
 
 .table-display {

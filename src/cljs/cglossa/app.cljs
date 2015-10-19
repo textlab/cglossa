@@ -1,26 +1,36 @@
 (ns cglossa.app
-  (:require [cglossa.metadata-list :refer [metadata-list]]
+  (:require [cljsjs.react]
+            [reagent.core :as r]
+            [cglossa.shared :refer [showing-metadata?]]
+            [cglossa.metadata-list :refer [metadata-list]]
             [cglossa.start :refer [start]]
             [cglossa.results :refer [results]]
             [cglossa.react-adapters.bootstrap :as b]))
 
+(def css-transition-group (r/adapt-react-class js/React.addons.CSSTransitionGroup))
+
 (defn- header []
   [b/navbar {:fixedTop true :brand "Glossa"}])
 
-(defn- main-area [{{:keys [show?]} :results-view :as a} m]
-  [:div#page-content-wrapper
-   [:div.container-fluid {:style {:padding-left 50}}
-    [:div.row>div#main-content.col-sm-12
-     (if @show?
-       [results a m]
-       [start a m])]]])
+(defn- main-area [{{show-results? :show?} :results-view :as a} m]
+  [:div.container-fluid {:style {:padding-left 50}}
+   [:div.row>div#main-content.col-sm-12
+    (if @show-results?
+      [results a m]
+      [start a m])]])
 
-(defn app [{:keys [showing-sidebar? narrow-view?] :as a} {:keys [corpus] :as m}]
+(defn app [a {:keys [corpus] :as m}]
   (let [cls (if (empty? (:metadata-categories @corpus)) "span12" "span9")]
     [:div
      [header]
      (when @corpus
-       [:div#wrapper {:class-name (when (or @showing-sidebar? (not @narrow-view?)) "toggled")}
-        [metadata-list a m]
-        [main-area a m]])
+       [:div.table-display
+        [:div.table-row
+         [css-transition-group {:transitionName "metadata"}
+          (when (showing-metadata? a m)
+            ^{:key "metadata-list"}
+            [:div.table-cell.metadata
+             [metadata-list a m]])]
+         [:div.table-cell
+          [main-area a m]]]])
      [:div.app-footer>img.textlab-logo {:src "img/tekstlab.gif"}]]))

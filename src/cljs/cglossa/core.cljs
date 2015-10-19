@@ -14,7 +14,7 @@
   (< (.-innerWidth js/window) 768))
 
 (defonce app-state {:narrow-view?      (r/atom (narrow-view?))
-                    :showing-sidebar?  (r/atom false)
+                    :show-metadata?    (r/atom nil)
                     :results-view      {:show?              (r/atom false)
                                         :results            (r/atom nil)
                                         :total              (r/atom 0)

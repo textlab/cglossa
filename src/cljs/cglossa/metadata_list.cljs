@@ -6,7 +6,7 @@
 (def auto-opening-select (with-meta s/select2 {:component-did-mount #(s/trigger-event % "open")}))
 
 (defn metadata-list [{:keys [open-metadata-cat]} {:keys [search metadata-categories]}]
-  [:div#sidebar-wrapper
+  [:span
    (doall
      (for [cat @metadata-categories
            :let [cat-id (:rid cat)
@@ -30,4 +30,4 @@
             ^{:key (str "select" cat-id)}
             [auto-opening-select (r/atom nil) (r/atom nil) {:placeholder "Click to select..."}
              [:div
-              [:select.list {:style {:width "100%"} :multiple true}]]]))]))])
+              [:select.list {:style {:width "90%"} :multiple true}]]]))]))])

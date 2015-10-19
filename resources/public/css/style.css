@@ -77,7 +77,7 @@ div.interval {
 
 .metadata-category {
   margin-top: 10px;
-  margin-left: 10px; }
+  margin-left: 15px; }
 
 .multiword-search-form .multiword-term .control-group {
   display: table; }
@@ -106,14 +106,10 @@ div.interval {
   width: 35px;
   vertical-align: middle; }
 
-.row-fluid {
-  /* Remove the left margin when we collapse the sidebar */ }
-  .row-fluid .no-sidebar {
-    margin-left: 0; }
-  .row-fluid input.max-hits[class*="span"] {
-    margin-top: 7px;
-    margin-left: 2px;
-    vertical-align: baseline; }
+.row-fluid input.max-hits[class*="span"] {
+  margin-top: 7px;
+  margin-left: 2px;
+  vertical-align: baseline; }
 
 .search-input-links {
   margin-bottom: 10px; }
@@ -133,12 +129,22 @@ div.interval {
 .search-result-table-container table td.match {
   font-weight: bold; }
 
-.sidebar {
-  transition: width 0.1s; }
-  .sidebar.sidebar-enter {
-    width: 0 !important; }
-  .sidebar.sidebar-leave-active {
-    width: 0 !important; }
+.metadata {
+  width: 170px; }
+
+.metadata-enter {
+  max-width: 0;
+  transition: max-width 0.1s ease; }
+
+.metadata-enter.metadata-enter-active {
+  max-width: 170px; }
+
+.metadata-leave {
+  max-width: 170px;
+  transition: max-width 0.1s ease; }
+
+.metadata-leave.metadata-leave-active {
+  max-width: 0; }
 
 .table-display {
   display: table !important; }
