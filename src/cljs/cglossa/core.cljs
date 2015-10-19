@@ -53,7 +53,7 @@
 (defn- get-models
   ([url] (get-models url {}))
   ([url params]
-   (go (let [response (<! (http/get url {:query-params params :headers {"Accept" "application/json"}}))
+   (go (let [response (<! (http/get url {:query-params params}))
              body     (:body response)]
          (doseq [[model-name data] body]
            (if (http/unexceptional-status? (:status response))
