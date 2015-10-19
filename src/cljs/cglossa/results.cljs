@@ -108,7 +108,7 @@
 (defn- pagination [{{:keys [results total page-no
                             paginator-page-no paginator-text-val]} :results-view :as a}
                    {:keys [search]}]
-  (let [last-page-no #(inc (quot @total page-size))
+  (let [last-page-no #(inc (quot (dec @total) page-size))
         set-page     (fn [e n]
                        (.preventDefault e)
                        (let [new-page-no (js/parseInt n)
