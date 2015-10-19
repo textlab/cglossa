@@ -84,7 +84,7 @@
           (search-step2 url params total searching? (:rid search)))))))
 
 (defn- search! [{{queries :queries}                   :search-view
-                 {:keys [show? results total page-no
+                 {:keys [show-results? results total page-no
                          paginator-page-no
                          paginator-text-val sort-by]} :results-view
                  searching?                           :searching?}
@@ -104,7 +104,7 @@
             params {:corpus-id (:rid @corpus)
                     :queries   q
                     :sort-by   @sort-by}]
-        (reset! show? true)
+        (reset! show-results? true)
         (reset! results nil)
         (reset! searching? true)
         (reset! total 0)

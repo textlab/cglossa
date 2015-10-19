@@ -12,7 +12,7 @@
 (defn- header []
   [b/navbar {:fixedTop true :brand "Glossa"}])
 
-(defn- main-area [{{show-results? :show?} :results-view :as a} m]
+(defn- main-area [{{:keys [show-results?]} :results-view :as a} m]
   [:div.container-fluid {:style {:padding-left 50}}
    [:div.row>div#main-content.col-sm-12
     (if @show-results?
