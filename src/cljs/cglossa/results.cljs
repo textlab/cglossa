@@ -4,9 +4,8 @@
             [reagent.core :as r]
             [cljs-http.client :as http]
             [cljs.core.async :refer [<!]]
+            [cglossa.shared :refer [page-size search! top-toolbar cleanup-result]]
             [cglossa.search-views.shared :refer [search-inputs]]
-            [cglossa.shared :refer [top-toolbar]]
-            [cglossa.search-views.cwb.shared :refer [page-size search!]]
             [cglossa.react-adapters.bootstrap :as b]))
 
 (defn- results-info [{{total :total} :results-view searching? :searching?}]
@@ -50,13 +49,6 @@
 ;; don't want as part of the top-level app-state ratom
 (def ^:private fetching-pages (atom #{}))
 (def ^:private result-window-halfsize 1)
-
-(defmulti cleanup-result
-  "Multimethod that accepts two arguments - a model/domain state map and a
-  single search result - and dispatches to the correct method based on the
-  value of :search-engine in the corpus map found in the model/domain state
-  map. The :default case implements CWB support."
-  (fn [{corpus :corpus} _] (:search-engine @corpus)))
 
 (defn- fetch-result-window!
   "Fetches a window of search result pages centred on centre-page-no. Ignores pages that have

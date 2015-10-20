@@ -3,8 +3,7 @@
   and menus for easily building complex and grammatically specified queries."
   (:require [clojure.string :as str]
             [reagent.core :as r]
-            [cglossa.search-views.cwb.shared :refer [headword-search-checkbox
-                                                     on-key-down remove-row-btn]]
+            [cglossa.shared :refer [on-key-down remove-row-btn headword-search-checkbox]]
             [cglossa.react-adapters.bootstrap :as b]))
 
 (defn- combine-regexes [regexes]
