@@ -262,25 +262,26 @@
          [:form.form-inline.multiword-search-form {:style {:margin-left -40}}
           [:div.table-display
            [:div.table-row
-            (map-indexed (fn [index term]
-                           (let [wrapped-term          (r/wrap term
-                                                               wrapped-term-changed
-                                                               wrapped-query terms index
-                                                               query-term-ids)
-                                 term-id               (nth @query-term-ids index)
-                                 first?                (zero? index)
-                                 last?                 (= index last-term-index)
-                                 ;; Show buttons to remove terms if there is more than one term
-                                 show-remove-term-btn? (pos? last-term-index)
-                                 has-phonetic?         (:has-phonetic @corpus)]
-                             (list (when-not first?
-                                     ^{:key (str "interval" term-id)}
-                                     [interval a m wrapped-term corpus])
-                                   ^{:key (str "term" term-id)}
-                                   [multiword-term a m wrapped-query wrapped-term query-term-ids
-                                    first? last? has-phonetic? show-remove-row-btn?
-                                    show-remove-term-btn?])))
-                         terms)]
+            (doall
+              (map-indexed (fn [index term]
+                             (let [wrapped-term          (r/wrap term
+                                                                 wrapped-term-changed
+                                                                 wrapped-query terms index
+                                                                 query-term-ids)
+                                   term-id               (nth @query-term-ids index)
+                                   first?                (zero? index)
+                                   last?                 (= index last-term-index)
+                                   ;; Show buttons to remove terms if there is more than one term
+                                   show-remove-term-btn? (pos? last-term-index)
+                                   has-phonetic?         (:has-phonetic @corpus)]
+                               (list (when-not first?
+                                       ^{:key (str "interval" term-id)}
+                                       [interval a m wrapped-term corpus])
+                                     ^{:key (str "term" term-id)}
+                                     [multiword-term a m wrapped-query wrapped-term query-term-ids
+                                      first? last? has-phonetic? show-remove-row-btn?
+                                      show-remove-term-btn?])))
+                           terms))]
            (when (:has-headword-search @corpus)
              [:div.table-row
               [:div.table-cell {:style {:padding-left 40 :padding-top 10}}
