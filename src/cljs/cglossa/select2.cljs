@@ -32,8 +32,14 @@
                        (if (not= data* @prev-data)
                          (do
                            (reset! prev-data data*)
-                           (let [entries (->> data*
-                                              (map (fn [[id name]] {:id id :text name})))]
+                           (let [entries (if (sequential? data*)
+                                           ;; Assume data* is already a seq of maps with
+                                           ;; :id and :text keys
+                                           data*
+                                           ;; Assume a hashmap; convert to seq of maps with
+                                           ;; :id and :text keys
+                                           (->> data*
+                                                (map (fn [[id name]] {:id id :text name}))))]
                              (.select2 sel (clj->js
                                              (merge options
                                                     {:data   entries

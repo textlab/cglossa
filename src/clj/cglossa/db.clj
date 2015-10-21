@@ -126,7 +126,13 @@
                                    (:cat_rids res)
                                    (:cat_names res)))}))
 
-(defn get-metadata-values [initial-value category]
+(defn get-metadata-values [category-id]
+  (let [res (first (sql-query (str "SELECT $vals.@rid as rids, $vals.value as values FROM #TARGET "
+                                   "LET $vals = out('HasMetadataValue')")
+                              {:target category-id}))]
+    (map (fn [rid value] {:id rid :text value}) (:rids res) (:values res))))
+
+(defn constrain-metadata-values [initial-value category]
   (sql-query (str "SELECT EXPAND(out('DescribesText').in('DescribesText')[corpus_cat = '&category']) "
                   "FROM #TARGET")
              {:strings {:category category}

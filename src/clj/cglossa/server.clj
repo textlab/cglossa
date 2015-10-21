@@ -55,7 +55,9 @@
 
 (defroutes db-routes
   (GET "/corpus" [code]
-    (transit-response (db/get-corpus code))))
+    (transit-response (db/get-corpus code)))
+  (GET "/metadata-values" [cat-id]
+    (transit-response (db/get-metadata-values cat-id))))
 
 (defroutes search-routes
   (POST "/search" [corpus-id search-id queries step cut sort-by]
