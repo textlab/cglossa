@@ -21,35 +21,35 @@
   plugin, while render-body should be a hiccup form that will be returned
   from the render function. The hiccup form should contain a select element
   with the CSS class 'list'; this is where the select2 box will be instantiated."
-  (let [sort-data     #(clj->js (sort-by (fn [e] (aget e "text")) %))
-        prev-data     (atom [])
-        prev-value    (atom nil)
+  (let [sort-data  #(clj->js (sort-by (fn [e] (aget e "text")) %))
+        prev-data  (atom [])
+        prev-value (atom nil)
 
         ;; Sets the entries in the list equal to the contents of the 'data'
         ;; ratom that was passed to the main function
-        set-data!     (fn [sel]
-                        (let [data* (unpacked data)]
-                          (if (not= data* @prev-data)
-                            (do
-                              (reset! prev-data data*)
-                              (let [entries (->> data*
-                                                 (map (fn [[id name]] {:id id :text name})))]
-                                (.select2 sel (clj->js
-                                                (merge options
-                                                       {:data   entries
-                                                        :sorter sort-data})))))
-                            sel)))
+        set-data!  (fn [sel]
+                     (let [data* (unpacked data)]
+                       (if (not= data* @prev-data)
+                         (do
+                           (reset! prev-data data*)
+                           (let [entries (->> data*
+                                              (map (fn [[id name]] {:id id :text name})))]
+                             (.select2 sel (clj->js
+                                             (merge options
+                                                    {:data   entries
+                                                     :sorter sort-data})))))
+                         sel)))
 
         ;; Sets the selection of the select box to be equal to the contents of
         ;; the 'value' ratom that was passed to the main function
-        set-value!    (fn [sel]
-                        (if (not= @value @prev-value)
-                          (do
-                            (reset! prev-value @value)
-                            (doto sel
-                              (.val (clj->js @value))
-                              (.trigger "change")))
-                          sel))]
+        set-value! (fn [sel]
+                     (if (not= @value @prev-value)
+                       (do
+                         (reset! prev-value @value)
+                         (doto sel
+                           (.val (clj->js @value))
+                           (.trigger "change")))
+                       sel))]
     (r/create-class
       {:component-did-mount
        (fn [c]
