@@ -5,12 +5,11 @@
            [com.orientechnologies.orient.core.sql OCommandSQL]
            [com.orientechnologies.orient.core.db.record OIdentifiable]))
 
+(defonce graph-factory (OrientGraphFactory. "remote:localhost/Glossa" "admin" "admin"))
+
 (defn get-graph
-  ([]
-   (get-graph true))
-  ([transactional?]
-   (let [factory (OrientGraphFactory. "remote:localhost/Glossa" "admin" "admin")]
-     (if transactional? (.getTx factory) (.getNoTx factory)))))
+  ([] (get-graph true))
+  ([transactional?] (if transactional? (.getTx graph-factory) (.getNoTx graph-factory))))
 
 (defn db-record? [o]
   (instance? OIdentifiable o))
