@@ -87,7 +87,7 @@
          targets    (if t (flatten [t]) [])
          _          (doseq [target targets] (assert (valid-rid? target)
                                                     (str "Invalid target: " target)))
-         strings    (:strings params)
+         strings    (into {} (map (fn [[k v]] [k (.toString v)]) (:strings params)))
          _          (assert (or (nil? strings) (map? strings))
                             "String params should be provided in a map")
          _          (doseq [s (vals strings)] (assert (not (re-find #"\W" s))
