@@ -87,7 +87,7 @@ div.interval {
   padding-left: 14px;
   padding-right: 14px;
 
-  @media (min-width:769px) {
+  @media (min-width:768px) {
     min-width: 85px;
   }
 
@@ -99,7 +99,7 @@ div.interval {
     text-align: right;
   }
 
-  @media (max-width:768px) {
+  @media (max-width:767px) {
     input.interval {
       margin-bottom: 0;
     }
