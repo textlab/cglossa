@@ -44,7 +44,7 @@
 
 (defonce model-state {:corpus              (r/atom nil)
                       :metadata-categories (r/atom nil)
-                      :search              (atom {})})
+                      :search              (r/atom {})})
 
 ;; Set :narrow-view in app-state whenever the window is resized (throttled to 200ms)
 (def on-resize-throttle (Throttle. #(reset! (:narrow-view? app-state) (narrow-view?)) 200))
