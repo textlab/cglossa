@@ -18,14 +18,15 @@
       [start a m])]])
 
 (defn app [a {:keys [corpus] :as m}]
-  [:div
-   [header]
-   (when @corpus
-     [:div.table-display
-      [:div.table-row
-       ^{:key "metadata-list"}
-       [:div.table-cell.metadata {:style {:max-width (if (showing-metadata? a m) 170 0)}}
-        [metadata-list a m]]
-       [:div.table-cell
-        [main-area a m]]]])
-   [:div.app-footer>img.textlab-logo {:src "img/tekstlab.gif"}]])
+  (let [width (if (showing-metadata? a m) 170 0)]
+    [:div
+     [header]
+     (when @corpus
+       [:div.table-display
+        [:div.table-row
+         ^{:key "metadata-list"}
+         [:div.table-cell.metadata {:style {:max-width width :width width}}
+          [metadata-list a m]]
+         [:div.table-cell
+          [main-area a m]]]])
+     [:div.app-footer>img.textlab-logo {:src "img/tekstlab.gif"}]]))

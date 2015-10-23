@@ -131,7 +131,8 @@ div.interval {
 
 .metadata {
   overflow: hidden;
-  transition: max-width 0.1s ease; }
+  transition: width 0.1s;
+  transition: max-width 0.1s; }
 
 .table-display {
   display: table !important; }

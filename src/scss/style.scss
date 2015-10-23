@@ -180,7 +180,8 @@ div.interval {
 
 .metadata {
   overflow: hidden;
-  transition: max-width .1s ease;
+  transition: width .1s;
+  transition: max-width .1s;
 }
 
 .table-display {
