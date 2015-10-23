@@ -65,20 +65,11 @@
        (fn [c]
          (-> (.select2 (get-select-el c) (clj->js options))
              (.on "change" (fn [_]
-                             ;; Show the spinner overlay on the result table
-                             (.removeClass (js/$ ".spinner-overlay") "hidden")
-                             ;; Update the list selection on the next requestAnimationFrame.
-                             ;; Otherwise the display of the spinner overlay will be
-                             ;; batched together with this and won't be visible while we
-                             ;; are querying for the new database value for the result
-                             ;; table.
                              (this-as elem
-                               (r/next-tick (fn []
-                                              (let [old-val @value
-                                                    new-val (js->clj (.val (js/$ elem)))]
-                                                (when (not= old-val new-val)
-                                                  (reset! value new-val)
-                                                  (reset! prev-value new-val))))))))
+                               (let [new-val (js->clj (.val (js/$ elem)))]
+                                 (when (not= @value new-val)
+                                   (reset! value new-val)
+                                   (reset! prev-value new-val))))))
              (set-data!)
              (set-value!)))
 
