@@ -167,7 +167,7 @@
             :on-key-down #(on-key-down % a m)}])
 
 (defn interval [a m wrapped-term]
-  [:div.interval.table-cell {:style {:min-width 85}}
+  [:div.interval.table-cell
    [interval-input a m wrapped-term 0] "min"
    [:br]
    [interval-input a m wrapped-term 1] "max"])

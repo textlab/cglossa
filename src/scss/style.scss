@@ -46,6 +46,11 @@ h5.category-header {
 .multiword-container {
   margin-top: 10px;
   margin-bottom: 30px;
+
+  .form-group {
+    // override bootstrap
+    margin-bottom: 0;
+  }
 }
 
 .speaker-id {
@@ -78,10 +83,13 @@ h5.category-header {
 }
 
 div.interval {
-  display: table-cell;
   vertical-align: top;
   padding-left: 14px;
   padding-right: 14px;
+
+  @media (min-width:769px) {
+    min-width: 85px;
+  }
 
   input.interval {
     width: 25px;
@@ -89,6 +97,12 @@ div.interval {
     padding: 0px 4px;
     margin: 0px 5px 8px 0px;
     text-align: right;
+  }
+
+  @media (max-width:768px) {
+    input.interval {
+      margin-bottom: 0;
+    }
   }
 
   h6 {

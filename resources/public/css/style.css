@@ -36,6 +36,8 @@ h5.category-header {
 .multiword-container {
   margin-top: 10px;
   margin-bottom: 30px; }
+  .multiword-container .form-group {
+    margin-bottom: 0; }
 
 .speaker-id {
   color: #777; }
@@ -61,16 +63,21 @@ h5.category-header {
   width: 20px; }
 
 div.interval {
-  display: table-cell;
   vertical-align: top;
   padding-left: 14px;
   padding-right: 14px; }
+  @media (min-width: 769px) {
+    div.interval {
+      min-width: 85px; } }
   div.interval input.interval {
     width: 25px;
     height: 25px;
     padding: 0px 4px;
     margin: 0px 5px 8px 0px;
     text-align: right; }
+  @media (max-width: 768px) {
+    div.interval input.interval {
+      margin-bottom: 0; } }
   div.interval h6 {
     margin-top: 0;
     margin-bottom: 2px; }
