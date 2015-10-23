@@ -179,25 +179,8 @@ div.interval {
 }
 
 .metadata {
-  width: 170px;
-}
-
-.metadata-enter {
-  max-width: 0;
+  overflow: hidden;
   transition: max-width .1s ease;
-}
-
-.metadata-enter.metadata-enter-active {
-  max-width: 170px;
-}
-
-.metadata-leave {
-  max-width: 170px;
-  transition: max-width .1s ease;
-}
-
-.metadata-leave.metadata-leave-active {
-  max-width: 0;
 }
 
 .table-display {

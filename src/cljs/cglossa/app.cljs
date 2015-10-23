@@ -7,8 +7,6 @@
             [cglossa.results :refer [results]]
             [cglossa.react-adapters.bootstrap :as b]))
 
-(def css-transition-group (r/adapt-react-class js/React.addons.CSSTransitionGroup))
-
 (defn- header []
   [b/navbar {:fixedTop true :brand "Glossa"}])
 
@@ -25,11 +23,9 @@
    (when @corpus
      [:div.table-display
       [:div.table-row
-       [css-transition-group {:transitionName "metadata"}
-        (when (showing-metadata? a m)
-          ^{:key "metadata-list"}
-          [:div.table-cell.metadata
-           [metadata-list a m]])]
+       ^{:key "metadata-list"}
+       [:div.table-cell.metadata {:style {:max-width (if (showing-metadata? a m) 170 0)}}
+        [metadata-list a m]]
        [:div.table-cell
         [main-area a m]]]])
    [:div.app-footer>img.textlab-logo {:src "img/tekstlab.gif"}]])
