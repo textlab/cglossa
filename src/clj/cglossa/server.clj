@@ -14,6 +14,7 @@
             [org.httpkit.server :refer [run-server]]
             [clojure.tools.logging :as log]
             [cognitect.transit :as transit]
+            [cheshire.core :as cheshire]
             [cglossa.db :as db]
             [cglossa.search.core :as search]
             [cglossa.search_engines])
@@ -56,8 +57,13 @@
 (defroutes db-routes
   (GET "/corpus" [code]
     (transit-response (db/get-corpus code)))
-  (GET "/metadata-values" [cat-id]
-    (transit-response (db/get-metadata-values cat-id))))
+  (GET "/metadata-values" [cat-id page]
+    (let [page* (if page (Integer/parseInt page) 1)
+          data (db/get-metadata-values cat-id page*)]
+      (-> (response/response (cheshire/generate-string {:results (:results data)
+                                                        :pagination {:more (:more? data)}}))
+          (response/content-type "application/json")
+          (response/charset "utf-8")))))
 
 (defroutes search-routes
   (POST "/search" [corpus-id search-id queries step cut sort-by]

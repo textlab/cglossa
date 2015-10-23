@@ -11,14 +11,6 @@
                                     {:component-did-mount  #(sel/trigger-event % "open")
                                      :component-did-update #(sel/trigger-event % "open")}))
 
-(defn- val-get-set [metadata-categories]
-  (fn
-    ([cat-id]
-     (s/select-first [s/ALL #(= (:rid %) cat-id) :values] @metadata-categories))
-    ([cat-id v]
-     (let [new-val (s/setval [s/ALL #(= (:rid %) cat-id) :values] v @metadata-categories)]
-       (reset! metadata-categories new-val)))))
-
 (defn metadata-list [{:keys [open-metadata-cat]} {:keys [search metadata-categories]}]
   [:span
    (doall
@@ -36,21 +28,21 @@
                                    (.preventDefault e))}
          (:name cat)]
         (when open?
-          (let [values (r/cursor (val-get-set metadata-categories) cat-id)]
-            (when (empty? @values)
-              (go
-                (let [{req-values :body} (<! (http/get "/metadata-values"
-                                                       {:query-params {:cat-id cat-id}}))]
-                  (reset! values req-values))))
-            (list
-              ^{:key (str "close-btn" cat-id)}
-              [b/button {:bs-size    "xsmall"
-                         :bs-style   "danger"
-                         :title      "Remove selection"
-                         :class-name "close-cat-btn"
-                         :on-click   #(reset! open-metadata-cat nil)}
-               [b/glyphicon {:glyph "remove"}]]
-              ^{:key (str "select" cat-id)}
-              [auto-opening-select values (r/atom nil) {:placeholder "Click to select..."}
-               [:div
-                [:select.list {:style {:width "90%"} :multiple true}]]])))]))])
+          (list
+            ^{:key (str "close-btn" cat-id)}
+            [b/button {:bs-size    "xsmall"
+                       :bs-style   "danger"
+                       :title      "Remove selection"
+                       :class-name "close-cat-btn"
+                       :on-click   #(reset! open-metadata-cat nil)}
+             [b/glyphicon {:glyph "remove"}]]
+            ^{:key (str "select" cat-id)}
+            [auto-opening-select nil (r/atom nil)
+             {:placeholder "Click to select..."
+              :ajax        {:url  "/metadata-values"
+                            :data (fn [params]
+                                    #js {:cat-id       cat-id
+                                         :value-filter (.-term params)
+                                         :page         (.-page params)})}}
+             [:div
+              [:select.list {:style {:width "90%"} :multiple true}]]]))]))])

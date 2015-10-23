@@ -125,11 +125,22 @@
                                    (:cat_rids res)
                                    (:cat_names res)))}))
 
-(defn get-metadata-values [category-id]
-  (let [res (first (sql-query (str "SELECT $vals.@rid as rids, $vals.value as values FROM #TARGET "
-                                   "LET $vals = out('HasMetadataValue')")
-                              {:target category-id}))]
-    (map (fn [rid value] {:id rid :text value}) (:rids res) (:values res))))
+(def ^:private metadata-pagesize 100)
+
+(defn get-metadata-values [category-id page]
+  (let [total (:total (first (sql-query (str "SELECT out('HasMetadataValue').size() AS total "
+                                             "FROM #TARGET")
+                                        {:target category-id})))
+        skip  (* (dec page) metadata-pagesize)
+        limit (+ skip metadata-pagesize)
+        res   (sql-query (str "SELECT @rid AS id, value AS text "
+                              "FROM (SELECT expand(out('HasMetadataValue')) FROM #TARGET) "
+                              "ORDER BY text SKIP &skip LIMIT &limit")
+                         {:target  category-id
+                          :strings {:skip skip :limit limit}})
+        more? (> total limit)]
+    {:results (map #(select-keys % [:id :text]) res)
+     :more?   more?}))
 
 (defn constrain-metadata-values [initial-value category]
   (sql-query (str "SELECT EXPAND(out('DescribesText').in('DescribesText')[corpus_cat = '&category']) "

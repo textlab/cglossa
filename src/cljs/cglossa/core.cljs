@@ -61,11 +61,7 @@
              (.error js/console (str "Error: " body))))))))
 
 (if-let [corpus (second (re-find #"corpus=(\w+)" (.-location.search js/window)))]
-  (go
-    ;; Wait until we have received the corpus data before modifying the metadata categories
-    (<! (get-models "/corpus" {:code corpus}))
-    (swap! (:metadata-categories model-state) (fn [cats]
-                                                (map #(assoc % :values []) cats))))
+  (get-models "/corpus" {:code corpus})
   (js/alert "Please provide a corpus in the query string (on the form corpus=mycorpus)"))
 
 (defn ^:export main []

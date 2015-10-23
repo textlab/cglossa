@@ -29,7 +29,8 @@
         ;; ratom that was passed to the main function
         set-data!  (fn [sel]
                      (let [data* (unpacked data)]
-                       (if (not= data* @prev-data)
+                       (if (and data*
+                                (not= data* @prev-data))
                          (do
                            (reset! prev-data data*)
                            (let [entries (if (sequential? data*)
