@@ -7,14 +7,18 @@
             [cglossa.select2 :as sel])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
-(defn- metadata-select [cat-id selected open?]
+(defn- metadata-select [cat-id selected open-metadata-cat]
   (r/create-class
     {:component-did-mount
      ;; If the user has explicitly selected this category by clicking on its header/link,
      ;; we open the select list automatically (if, on the other hand, we are showing the
      ;; category just because the search contains some values from it, we will only show
-     ;; its text input and not its list).
-     (when open? #(sel/trigger-event % "open"))
+     ;; its text input and not its list). We also need to make sure that the list is no
+     ;; longer opened automatically after the user closes it.
+     (when (= @open-metadata-cat cat-id)
+       (fn [c]
+         (sel/handle-event c "select2:close" #(reset! open-metadata-cat nil))
+         (sel/trigger-event c "open")))
 
      :render
      (fn [_]
@@ -42,11 +46,11 @@
          (for [cat @metadata-categories
                :let [cat-id   (:rid cat)
                      selected (r/cursor search [:metadata cat-id])
-                     open?    (= @open-metadata-cat cat-id)
                      ;; Show the select2 component for this category if the user has
                      ;; explicitly opened it or the search contains a non-empty seq of
                      ;; values from this category
-                     show?    (or open? (seq @selected))]]
+                     show?    (or (= @open-metadata-cat cat-id)
+                                  (seq @selected))]]
            ^{:key cat-id}
            [:div.metadata-category
             [:a {:href "#" :on-click (fn [e]
@@ -65,4 +69,4 @@
                            :on-click   #(remove-cat-values cat-id)}
                  [b/glyphicon {:glyph "remove"}]]
                 ^{:key (str "select" cat-id)}
-                [metadata-select cat-id selected open?]))]))])))
+                [metadata-select cat-id selected open-metadata-cat]))]))])))

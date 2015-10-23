@@ -12,6 +12,9 @@
 (defn- get-select-el [component]
   (js/$ "select.list" (r/dom-node component)))
 
+(defn handle-event [component event-name handler]
+  (.on (get-select-el component) event-name handler))
+
 (defn trigger-event [component event-name]
   (.select2 (get-select-el component) event-name))
 
