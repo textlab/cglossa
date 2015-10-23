@@ -78,11 +78,11 @@
           (search-step2 url params total searching? (:rid search)))))))
 
 (defn search! [{{queries :queries}                   :search-view
-                 {:keys [show-results? results total page-no
-                         paginator-page-no
-                         paginator-text-val sort-by]} :results-view
-                 searching?                           :searching?}
-                {:keys [corpus search] :as m}]
+                {:keys [show-results? results total page-no
+                        paginator-page-no
+                        paginator-text-val sort-by]} :results-view
+                searching?                           :searching?}
+               {:keys [corpus search] :as m}]
   (let [first-query (:query (first @queries))]
     (when (and first-query
                (not= first-query "\"\""))
@@ -107,7 +107,7 @@
         (reset! paginator-text-val 1)
         (search-step1 m url params total searching? search results)))))
 
-(defn showing-metadata? [{:keys [show-metadata? narrow-view?]
+(defn showing-metadata? [{:keys                   [show-metadata? narrow-view?]
                           {:keys [show-results?]} :results-view}
                          {:keys [metadata-categories]}]
   (cond
