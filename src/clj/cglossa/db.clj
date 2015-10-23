@@ -134,8 +134,8 @@
         skip  (* (dec page) metadata-pagesize)
         limit (+ skip metadata-pagesize)
         res   (sql-query (str "SELECT @rid AS id, value AS text "
-                              "FROM (SELECT expand(out('HasMetadataValue')) FROM #TARGET) "
-                              "ORDER BY text SKIP &skip LIMIT &limit")
+                              "FROM (SELECT expand(out('HasMetadataValue')) FROM #TARGET "
+                              "ORDER BY text SKIP &skip LIMIT &limit)")
                          {:target  category-id
                           :strings {:skip skip :limit limit}})
         more? (> total limit)]
