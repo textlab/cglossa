@@ -77,7 +77,8 @@
                                               (let [old-val @value
                                                     new-val (js->clj (.val (js/$ elem)))]
                                                 (when (not= old-val new-val)
-                                                  (reset! value new-val))))))))
+                                                  (reset! value new-val)
+                                                  (reset! prev-value new-val))))))))
              (set-data!)
              (set-value!)))
 
