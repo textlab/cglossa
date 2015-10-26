@@ -128,12 +128,13 @@
 ;;;;;;;;;;;;;;;;
 
 (defn- menu-button []
-  [b/dropdownbutton
+  [b/dropdownbutton {:bs-size "small"}
    [b/menuitem "Hei"]])
 
 (defn- text-input [a m wrapped-term show-remove-term-btn?]
   [:div.table-cell
    [b/input {:type          "text"
+             :bs-size       "small"
              :class-name    "multiword-field"
              :button-before (r/as-element (menu-button))
              :button-after  (when show-remove-term-btn?
@@ -160,6 +161,7 @@
 
 (defn- interval-input [a m wrapped-term index]
   [b/input {:type        "text"
+            :bs-size     "small"
             :class-name  "interval"
             :value       (get-in @wrapped-term [:interval index])
             :on-change   #(swap! wrapped-term
@@ -176,26 +178,30 @@
   (let [term-val @wrapped-term]
     [:div.table-cell {:style {:min-width 182}}
      [:div.word-checkboxes
-      [:label.checkbox-inline
+      [:label.checkbox-inline {:style {:padding-left 15}}
        [:input {:type      "checkbox"
+                :style     {:margin-left -15}
                 :checked   (:lemma? term-val)
                 :on-change #(swap! wrapped-term assoc :lemma? (.-target.checked %))
                 }] "Lemma"]
-      [:label.checkbox-inline
+      [:label.checkbox-inline {:style {:padding-left 15}}
        [:input {:type      "checkbox"
+                :style     {:margin-left -15}
                 :title     "Start of word"
                 :checked   (:start? term-val)
                 :on-change #(swap! wrapped-term assoc :start? (.-target.checked %))
                 }] "Start"]
-      [:label.checkbox-inline
+      [:label.checkbox-inline {:style {:padding-left 15}}
        [:input {:type      "checkbox"
+                :style     {:margin-left -15}
                 :title     "End of word"
                 :checked   (:end? term-val)
                 :on-change #(swap! wrapped-term assoc :end? (.-target.checked %))
                 }] "End"]]
      (when has-phonetic?
-       [:div>label.checkbox-inline
+       [:div>label.checkbox-inline {:style {:padding-left 15}}
         [:input {:type      "checkbox"
+                 :style     {:margin-left -15}
                  :checked   (:phonetic? term-val)
                  :on-change #(swap! wrapped-term assoc :phonetic? (.-target.checked %))
                  }] "Phonetic form"])]))
