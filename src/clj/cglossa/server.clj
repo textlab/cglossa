@@ -57,17 +57,18 @@
 (defroutes db-routes
   (GET "/corpus" [code]
     (transit-response (db/get-corpus code)))
-  (GET "/metadata-values" [cat-id page]
-    (let [page* (if page (Integer/parseInt page) 1)
-          data (db/get-metadata-values cat-id page*)]
+  (GET "/metadata-values" [category-id selected-ids page]
+    (let [selected-ids* (when selected-ids (cheshire/parse-string selected-ids))
+          page* (if page (Integer/parseInt page) 1)
+          data (db/get-metadata-values category-id selected-ids* page*)]
       (-> (response/response (cheshire/generate-string {:results (:results data)
                                                         :pagination {:more (:more? data)}}))
           (response/content-type "application/json")
           (response/charset "utf-8")))))
 
 (defroutes search-routes
-  (POST "/search" [corpus-id search-id queries step cut sort-by]
-    (transit-response (search/search corpus-id search-id queries step cut sort-by)))
+  (POST "/search" [corpus-id search-id queries metadata-ids step cut sort-by]
+    (transit-response (search/search corpus-id search-id queries metadata-ids step cut sort-by)))
   (GET "/results" [search-id start end sort-by]
     (transit-response (search/results search-id start end sort-by))))
 

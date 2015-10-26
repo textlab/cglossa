@@ -95,9 +95,10 @@
                      ;; For other languages, leave the queries unmodified
                      @queries)
             url    "/search"
-            params {:corpus-id (:rid @corpus)
-                    :queries   q
-                    :sort-by   @sort-by}]
+            params {:corpus-id    (:rid @corpus)
+                    :queries      q
+                    :metadata-ids (:metadata @search)
+                    :sort-by      @sort-by}]
         (reset! show-results? true)
         (reset! results nil)
         (reset! searching? true)

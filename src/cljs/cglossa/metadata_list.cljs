@@ -7,7 +7,7 @@
             [cglossa.select2 :as sel])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
-(defn- metadata-select [cat-id selected open-metadata-cat]
+(defn- metadata-select [cat-id search selected open-metadata-cat]
   (r/create-class
     {:component-did-mount
      ;; If the user has explicitly selected this category by clicking on its header/link,
@@ -25,12 +25,18 @@
        ;; We set the first argument to select2 to be nil, meaning that its data will be fetched
        ;; via the ajax option (i.e. fetched remotely on demand) instead of being stored in a
        ;; state ratom.
-       [sel/select2 nil selected {:placeholder "Click to select..."
-                                  :ajax        {:url  "/metadata-values"
-                                                :data (fn [params]
-                                                        #js {:cat-id       cat-id
-                                                             :value-filter (.-term params)
-                                                             :page         (.-page params)})}}
+       [sel/select2 nil selected
+        {:placeholder "Click to select..."
+         :ajax        {:url  "/metadata-values"
+                       :data (fn [params]
+                               (let [md           (-> @search :metadata (dissoc cat-id))
+                                     selected-ids (if (empty? md)
+                                                    js/undefined
+                                                    (js/JSON.stringify (clj->js md)))]
+                                 #js {:category-id  cat-id
+                                      :value-filter (.-term params)
+                                      :selected-ids selected-ids
+                                      :page         (.-page params)}))}}
         [:div
          [:select.list {:style {:width "90%"} :multiple true}]]])}))
 
@@ -69,4 +75,4 @@
                            :on-click   #(remove-cat-values cat-id)}
                  [b/glyphicon {:glyph "remove"}]]
                 ^{:key (str "select" cat-id)}
-                [metadata-select cat-id selected open-metadata-cat]))]))])))
+                [metadata-select cat-id search selected open-metadata-cat]))]))])))

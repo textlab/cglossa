@@ -19,7 +19,7 @@
     (db/run-sql (str "create edge InCorpus from " (:rid search) " to " (:rid corpus)))
     search))
 
-(defn search [corpus-id search-id queries step cut sort-by]
+(defn search [corpus-id search-id queries metadata-ids step cut sort-by]
   (let [corpus           (first (db/sql-query (str "select @rid, code, search_engine, encoding "
                                                    "from #TARGET") {:target corpus-id}))
         search           (if (= step 1)
