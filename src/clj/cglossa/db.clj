@@ -47,6 +47,20 @@
                    [k* v*])) identity $)
     (walk/keywordize-keys $)))
 
+(defn build-sql [sql params]
+  (let [t       (or (:target params) (:targets params))
+        targets (if t (flatten [t]) [])
+        _       (doseq [target targets] (assert (valid-rid? target)
+                                                (str "Invalid target: " target)))
+        strings (into {} (map (fn [[k v]] [k (.toString v)]) (:strings params)))
+        _       (assert (or (nil? strings) (map? strings))
+                        "String params should be provided in a map")
+        _       (doseq [s (vals strings)] (assert (not (re-find #"\W" s))
+                                                  (str "Invalid string param: " s)))]
+    (-> sql
+        (str/replace #"\&(\w+)" #(get strings (keyword (second %))))
+        (str/replace #"#TARGETS?" (str "[" (str/join ", " targets) "]")))))
+
 (defn run-sql
   ([sql]
    (run-sql sql []))
@@ -80,22 +94,12 @@
              {:targets    [\"#12:0\" \"#12:1\"]
               :sql-params [\"bokmal\"]
               :strings    {:out \"HasMetadataCategory\"}})"
+
   ([sql]
    (sql-query sql {}))
   ([sql params]
-   (let [t          (or (:target params) (:targets params))
-         targets    (if t (flatten [t]) [])
-         _          (doseq [target targets] (assert (valid-rid? target)
-                                                    (str "Invalid target: " target)))
-         strings    (into {} (map (fn [[k v]] [k (.toString v)]) (:strings params)))
-         _          (assert (or (nil? strings) (map? strings))
-                            "String params should be provided in a map")
-         _          (doseq [s (vals strings)] (assert (not (re-find #"\W" s))
-                                                      (str "Invalid string param: " s)))
+   (let [sql*       (build-sql sql params)
          sql-params (:sql-params params)
-         sql*       (-> sql
-                        (str/replace #"\&(\w+)" #(get strings (keyword (second %))))
-                        (str/replace #"#TARGETS?" (str "[" (str/join ", " targets) "]")))
          results    (run-sql sql* sql-params)]
      (map vertex->map results))))
 
@@ -139,30 +143,31 @@
                  :strings {:skip skip :limit limit}})]
     [total res]))
 
-(defn constrained-metadata-values [initial-value category-id skip limit]
-  (let [corpus-cat (-> (sql-query "SELECT corpus_cat FROM #TARGET" {:target category-id})
-                       first
-                       :corpus_cat)
-        total      (-> (sql-query (str "SELECT out('DescribesText').in('DescribesText')"
-                                       "[corpus_cat = '&category'].size() AS total FROM #TARGET")
-                                  {:target  initial-value
-                                   :strings {:category corpus-cat}})
-                       first
-                       :total)
-        res        (sql-query
-                     (str "SELECT @rid AS id, value AS text FROM "
-                          "(SELECT EXPAND(out('DescribesText').in('DescribesText')"
-                          "[corpus_cat = '&category']) "
-                          "FROM #TARGET ORDER BY value SKIP &skip LIMIT &limit)")
-                     {:target  initial-value
-                      :strings {:category corpus-cat :skip skip :limit limit}})]
+(defn constrained-metadata-values [selected-ids category-id skip limit]
+  (let [initial-value (first (vals selected-ids))
+        corpus-cat    (-> (sql-query "SELECT corpus_cat FROM #TARGET" {:target category-id})
+                          first
+                          :corpus_cat)
+        total         (-> (sql-query (str "SELECT out('DescribesText').in('DescribesText')"
+                                          "[corpus_cat = '&category'].size() AS total FROM #TARGET")
+                                     {:target  initial-value
+                                      :strings {:category corpus-cat}})
+                          first
+                          :total)
+        res           (sql-query
+                        (str "SELECT @rid AS id, value AS text FROM "
+                             "(SELECT EXPAND(out('DescribesText').in('DescribesText')"
+                             "[corpus_cat = '&category']) "
+                             "FROM #TARGET ORDER BY value SKIP &skip LIMIT &limit)")
+                        {:target  initial-value
+                         :strings {:category corpus-cat :skip skip :limit limit}})]
     [total res]))
 
 (defn get-metadata-values [category-id selected-ids page]
   (let [skip  (* (dec page) metadata-pagesize)
         limit (+ skip metadata-pagesize)
         [total res] (if selected-ids
-                      (constrained-metadata-values (first (vals selected-ids)) category-id skip limit)
+                      (constrained-metadata-values selected-ids category-id skip limit)
                       (unconstrained-metadata-values category-id skip limit))
         more? (> total limit)]
     {:results (map #(select-keys % [:id :text]) res)
