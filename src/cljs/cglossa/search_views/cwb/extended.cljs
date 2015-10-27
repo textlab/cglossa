@@ -135,7 +135,8 @@
   [:div.table-cell
    [b/input {:type          "text"
              :bs-size       "small"
-             :class-name    "multiword-field"
+             :style         {:font-size 14
+                             :width     (if show-remove-term-btn? 108 140)}
              :button-before (r/as-element (menu-button))
              :button-after  (when show-remove-term-btn?
                               (r/as-element [b/button {:on-click #(reset! wrapped-term nil)}
@@ -265,7 +266,7 @@
         (when (nil? @query-term-ids)
           (reset! query-term-ids (range (count terms))))
         [:div.multiword-container
-         [:form.form-inline.multiword-search-form {:style {:margin-left -40}}
+         [:form.form-inline.multiword-search-form {:style {:margin-left -35}}
           [:div.table-display
            [:div.table-row
             (doall

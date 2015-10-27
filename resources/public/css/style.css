@@ -68,7 +68,7 @@ div.interval {
   padding-right: 10px; }
   @media (min-width: 768px) {
     div.interval {
-      min-width: 70px; } }
+      min-width: 78px; } }
   div.interval input.interval {
     width: 25px;
     height: 25px;
@@ -92,7 +92,7 @@ div.interval {
     display: table-cell;
     vertical-align: bottom; }
   .multiword-search-form .multiword-term .control-group div.word-checkboxes {
-    margin-top: 5px; }
+    margin-top: 8px; }
 
 .multiword-search-form button.search {
   margin-left: 20px;
@@ -163,10 +163,6 @@ div.interval {
 
 .row-fluid script:first-child + [class*="span"] {
   margin-left: 0; }
-
-.multiword-field {
-  width: 108px !important;
-  font-size: 14px !important; }
 
 .pagination {
   margin-top: 0;

@@ -237,7 +237,7 @@
                     :title    "CQP expressions"
                     :on-click #(set-view :cqp %)}
                 "CQP query"])
-             [search-button a m (if (= @view-type :extended) 52 233)]
+             [search-button a m (if (= @view-type :extended) 63 233)]
              (when multilingual? [add-language-button])]
 
             ; Now create a cursor into the queries ratom for each search expression
