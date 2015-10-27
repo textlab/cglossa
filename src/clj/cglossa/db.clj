@@ -135,13 +135,16 @@
     {:target  category-id
      :strings {:skip skip :limit limit}}))
 
-(defn constrained-metadata-values [initial-value category skip limit]
-  (sql-query
-    (str "SELECT @rid AS id, value AS text FROM "
-         "(SELECT EXPAND(out('DescribesText').in('DescribesText')[corpus_cat = '&category']) "
-         "FROM #TARGET ORDER BY value SKIP &skip LIMIT &limit)")
-    {:target  initial-value
-     :strings {:category category :skip skip :limit limit}}))
+(defn constrained-metadata-values [initial-value category-id skip limit]
+  (let [corpus-cat (-> (sql-query "SELECT corpus_cat FROM #TARGET" {:target category-id})
+                       first
+                       :corpus_cat)]
+    (sql-query
+      (str "SELECT @rid AS id, value AS text FROM "
+           "(SELECT EXPAND(out('DescribesText').in('DescribesText')[corpus_cat = '&category']) "
+           "FROM #TARGET ORDER BY value SKIP &skip LIMIT &limit)")
+      {:target  initial-value
+       :strings {:category corpus-cat :skip skip :limit limit}})))
 
 (defn get-metadata-values [category-id selected-ids page]
   (let [total (:total (first (sql-query (str "SELECT out('HasMetadataValue').size() AS total "
@@ -150,7 +153,7 @@
         skip  (* (dec page) metadata-pagesize)
         limit (+ skip metadata-pagesize)
         res   (if selected-ids
-                (constrained-metadata-values (first (vals selected-ids)) "bokmal_pubdate" 0 100)
+                (constrained-metadata-values (first (vals selected-ids)) category-id skip limit)
                 (unconstrained-metadata-values category-id skip limit))
         more? (> total limit)]
     {:results (map #(select-keys % [:id :text]) res)
