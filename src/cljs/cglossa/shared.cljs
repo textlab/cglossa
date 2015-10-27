@@ -150,22 +150,24 @@
             :id        "headword_search"
             :name      "headword_search"} " Headword search"])
 
-(defn top-toolbar [{:keys [num-resets show-metadata?] {:keys [queries]} :search-view :as a} m]
+(defn top-toolbar [{:keys [num-resets show-metadata?] {:keys [queries]} :search-view :as a}
+                   {:keys [metadata-categories] :as m}]
   [:div.col-sm-5
    [b/buttontoolbar {:style {:margin-bottom 20}}
-    (if (showing-metadata? a m)
-      [b/button {:bs-size  "xsmall"
-                 :title    "Hide search criteria"
-                 :on-click (fn [e]
-                             (reset! show-metadata? false)
-                             (.preventDefault e))}
-       "Hide filters"]
-      [b/button {:bs-size  "xsmall"
-                 :title    "Show search criteria"
-                 :on-click (fn [e]
-                             (reset! show-metadata? true)
-                             (.preventDefault e))}
-       "Filters"])
+    (when (seq @metadata-categories)
+      (if (showing-metadata? a m)
+        [b/button {:bs-size  "xsmall"
+                   :title    "Hide search criteria"
+                   :on-click (fn [e]
+                               (reset! show-metadata? false)
+                               (.preventDefault e))}
+         "Hide filters"]
+        [b/button {:bs-size  "xsmall"
+                   :title    "Show search criteria"
+                   :on-click (fn [e]
+                               (reset! show-metadata? true)
+                               (.preventDefault e))}
+         "Filters"]))
     [b/button {:bs-style "primary"
                :bs-size  "xsmall"
                :title    "Reset form"
