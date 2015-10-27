@@ -1,7 +1,6 @@
 (ns cglossa.search.cwb.written
   "Support for written corpora encoded with the IMS Open Corpus Workbench."
   (:require [me.raynes.fs :as fs]
-            [cglossa.db :as db]
             [cglossa.search.core :refer [run-queries get-results transform-results]]
             [cglossa.search.cwb.shared :refer [cwb-query-name cwb-corpus-name run-cqp-commands
                                                construct-query-commands]]

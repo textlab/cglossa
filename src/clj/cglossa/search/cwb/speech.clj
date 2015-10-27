@@ -2,7 +2,6 @@
   "Support for speech corpora encoded with the IMS Open Corpus Workbench."
   (:require [clojure.string :as str]
             [me.raynes.fs :as fs]
-            [cglossa.db :as db]
             [cglossa.search.core :refer [run-queries get-results transform-results]]
             [cglossa.search.cwb.shared :refer [cwb-query-name cwb-corpus-name
                                                construct-query-commands run-cqp-commands]]))

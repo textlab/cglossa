@@ -1,5 +1,5 @@
 (ns cglossa.search.core
-  (:require [cglossa.db :as db]))
+  (:require [cglossa.db.shared :as db]))
 
 (defmulti run-queries
   "Multimethod for actually running the received queries in a way that is

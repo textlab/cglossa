@@ -1,4 +1,4 @@
-(ns cglossa.db
+(ns cglossa.db.shared
   (:require [clojure.string :as str]
             [clojure.walk :as walk])
   (:import [com.tinkerpop.blueprints.impls.orient OrientGraphFactory]
@@ -46,6 +46,10 @@
                        v* (xform-val v)]
                    [k* v*])) identity $)
     (walk/keywordize-keys $)))
+
+(defn vertex-name [name code]
+  "Creates a human-friendly name from code unless name already exists."
+  (or name (-> code str/capitalize (str/replace "_" " "))))
 
 (defn build-sql [sql params]
   (let [t       (or (:target params) (:targets params))
@@ -102,73 +106,3 @@
          sql-params (:sql-params params)
          results    (run-sql sql* sql-params)]
      (map vertex->map results))))
-
-(defn- vertex-name [name code]
-  "Creates a human-friendly name from code unless name already exists."
-  (or name (-> code str/capitalize (str/replace "_" " "))))
-
-(defn get-corpus [code]
-  (let [ress (sql-query (str "SELECT @rid as corpus_rid, name as corpus_name, "
-                             "logo, search_engine, has_phonetic, has_headword_search, "
-                             "$cats.@rid as cat_rids, $cats.code as cat_codes, "
-                             "$cats.name as cat_names "
-                             "FROM Corpus "
-                             "LET $cats = out('HasMetadataCategory') "
-                             "WHERE code = ?")
-                        {:sql-params [code]})
-        res  (as-> ress $
-                   (first $)
-                   (update $ :cat_names (partial map vertex-name) (:cat_codes $)))]
-    {:corpus              {:rid                 (:corpus_rid res)
-                           :name                (:corpus_name res)
-                           :logo                (:logo res)
-                           :search-engine       (:search_engine res :cwb)
-                           :has-phonetic        (:has_phonetic res)
-                           :has-headword-search (:has_headword_search res)}
-     :metadata-categories (-> (map (fn [rid name] {:rid rid :name name})
-                                   (:cat_rids res)
-                                   (:cat_names res)))}))
-
-(def ^:private metadata-pagesize 100)
-
-(defn unconstrained-metadata-values [category-id skip limit]
-  (let [total (:total (first (sql-query (str "SELECT out('HasMetadataValue').size() AS total "
-                                             "FROM #TARGET")
-                                        {:target category-id})))
-        res   (sql-query
-                (str "SELECT @rid AS id, value AS text FROM "
-                     "(SELECT EXPAND(out('HasMetadataValue')) FROM #TARGET "
-                     "ORDER BY value SKIP &skip LIMIT &limit)")
-                {:target  category-id
-                 :strings {:skip skip :limit limit}})]
-    [total res]))
-
-(defn constrained-metadata-values [selected-ids category-id skip limit]
-  (let [initial-value (first (vals selected-ids))
-        corpus-cat    (-> (sql-query "SELECT corpus_cat FROM #TARGET" {:target category-id})
-                          first
-                          :corpus_cat)
-        total         (-> (sql-query (str "SELECT out('DescribesText').in('DescribesText')"
-                                          "[corpus_cat = '&category'].size() AS total FROM #TARGET")
-                                     {:target  initial-value
-                                      :strings {:category corpus-cat}})
-                          first
-                          :total)
-        res           (sql-query
-                        (str "SELECT @rid AS id, value AS text FROM "
-                             "(SELECT EXPAND(out('DescribesText').in('DescribesText')"
-                             "[corpus_cat = '&category']) "
-                             "FROM #TARGET ORDER BY value SKIP &skip LIMIT &limit)")
-                        {:target  initial-value
-                         :strings {:category corpus-cat :skip skip :limit limit}})]
-    [total res]))
-
-(defn get-metadata-values [category-id selected-ids page]
-  (let [skip  (* (dec page) metadata-pagesize)
-        limit (+ skip metadata-pagesize)
-        [total res] (if selected-ids
-                      (constrained-metadata-values selected-ids category-id skip limit)
-                      (unconstrained-metadata-values category-id skip limit))
-        more? (> total limit)]
-    {:results (map #(select-keys % [:id :text]) res)
-     :more?   more?}))

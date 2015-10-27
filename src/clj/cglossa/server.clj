@@ -15,7 +15,8 @@
             [clojure.tools.logging :as log]
             [cognitect.transit :as transit]
             [cheshire.core :as cheshire]
-            [cglossa.db :as db]
+            [cglossa.db.corpus :as corpus]
+            [cglossa.db.metadata :as metadata]
             [cglossa.search.core :as search]
             [cglossa.search_engines])
   (:import [java.io ByteArrayOutputStream])
@@ -56,11 +57,11 @@
 
 (defroutes db-routes
   (GET "/corpus" [code]
-    (transit-response (db/get-corpus code)))
+    (transit-response (corpus/get-corpus code)))
   (GET "/metadata-values" [category-id selected-ids page]
     (let [selected-ids* (when selected-ids (cheshire/parse-string selected-ids))
           page* (if page (Integer/parseInt page) 1)
-          data (db/get-metadata-values category-id selected-ids* page*)]
+          data (metadata/get-metadata-values category-id selected-ids* page*)]
       (-> (response/response (cheshire/generate-string {:results (:results data)
                                                         :pagination {:more (:more? data)}}))
           (response/content-type "application/json")
