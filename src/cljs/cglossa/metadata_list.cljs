@@ -27,7 +27,11 @@
         {:placeholder "Click to select..."
          :ajax        {:url  "/metadata-values"
                        :data (fn [params]
-                               (let [md           (-> @search :metadata (dissoc cat-id))
+                               (let [md           (as-> @search $
+                                                        (:metadata $)
+                                                        (dissoc $ cat-id)
+                                                        (filter #(second %) $)
+                                                        (into {} $))
                                      selected-ids (if (empty? md)
                                                     js/undefined
                                                     (js/JSON.stringify (clj->js md)))]
