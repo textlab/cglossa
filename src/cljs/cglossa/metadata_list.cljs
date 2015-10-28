@@ -1,8 +1,6 @@
 (ns cglossa.metadata-list
   (:require [reagent.core :as r]
-            [com.rpl.specter :as s]
             [cljs.core.async :refer [<!]]
-            [cljs-http.client :as http]
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.select2 :as sel])
   (:require-macros [cljs.core.async.macros :refer [go]]))
