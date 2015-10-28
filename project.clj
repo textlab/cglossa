@@ -10,7 +10,7 @@
 
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.clojure/clojurescript "1.7.48" :scope "provided"]
-                 [org.clojure/core.async "0.1.346.0-17112a-alpha"]
+                 [org.clojure/core.async "0.2.371"]
                  [ring "1.3.2"]
                  [ring/ring-defaults "0.1.5"]
                  [ring/ring-json "0.4.0"]
