@@ -53,7 +53,12 @@
 
 (defn build-sql [sql params]
   (let [t       (or (:target params) (:targets params))
-        targets (if t (flatten [t]) [])
+        ;_ (println t)
+        targets (if t
+                  (if (set? t)
+                    t
+                    (flatten [t]))
+                  [])
         _       (doseq [target targets] (assert (valid-rid? target)
                                                 (str "Invalid target: " target)))
         strings (into {} (map (fn [[k v]] [k (.toString v)]) (:strings params)))
