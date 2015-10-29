@@ -4,7 +4,7 @@
 (defmulti run-queries
   "Multimethod for actually running the received queries in a way that is
   appropriate for the search engine of the corpus in question."
-  (fn [corpus _ _ _ _ _] (:search_engine corpus)))
+  (fn [corpus _ _ _ _ _ _] (:search_engine corpus)))
 
 (defmulti get-results
   (fn [corpus _ _ _ _] (:search_engine corpus)))
@@ -25,7 +25,7 @@
         search           (if (= step 1)
                            (create-search corpus queries)
                            (first (db/sql-query "select from #TARGET" {:target search-id})))
-        results-or-count (run-queries corpus search queries step cut sort-by)
+        results-or-count (run-queries corpus search queries metadata-ids step cut sort-by)
         result           (if (= step 1)
                            ;; On the first search, we get actual search results back
                            (transform-results corpus results-or-count)

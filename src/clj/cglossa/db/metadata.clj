@@ -20,7 +20,6 @@
   (let [corpus-cat      (-> (sql-query "SELECT corpus_cat FROM #TARGET" {:target category-id})
                             first
                             :corpus_cat)
-        initial-value   (first (vals selected-ids))
         cat-results     (;; Iterate over all categories where one or more values have been selected
                           for [targets (vals selected-ids)]
                           ;; For the set of values that have been selected in this category,

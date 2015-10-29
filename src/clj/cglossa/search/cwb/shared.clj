@@ -2,7 +2,8 @@
   "Shared code for all types of corpora encoded with the IMS Open Corpus Workbench."
   (:require [clojure.string :as str]
             [me.raynes.fs :as fs]
-            [me.raynes.conch.low-level :as sh]))
+            [me.raynes.conch.low-level :as sh]
+            [cglossa.db.shared :refer [build-sql sql-query]]))
 
 (defn cwb-corpus-name [corpus queries]
   (let [uc-code (str/upper-case (:code corpus))]
@@ -31,15 +32,34 @@
   ;; TODO
   )
 
-(defn construct-query-commands [corpus queries named-query search-id cut
+(defn- print-positions-matching-metadata [metadata-ids positions-filename]
+  (let [fragments (for [targets (vals metadata-ids)]
+                    (build-sql "(SELECT EXPAND(out('DescribesText')) FROM #TARGETS)"
+                               {:targets targets}))
+        sql       (str "SELECT intersect(" (str/join ", " fragments) ")")
+        doc-ids   (:intersect (first (sql-query sql)))
+        positions (sql-query (str "SELECT startpos, endpos FROM #TARGETS")
+                             {:targets doc-ids})]
+    (spit positions-filename (str (count positions)
+                                  \newline
+                                  (->> positions
+                                       (map (juxt :startpos :endpos))
+                                       sort
+                                       (map #(str/join \tab %))
+                                       (str/join \newline))
+                                  \newline))))
+
+(defn construct-query-commands [corpus queries metadata-ids named-query search-id cut
                                 & {:keys [s-tag] :or {s-tag "s"}}]
   (let [query-str          (if (:multilingual? corpus)
                              (build-multilingual-query queries s-tag)
                              (build-monolingual-query queries s-tag))
         positions-filename (str (fs/tmpdir) "positions_" search-id)
-        init-cmds          (if (:metadata-value-ids queries)
-                             [(str "undump " named-query " < '" positions-filename \')
-                              named-query]
+        init-cmds          (if metadata-ids
+                             (do
+                               (print-positions-matching-metadata metadata-ids positions-filename)
+                               [(str "undump " named-query " < '" positions-filename \')
+                                named-query])
                              [])
         cut-str            (when cut (str " cut " cut))]
     (conj init-cmds (str named-query " = " query-str cut-str))))

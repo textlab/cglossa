@@ -6,12 +6,13 @@
                                                construct-query-commands]]
             [clojure.string :as str]))
 
-(defmethod run-queries :default [corpus search queries step cut sort-by]
+(defmethod run-queries :default [corpus search queries metadata-ids step cut sort-by]
   (let [search-id   (:rid search)
         named-query (cwb-query-name corpus search-id)
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
                      (cwb-corpus-name corpus queries)
-                     (construct-query-commands corpus queries named-query search-id cut)
+                     (construct-query-commands corpus queries metadata-ids named-query
+                                               search-id cut)
                      (when (> step 1)
                        (str "save " named-query))
                      (str "set Context 1 s")
