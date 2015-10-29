@@ -150,8 +150,11 @@
             :id        "headword_search"
             :name      "headword_search"} " Headword search"])
 
-(defn top-toolbar [{:keys [num-resets show-metadata?] {:keys [queries]} :search-view :as a}
-                   {:keys [metadata-categories] :as m}]
+(defn top-toolbar [{:keys [num-resets show-metadata?]
+                    {:keys [queries]} :search-view
+                    {:keys [show-results?]} :results-view
+                    :as a}
+                   {:keys [search metadata-categories] :as m}]
   [:div.col-sm-5
    [b/buttontoolbar {:style {:margin-bottom 20}}
     (when (seq @metadata-categories)
@@ -173,5 +176,7 @@
                :title    "Reset form"
                :on-click (fn []
                            (reset! queries [{:query ""}])
+                           (reset! search {})
+                           (reset! show-results? false)
                            (swap! num-resets inc))}         ; see comments in the start component
      "Reset form"]]])
