@@ -62,7 +62,7 @@
                     :main                 "cglossa.core"
                     :asset-path           "js/out"
                     :foreign-libs         [{:file     "resources/public/js/select2.js"
-                                            :file-min "resources/public/js/select2-min.js"
+                                            :file-min "resources/public/js/select2.min.js"
                                             :provides ["js-select2"]
                                             :requires ["cljsjs.jquery"]}
                                            {:file     "resources/public/js/jquery.jplayer.min.js"
