@@ -54,7 +54,7 @@
   (let [query-str          (if (:multilingual? corpus)
                              (build-multilingual-query queries s-tag)
                              (build-monolingual-query queries s-tag))
-        positions-filename (str (fs/tmpdir) "positions_" search-id)
+        positions-filename (str (fs/tmpdir) "/positions_" search-id)
         init-cmds          (if metadata-ids
                              (do
                                (print-positions-matching-metadata metadata-ids positions-filename)
