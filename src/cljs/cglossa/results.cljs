@@ -219,7 +219,7 @@
    [concordance-table a m]
    [:div.row
     [:div.col-sm-12
-     [pagination a]]]])
+     [pagination a m]]]])
 
 (defn results [{:keys [num-resets] :as a} m]
   [:div
