@@ -11,7 +11,7 @@
     [:h2
      (:name @corpus)
      (when-let [logo (:logo @corpus)]
-       (let [logo-path (if (or (.startsWith logo "http:") (.startsWith logo "https:")) logo (str "img/" logo))]
+       (let [logo-path (if (re-find #"^https?:" logo) logo (str "img/" logo))]
          [:img.corpus-logo {:src (str logo-path)}]))]]])
 
 (defn start [{:keys [num-resets] :as a} m]
