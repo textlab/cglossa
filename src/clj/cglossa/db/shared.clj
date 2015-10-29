@@ -1,11 +1,13 @@
 (ns cglossa.db.shared
   (:require [clojure.string :as str]
-            [clojure.walk :as walk])
+            [clojure.walk :as walk]
+            [environ.core :refer [env]])
   (:import [com.tinkerpop.blueprints.impls.orient OrientGraphFactory]
            [com.orientechnologies.orient.core.sql OCommandSQL]
            [com.orientechnologies.orient.core.db.record OIdentifiable]))
 
-(defonce graph-factory (OrientGraphFactory. "remote:localhost/Glossa" "admin" "admin"))
+(defonce graph-factory
+         (OrientGraphFactory. "remote:localhost/Glossa" (:db-user env) (:db-password env)))
 
 (defn get-graph
   ([] (get-graph true))
