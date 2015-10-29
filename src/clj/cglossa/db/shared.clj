@@ -6,8 +6,11 @@
            [com.orientechnologies.orient.core.sql OCommandSQL]
            [com.orientechnologies.orient.core.db.record OIdentifiable]))
 
-(defonce graph-factory
-         (OrientGraphFactory. "remote:localhost/Glossa" (:db-user env) (:db-password env)))
+(defonce graph-factory (.setupPool (OrientGraphFactory.
+                                     "remote:localhost/Glossa"
+                                     (:db-user env)
+                                     (:db-password env))
+                                   1 10))
 
 (defn get-graph
   ([] (get-graph true))
