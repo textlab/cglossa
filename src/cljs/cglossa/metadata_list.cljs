@@ -32,11 +32,14 @@
                                                         (dissoc $ cat-id)
                                                         (filter #(second %) $)
                                                         (into {} $))
+                                     value-filter (if (empty? (.-term params))
+                                                    js/undefined
+                                                    (.-term params))
                                      selected-ids (if (empty? md)
                                                     js/undefined
                                                     (js/JSON.stringify (clj->js md)))]
                                  #js {:category-id  cat-id
-                                      :value-filter (.-term params)
+                                      :value-filter value-filter
                                       :selected-ids selected-ids
                                       :page         (.-page params)}))}}
         [:div
