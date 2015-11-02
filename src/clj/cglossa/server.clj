@@ -69,9 +69,9 @@
     (println zipfile))
   (GET "/metadata-values" [category-id value-filter selected-ids page]
     (let [selected-ids* (when selected-ids (cheshire/parse-string selected-ids))
-          page* (if page (Integer/parseInt page) 1)
-          data (metadata/get-metadata-values category-id value-filter selected-ids* page*)]
-      (-> (response/response (cheshire/generate-string {:results (:results data)
+          page*         (if page (Integer/parseInt page) 1)
+          data          (metadata/get-metadata-values category-id value-filter selected-ids* page*)]
+      (-> (response/response (cheshire/generate-string {:results    (:results data)
                                                         :pagination {:more (:more? data)}}))
           (response/content-type "application/json")
           (response/charset "utf-8")))))
