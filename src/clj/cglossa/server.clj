@@ -2,7 +2,7 @@
   (:require [clojure.java.io :as io]
             [compojure.core :refer [GET POST defroutes routes context]]
             [compojure.route :refer [resources]]
-            [net.cgrand.enlive-html :refer [deftemplate]]
+            [net.cgrand.enlive-html :refer [deftemplate html-content]]
             [ring.util.response :as response]
             [ring.middleware.reload :as reload]
             [ring.middleware.params :refer [wrap-params]]
@@ -49,15 +49,24 @@
            :body   (.toString e#)})))
 
 (deftemplate page (io/resource "index.html") [])
+(deftemplate admin (io/resource "admin.html")
+             []
+             [:#corpus-table]
+             (html-content
+               (str "<tr><td style=\"width: 350px;\">AA</td>"
+                    "<td><button class=\"btn btn-danger btn-xs\">Delete</td></tr>")))
 
 (defroutes app-routes
   (resources "/")
   (GET "/request" [] handle-dump)
-  (GET "/" req (page)))
+  (GET "/" req (page))
+  (GET "/admin" req (admin)))
 
 (defroutes db-routes
   (GET "/corpus" [code]
     (transit-response (corpus/get-corpus code)))
+  (POST "/corpus" [zipfile]
+    (println zipfile))
   (GET "/metadata-values" [category-id value-filter selected-ids page]
     (let [selected-ids* (when selected-ids (cheshire/parse-string selected-ids))
           page* (if page (Integer/parseInt page) 1)

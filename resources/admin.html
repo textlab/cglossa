@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Glossa</title>
+    <link href="css/bootstrap-3.3.4/bootstrap.min.css" rel="stylesheet" type="text/css">
+    <link href="css/bootstrap-3.3.4/bootstrap-theme.min.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<div class="container" style="margin-top: 10px">
+    <div class="row">
+        <div class="well">
+            <form accept-charset="utf-8" action="/corpus" enctype="multipart/form-data" method="post">
+                <div class="form-group">
+                    <input id="corpus" name="corpus" type="file"/>
+                </div>
+                <button class="btn btn-success btn-sm" name="commit" type="submit">Upload corpus</button>
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <h3 style="margin-bottom: 20px">Available corpora:</h3>
+        <table class="table table-bordered" id="corpus-table" style="width: 400px">
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
