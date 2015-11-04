@@ -1,3 +1,5 @@
+INSERT IGNORE INTO `glossa__core`.`corpora` SET `code` = '{{corpus}}';
+
 CREATE database IF NOT EXISTS `glossa_{{corpus}}` CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 
 USE glossa_{{corpus}};
@@ -11,7 +13,7 @@ CREATE TABLE IF NOT EXISTS `texts` (
 
 CREATE TABLE IF NOT EXISTS `metadata_categories` (
 `id` smallint unsigned NOT NULL AUTO_INCREMENT KEY,
-`code` varchar(255) NOT NULL,
+`code` varchar(255) UNIQUE NOT NULL,
 `name` varchar(255)
 );
 

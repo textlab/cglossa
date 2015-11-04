@@ -4,7 +4,7 @@ USE glossa__core;
 
 CREATE TABLE IF NOT EXISTS `corpora` (
 `id` smallint unsigned NOT NULL AUTO_INCREMENT KEY,
-`code` varchar(255) NOT NULL,
+`code` varchar(255) UNIQUE NOT NULL,
 `name` varchar(255),
 `encoding` varchar(255) DEFAULT 'utf-8',
 `logo` varchar(255),
