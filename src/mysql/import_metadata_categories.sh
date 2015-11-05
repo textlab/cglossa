@@ -7,7 +7,8 @@ if [ "$#" -ne 2 ] ; then
     exit
 fi
 
-tmpfile=_glossa_cattmp.txt
+tmpd="${TMPDIR:-/tmp}"
+tmpfile=${tmpd}/glossa_cattmp.tsv
 
 # Remove rows that are not actual metadata categories
 cat $2 | egrep -v '^(id|startpos|endpos|bounds)\b' > $tmpfile
