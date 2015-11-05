@@ -1,5 +1,9 @@
-(ns cglossa.db.corpus
-  (:require [cglossa.db.shared :refer [sql-query vertex-name]]))
+(ns cglossa.db.corpus)
+
+;;;; DUMMIES
+(defn build-sql [_ _])
+(defn sql-query [_ _])
+(defn vertex-name [_])
 
 (defn get-corpus [code]
   (let [ress (sql-query (str "SELECT @rid as corpus_rid, name as corpus_name, "

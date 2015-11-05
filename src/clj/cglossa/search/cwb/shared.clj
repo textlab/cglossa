@@ -2,8 +2,11 @@
   "Shared code for all types of corpora encoded with the IMS Open Corpus Workbench."
   (:require [clojure.string :as str]
             [me.raynes.fs :as fs]
-            [me.raynes.conch.low-level :as sh]
-            [cglossa.db.shared :refer [build-sql sql-query]]))
+            [me.raynes.conch.low-level :as sh]))
+
+;;;; DUMMIES
+(defn build-sql [_ _])
+(defn sql-query [_ _])
 
 (defn cwb-corpus-name [corpus queries]
   (let [uc-code (str/upper-case (:code corpus))]

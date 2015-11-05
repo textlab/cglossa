@@ -15,12 +15,30 @@
             [clojure.tools.logging :as log]
             [cognitect.transit :as transit]
             [cheshire.core :as cheshire]
+            [korma.db :as kdb]
+            [korma.core :as korma]
             [cglossa.db.corpus :as corpus]
             [cglossa.db.metadata :as metadata]
             [cglossa.search.core :as search]
             [cglossa.search_engines])
   (:import [java.io ByteArrayOutputStream])
   (:gen-class))
+
+(kdb/defdb glossa-core (kdb/mysql {:user     (:db-user env)
+                                   :password (:db-password env)
+                                   :db       "glossa__core"}))
+
+(korma/defentity corpora)
+(korma/defentity metadata-categories)
+(korma/defentity metadata-values
+  (korma/belongs-to metadata-categories))
+
+(def corpus-connections
+  (into {} (for [corpus (korma/select corpora (korma/fields :code))]
+             [(keyword (:code corpus))
+              (kdb/create-db (kdb/mysql {:user     (:db-user env)
+                                         :password (:db-password env)
+                                         :db       (str "glossa_" (:code corpus))}))])))
 
 ;; Global exception handler. From http://stuartsierra.com/2015/05/27/clojure-uncaught-exceptions
 ;; Assuming require [clojure.tools.logging :as log]

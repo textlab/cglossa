@@ -1,6 +1,9 @@
 (ns cglossa.db.metadata
-  (:require [cglossa.db.shared :refer [build-sql sql-query]]
-            [clojure.set :as set]))
+  (:require [clojure.set :as set]))
+
+;;;; DUMMIES
+(defn build-sql [_ _])
+(defn sql-query [_ _])
 
 (def ^:private metadata-pagesize 100)
 
