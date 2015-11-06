@@ -28,6 +28,7 @@
                  [korma "0.4.2"]
                  [mysql/mysql-connector-java "5.1.37"]
                  [org.clojure/data.csv "0.1.2"]
+                 [org.clojure/data.avl "0.0.12"]
                  [me.raynes/conch "0.8.0"]
                  [me.raynes/fs "1.4.6"]
                  [cheshire "5.5.0"]

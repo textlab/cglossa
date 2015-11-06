@@ -10,6 +10,7 @@ fi
 tmpd="${TMPDIR:-/tmp}"
 valfile1=${tmpd}/glossa_valtmp.tsv
 valfile2=${tmpd}/metadata_values.tsv
+valfile3=${tmpd}/metadata_values_texts.tsv
 corpus=$1
 catfile=`pwd`/$3
 
@@ -30,6 +31,11 @@ echo Importing values...
 mysql -u root \
     -e "TRUNCATE \`metadata_values\`;" \
     -e "LOAD DATA INFILE '$valfile2' INTO TABLE \`metadata_values\` (metadata_category_id, text_value)" \
+    glossa_${corpus}
+
+mysql -u root \
+    -e "TRUNCATE \`metadata_values_texts\`;" \
+    -e "LOAD DATA INFILE '$valfile3' INTO TABLE \`metadata_values_texts\`" \
     glossa_${corpus}
 
 rm $valfile1 $valfile2

@@ -23,5 +23,13 @@ CREATE TABLE IF NOT EXISTS `metadata_values` (
 `type` enum('text', 'integer', 'boolean') NOT NULL,
 `text_value` text,
 `integer_value` int DEFAULT NULL,
-`boolean_value` bool DEFAULT NULL
+`boolean_value` bool DEFAULT NULL,
+KEY (`metadata_category_id`)
+);
+
+CREATE TABLE IF NOT EXISTS `metadata_values_texts` (
+`metadata_value_id` int unsigned NOT NULL,
+`text_id` int unsigned NOT NULL,
+KEY (`metadata_value_id`),
+KEY (`text_id`)
 );
