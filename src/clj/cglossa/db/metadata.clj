@@ -52,13 +52,11 @@
                                                "[corpus_cat = '&category'] AS vals FROM #TARGETS)")
                                           {:targets targets
                                            :strings {:category corpus-cat}})
-                               first
-                               :vals))
-        ;; Get a seq of seqs, with each seq containing the rids we found for a particular category
-        value-ids       (map #(if (sequential? %) % [%]) cat-results)
-        ;; Get the intersection of all those seqs. This gives us an AND relationship between
-        ;; selections made in different categories.
-        intersected-ids (apply set/intersection (map set value-ids))
+                               (map :vals)
+                               flatten))
+        ;; Get the intersection of the sets of rids from each category. This gives us an AND
+        ;; relationship between selections made in different categories.
+        intersected-ids (apply set/intersection (map set cat-results))
         total           (count intersected-ids)
         res             (sql-query (str "SELECT @rid AS id, value AS text FROM #TARGETS "
                                         "ORDER BY text SKIP &skip LIMIT &limit")
