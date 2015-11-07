@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS `texts` (
 `id` int unsigned NOT NULL AUTO_INCREMENT KEY,
 `startpos` bigint DEFAULT NULL,
 `endpos` bigint DEFAULT NULL,
-`positions` text
+`bounds` text
 );
 
 CREATE TABLE IF NOT EXISTS `metadata_categories` (
@@ -29,7 +29,5 @@ KEY (`metadata_category_id`)
 
 CREATE TABLE IF NOT EXISTS `metadata_values_texts` (
 `metadata_value_id` int unsigned NOT NULL,
-`text_id` int unsigned NOT NULL,
-KEY (`metadata_value_id`),
-KEY (`text_id`)
+`text_id` int unsigned NOT NULL
 );
