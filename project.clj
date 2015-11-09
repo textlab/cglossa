@@ -9,7 +9,7 @@
   :test-paths ["spec/clj"]
 
   :dependencies [[org.clojure/clojure "1.7.0"]
-                 [org.clojure/clojurescript "1.7.48" :scope "provided"]
+                 [org.clojure/clojurescript "1.7.170" :scope "provided"]
                  [org.clojure/core.async "0.2.371"]
                  [ring "1.3.2"]
                  [ring/ring-defaults "0.1.5"]
@@ -36,7 +36,7 @@
                  [org.clojure/tools.logging "0.3.1"]
                  [binaryage/devtools "0.3.0"]]
 
-  :plugins [[lein-cljsbuild "1.0.6"]
+  :plugins [[lein-cljsbuild "1.1.1"]
             [lein-environ "1.0.0"]
             [lein-sassc "0.10.0"]
             [lein-auto "0.1.1"]]
@@ -81,7 +81,7 @@
            :output-to "resources/public/css/style.css"}]
   :auto {"sassc" {:file-pattern #"\.(scss)$"}}
 
-  :profiles {:dev     {:dependencies [[figwheel "0.3.9"]
+  :profiles {:dev     {:dependencies [[figwheel "0.5.0-SNAPSHOT"]
                                       [com.cemerick/piggieback "0.2.1"]
                                       [org.clojure/tools.nrepl "0.2.10"]
                                       [leiningen "2.5.1"]]
@@ -89,7 +89,7 @@
                        :repl-options {:init-ns          cglossa.server
                                       :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
 
-                       :plugins      [[lein-figwheel "0.3.9"]]
+                       :plugins      [[lein-figwheel "0.5.0-SNAPSHOT"]]
 
                        :figwheel     {:css-dirs          ["resources/public/css"]
                                       :open-file-command "idea-opener"
