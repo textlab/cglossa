@@ -9,9 +9,9 @@ fi
 
 tmpd="${TMPDIR:-/tmp}"
 valfile1=${tmpd}/glossa_valtmp.tsv
-valfile2=${tmpd}/metadata_values.tsv
-valfile3=${tmpd}/metadata_values_texts.tsv
-valfile4=${tmpd}/texts.tsv
+valfile2=${tmpd}/metadata_value.tsv
+valfile3=${tmpd}/metadata_value_text.tsv
+valfile4=${tmpd}/text.tsv
 corpus=$1
 catfile=`pwd`/$3
 
@@ -32,15 +32,15 @@ echo Importing values...
 # Also note that we have to create indexes *after* importing the data - otherwise they don't
 # work correctly (and mysql reports them as having cardinality 2...??)
 mysql -u root \
-    -e "TRUNCATE \`metadata_values\`;" \
-    -e "LOAD DATA INFILE '$valfile2' INTO TABLE \`metadata_values\` (\`metadata_category_id\`, \`text_value\`);" \
-    -e "TRUNCATE \`metadata_values_texts\`;" \
-    -e "LOAD DATA INFILE '$valfile3' INTO TABLE \`metadata_values_texts\`;" \
-    -e "TRUNCATE \`texts\`;" \
-    -e "LOAD DATA INFILE '$valfile4' INTO TABLE \`texts\` (\`startpos\`, \`endpos\`, \`bounds\`);" \
-    -e "CREATE INDEX \`metadata_value_id\` ON \`metadata_values_texts\` (\`metadata_value_id\`);" \
-    -e "CREATE INDEX \`text_id\` on \`metadata_values_texts\` (\`text_id\`);" \
-    -e "CREATE INDEX \`metadata_values_texts\` on \`metadata_values_texts\` (\`metadata_value_id\`, \`text_id\`);" \
+    -e "TRUNCATE \`metadata_value\`;" \
+    -e "LOAD DATA INFILE '$valfile2' INTO TABLE \`metadata_value\` (\`metadata_category_id\`, \`text_value\`);" \
+    -e "TRUNCATE \`metadata_value_text\`;" \
+    -e "LOAD DATA INFILE '$valfile3' INTO TABLE \`metadata_value_text\`;" \
+    -e "TRUNCATE \`text\`;" \
+    -e "LOAD DATA INFILE '$valfile4' INTO TABLE \`text\` (\`startpos\`, \`endpos\`, \`bounds\`);" \
+    -e "CREATE INDEX \`metadata_value_id\` ON \`metadata_value_text\` (\`metadata_value_id\`);" \
+    -e "CREATE INDEX \`text_id\` on \`metadata_value_text\` (\`text_id\`);" \
+    -e "CREATE INDEX \`metadata_value_text\` on \`metadata_value_text\` (\`metadata_value_id\`, \`text_id\`);" \
     glossa_${corpus}
 
 rm $valfile1 $valfile2

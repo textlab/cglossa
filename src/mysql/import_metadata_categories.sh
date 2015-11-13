@@ -17,8 +17,8 @@ cat $2 | egrep -v '^(id|startpos|endpos|bounds)\b' > $tmpfile
 # Note: We cannot use mysqlimport since it does not reset the autoincrement counter to 1
 # when we give it the --delete option
 mysql -u root \
-    -e "TRUNCATE \`metadata_categories\`;" \
-    -e "LOAD DATA INFILE '$tmpfile' INTO TABLE \`metadata_categories\` (code, name)" \
+    -e "TRUNCATE \`metadata_category\`;" \
+    -e "LOAD DATA INFILE '$tmpfile' INTO TABLE \`metadata_category\` (code, name)" \
     glossa_${corpus}
 
 rm $tmpfile

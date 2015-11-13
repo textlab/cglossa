@@ -77,9 +77,9 @@
       [value-data values-texts texts])))
 
 (defn write-import-tsv [value-tsv-path cat-tsv-path]
-  (with-open [values-tsv-file       (io/writer (str (fs/tmpdir) "/metadata_values.tsv"))
-              values-texts-tsv-file (io/writer (str (fs/tmpdir) "/metadata_values_texts.tsv"))
-              texts-tsv-file        (io/writer (str (fs/tmpdir) "/texts.tsv"))]
+  (with-open [values-tsv-file       (io/writer (str (fs/tmpdir) "/metadata_value.tsv"))
+              values-texts-tsv-file (io/writer (str (fs/tmpdir) "/metadata_value_text.tsv"))
+              texts-tsv-file        (io/writer (str (fs/tmpdir) "/text.tsv"))]
     (let [[values values-texts texts] (create-import-data value-tsv-path cat-tsv-path)]
       (utils/write-csv values-tsv-file values)
       (utils/write-csv values-texts-tsv-file values-texts)
