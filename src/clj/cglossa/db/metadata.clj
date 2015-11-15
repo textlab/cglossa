@@ -1,5 +1,11 @@
 (ns cglossa.db.metadata
-  (:require [clojure.set :as set]))
+  (:require [clojure.set :as set]
+            [korma.db :refer [with-db]]
+            [korma.core :refer [defentity belongs-to order select]]))
+
+(defentity metadata_category)
+(defentity metadata_value
+  (belongs-to metadata_category))
 
 ;;;; DUMMIES
 (defn build-sql [_ _])
@@ -66,6 +72,10 @@
                                    {:targets intersected-ids
                                     :strings {:skip skip :limit limit}})]
     [total res]))
+
+(defn get-metadata-categories [db]
+  (with-db db
+    (select metadata_category (order :name))))
 
 (defn get-metadata-values [category-id value-filter selected-ids page]
   (let [corpus-cat (-> (sql-query "SELECT corpus_cat FROM #TARGET" {:target category-id})

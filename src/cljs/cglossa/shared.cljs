@@ -75,7 +75,7 @@
           (reset! total (count result))
           ;; Since CQP may return fewer than the number or results we asked for, always do at
           ;; least one more search
-          (search-step2 url params total searching? (:rid search)))))))
+          (search-step2 url params total searching? (:id search)))))))
 
 (defn search! [{{queries :queries}                   :search-view
                 {:keys [show-results? results total page-no
@@ -95,7 +95,7 @@
                      ;; For other languages, leave the queries unmodified
                      @queries)
             url    "/search"
-            params {:corpus-id    (:rid @corpus)
+            params {:corpus-id    (:id @corpus)
                     :queries      q
                     :metadata-ids (:metadata @search)
                     :sort-by      @sort-by}]

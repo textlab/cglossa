@@ -1,5 +1,7 @@
 (ns cglossa.server
   (:require [clojure.java.io :as io]
+            [clojure.walk :as walk]
+            [clojure.string :as str]
             [compojure.core :refer [GET POST defroutes routes context]]
             [compojure.route :refer [resources]]
             [net.cgrand.enlive-html :refer [deftemplate html-content]]
@@ -16,25 +18,27 @@
             [cognitect.transit :as transit]
             [cheshire.core :as cheshire]
             [korma.db :as kdb]
-            [korma.core :as korma]
-            [cglossa.db.corpus :as corpus]
-            [cglossa.db.metadata :as metadata]
+            [korma.core :refer [defentity select fields belongs-to]]
+            [cglossa.db.corpus :refer [corpus get-corpus]]
+            [cglossa.db.metadata :refer [get-metadata-categories]]
             [cglossa.search.core :as search]
             [cglossa.search_engines])
   (:import [java.io ByteArrayOutputStream])
   (:gen-class))
 
+(defn hyphenize-keys
+  "Recursively changes underscore to hyphen in all map keys, which are assumed
+   to be strings or keywords."
+  [m]
+  (let [f (fn [[k v]] [(keyword (str/replace (name k) "_" "-")) v])]
+    (walk/postwalk #(if (map? %) (into {} (map f %)) %) m)))
+
 (kdb/defdb glossa-core (kdb/mysql {:user     (:db-user env)
                                    :password (:db-password env)
                                    :db       "glossa__core"}))
 
-(korma/defentity corpora)
-(korma/defentity metadata-categories)
-(korma/defentity metadata-values
-  (korma/belongs-to metadata-categories))
-
 (def corpus-connections
-  (into {} (for [corpus (korma/select corpora (korma/fields :code))]
+  (into {} (for [corpus (select corpus (fields :code))]
              [(keyword (:code corpus))
               (kdb/create-db (kdb/mysql {:user     (:db-user env)
                                          :password (:db-password env)
@@ -51,7 +55,7 @@
 (defn- transit-response* [body]
   (let [baos   (ByteArrayOutputStream. 2000)
         writer (transit/writer baos (if (:is-dev env) :json-verbose :json))
-        _      (transit/write writer body)
+        _      (transit/write writer (hyphenize-keys body))
         res    (.toString baos)]
     (.reset baos)
     (-> (response/response res)
@@ -82,13 +86,15 @@
 
 (defroutes db-routes
   (GET "/corpus" [code]
-    (transit-response (corpus/get-corpus code)))
+    (transit-response {:corpus              (get-corpus code glossa-core)
+                       :metadata-categories (get-metadata-categories (get corpus-connections
+                                                                          (keyword code)))}))
   (POST "/corpus" [zipfile]
     (println zipfile))
-  (GET "/metadata-values" [category-id value-filter selected-ids page]
+  #_(GET "/metadata-values" [category-id value-filter selected-ids page]
     (let [selected-ids* (when selected-ids (cheshire/parse-string selected-ids))
           page*         (if page (Integer/parseInt page) 1)
-          data          (metadata/get-metadata-values category-id value-filter selected-ids* page*)]
+          data          (get-metadata-values category-id value-filter selected-ids* page*)]
       (-> (response/response (cheshire/generate-string {:results    (:results data)
                                                         :pagination {:more (:more? data)}}))
           (response/content-type "application/json")

@@ -55,7 +55,7 @@
       [:span
        (doall
          (for [cat @metadata-categories
-               :let [cat-id   (:rid cat)
+               :let [cat-id   (:id cat)
                      selected (r/cursor search [:metadata cat-id])
                      ;; Show the select2 component for this category if the user has
                      ;; explicitly opened it or the search contains a non-empty seq of

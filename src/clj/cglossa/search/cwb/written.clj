@@ -7,7 +7,7 @@
             [clojure.string :as str]))
 
 (defmethod run-queries :default [corpus search queries metadata-ids step cut sort-by]
-  (let [search-id   (:rid search)
+  (let [search-id   (:id search)
         named-query (cwb-query-name corpus search-id)
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
                      (cwb-corpus-name corpus queries)

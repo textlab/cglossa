@@ -126,11 +126,11 @@
                                ;; If necessary, fetch any result pages in a window centred around
                                ;; the selected page in order to speed up pagination to nearby
                                ;; pages. No need to wait for it to finish though.
-                               (fetch-result-window! a m (:rid @search) new-page-no last))
+                               (fetch-result-window! a m (:id @search) new-page-no last))
                              (go
                                ;; Otherwise, we need to park until the results from the server
                                ;; arrive before setting the page to be shown in the result table
-                               (<! (fetch-result-window! a m (:rid @search) new-page-no last))
+                               (<! (fetch-result-window! a m (:id @search) new-page-no last))
                                ;; Don't show the fetched page if we have already selected another
                                ;; page in the paginator while we were waiting for the request
                                ;; to finish

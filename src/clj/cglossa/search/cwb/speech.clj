@@ -11,7 +11,7 @@
                               :temp :pers :case :degr :descr :nlex :mood :voice])
 
 (defmethod run-queries "cwb_speech" [corpus search queries metadata-ids step cut sort-by]
-  (let [search-id   (:rid search)
+  (let [search-id   (:id search)
         named-query (cwb-query-name corpus search-id)
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
                      (cwb-corpus-name corpus queries)
@@ -88,7 +88,7 @@
     {:title             ""
      :last_line         last-line-index
      :display_attribute "word"
-     :corpus_id         (:rid corpus)
+     :corpus_id         (:id corpus)
      :mov               {:supplied "m4v"
                          :path     (str "media/" (:code corpus))
                          :line_key line-key
