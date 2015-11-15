@@ -61,8 +61,10 @@
                                             (when-not (#{"id" "startpos" "endpos" "bounds"} cat)
                                               index))
                                           cat-codes))
-          ;; Convert rows to columns
-          cols         (->> (utils/read-csv value-tsv-file) (apply map list) )
+          ;; Convert rows to columns and remove null values
+          cols         (->> (utils/read-csv value-tsv-file)
+                            (apply map list)
+                            (map (partial remove (partial = "\\N"))))
           ;; This only includes columns with values for actual metadata categories
           value-cols  (keep-indexed (fn [index col] (when (cat-indexes index) col)) cols)
           ;; Get a seq containing sorted sets of unique values for each column
