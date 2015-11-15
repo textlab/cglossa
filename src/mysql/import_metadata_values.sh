@@ -34,10 +34,13 @@ echo Importing values...
 mysql -u root \
     -e "TRUNCATE \`metadata_value\`;" \
     -e "LOAD DATA INFILE '$valfile2' INTO TABLE \`metadata_value\` (\`metadata_category_id\`, \`text_value\`);" \
-    -e "TRUNCATE \`metadata_value_text\`;" \
-    -e "LOAD DATA INFILE '$valfile3' INTO TABLE \`metadata_value_text\`;" \
     -e "TRUNCATE \`text\`;" \
     -e "LOAD DATA INFILE '$valfile4' INTO TABLE \`text\` (\`startpos\`, \`endpos\`, \`bounds\`);" \
+    -e "TRUNCATE \`metadata_value_text\`;" \
+    -e "DROP INDEX \`metadata_value_id\` ON \`metadata_value_text\`;" \
+    -e "DROP INDEX \`text_id\` on \`metadata_value_text\`;" \
+    -e "DROP INDEX \`metadata_value_text\` on \`metadata_value_text\`;" \
+    -e "LOAD DATA INFILE '$valfile3' INTO TABLE \`metadata_value_text\`;" \
     -e "CREATE INDEX \`metadata_value_id\` ON \`metadata_value_text\` (\`metadata_value_id\`);" \
     -e "CREATE INDEX \`text_id\` on \`metadata_value_text\` (\`text_id\`);" \
     -e "CREATE INDEX \`metadata_value_text\` on \`metadata_value_text\` (\`metadata_value_id\`, \`text_id\`);" \
