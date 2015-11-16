@@ -20,7 +20,7 @@
             [korma.db :as kdb]
             [korma.core :refer [defentity select fields belongs-to]]
             [cglossa.db.corpus :refer [corpus get-corpus]]
-            [cglossa.db.metadata :refer [get-metadata-categories]]
+            [cglossa.db.metadata :refer [get-metadata-categories get-metadata-values]]
             [cglossa.search.core :as search]
             [cglossa.search_engines])
   (:import [java.io ByteArrayOutputStream])
@@ -106,7 +106,7 @@
                          :metadata-categories cats})))
   (POST "/corpus" [zipfile]
     (println zipfile))
-  #_(GET "/metadata-values" [category-id value-filter selected-ids page]
+  (GET "/metadata-values" [category-id value-filter selected-ids page]
     (let [selected-ids* (when selected-ids (cheshire/parse-string selected-ids))
           page*         (if page (Integer/parseInt page) 1)
           data          (get-metadata-values category-id value-filter selected-ids* page*)]

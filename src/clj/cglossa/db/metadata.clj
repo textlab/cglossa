@@ -1,11 +1,12 @@
 (ns cglossa.db.metadata
   (:require [clojure.set :as set]
             [korma.db :refer [with-db]]
-            [korma.core :refer [defentity belongs-to order select]]))
+            [korma.core :refer [defentity table belongs-to
+                                select fields aggregate where order limit offset]]))
 
-(defentity metadata_category)
-(defentity metadata_value
-  (belongs-to metadata_category))
+(defentity metadata-category (table :metadata_category))
+(defentity metadata-value (table :metadata_value)
+                          (belongs-to metadata-category))
 
 ;;;; DUMMIES
 (defn build-sql [_ _])
@@ -23,70 +24,93 @@
 ;;;; (since we don't get the desired block from the total set of ordered values, but rather
 ;;;; the block extracted and only *then* ordered...)
 
-(defn unconstrained-metadata-values [category-id corpus-cat value-filter skip limit]
-  (let [total (-> (if value-filter
-                    (sql-query (str "SELECT COUNT(*) AS total FROM "
-                                    "(SELECT flatten(out('HasMetadataValue')) from #TARGET) "
-                                    "WHERE value LIKE '&filter%'")
-                               {:target  category-id
-                                :strings {:filter value-filter}})
-                    (sql-query (str "SELECT out('HasMetadataValue').size() AS total "
-                                    "FROM #TARGET")
-                               {:target category-id}))
-                  first
-                  :total)
-        res   (if value-filter
-                (sql-query (str "SELECT @rid AS id, value AS text FROM MetadataValue "
-                                "WHERE corpus_cat = ? AND value LIKE ? "
-                                "ORDER BY text SKIP &skip LIMIT &limit")
-                           {:target     category-id
-                            :sql-params [corpus-cat (str value-filter "%")]
-                            :strings    {:skip skip :limit limit}})
-                (sql-query (str "SELECT @rid AS id, value AS text FROM "
-                                "(SELECT flatten(out('HasMetadataValue')) FROM #TARGET "
-                                "ORDER BY value SKIP &skip LIMIT &limit)")
-                           {:target  category-id
-                            :strings {:skip skip :limit limit}}))]
+(defn unconstrained-metadata-values [category-id corpus-cat value-filter lim offs]
+  (let [conditions (cond-> {:metadata_category_id category-id}
+                           value-filter (assoc :text_value ['like value-filter]))
+        total      (-> (select metadata-value (aggregate (count :*) :total) (where conditions))
+                       first
+                       :total)
+        #_total      #_(-> (if value-filter
+                             (sql-query (str "SELECT COUNT(*) AS total FROM "
+                                             "(SELECT flatten(out('HasMetadataValue')) from #TARGET) "
+                                             "WHERE value LIKE '&filter%'")
+                                        {:target  category-id
+                                         :strings {:filter value-filter}})
+                             (sql-query (str "SELECT out('HasMetadataValue').size() AS total "
+                                             "FROM #TARGET")
+                                        {:target category-id}))
+                           first
+                           :total)
+        res        (select metadata-value
+                           (fields :id [:text_value :text])
+                           (where conditions)
+                           (limit lim)
+                           (offset offs))
+        #_res        #_(if value-filter
+                         (sql-query (str "SELECT @rid AS id, value AS text FROM MetadataValue "
+                                         "WHERE corpus_cat = ? AND value LIKE ? "
+                                         "ORDER BY text SKIP &skip LIMIT &limit")
+                                    {:target     category-id
+                                     :sql-params [corpus-cat (str value-filter "%")]
+                                     :strings    {:skip skip :limit limit}})
+                         (sql-query (str "SELECT @rid AS id, value AS text FROM "
+                                         "(SELECT flatten(out('HasMetadataValue')) FROM #TARGET "
+                                         "ORDER BY value SKIP &skip LIMIT &limit)")
+                                    {:target  category-id
+                                     :strings {:skip skip :limit limit}}))]
     [total res]))
 
-(defn constrained-metadata-values [selected-ids category-id corpus-cat value-filter skip limit]
-  (let [cat-results     (;; Iterate over all categories where one or more values have been selected
-                          for [targets (vals selected-ids)]
-                          ;; For the set of values that have been selected in this category,
-                          ;; first find all the texts they are associated with, and then
-                          ;; all the values in the corpus-cat category that those texts are
-                          ;; associated with in turn. In other words, we OR (take the union of)
-                          ;; all values that match one or more selections within a single category.
-                          (->> (sql-query (str "SELECT out('DescribesText').in('DescribesText')"
-                                               "[corpus_cat = '&category'] AS vals FROM #TARGETS)")
-                                          {:targets targets
-                                           :strings {:category corpus-cat}})
-                               (map :vals)
-                               flatten))
-        ;; Get the intersection of the sets of rids from each category. This gives us an AND
-        ;; relationship between selections made in different categories.
-        intersected-ids (apply set/intersection (map set cat-results))
-        total           (count intersected-ids)
-        res             (sql-query (str "SELECT @rid AS id, value AS text FROM #TARGETS "
-                                        "ORDER BY text SKIP &skip LIMIT &limit")
-                                   {:targets intersected-ids
-                                    :strings {:skip skip :limit limit}})]
-    [total res]))
+(defn constrained-metadata-values [selected-ids category-id corpus-cat value-filter limit offset]
+  )
+#_(defn constrained-metadata-values [selected-ids category-id corpus-cat value-filter limit offset]
+    (let [cat-results     (;; Iterate over all categories where one or more values have been selected
+                            for [targets (vals selected-ids)]
+                            ;; For the set of values that have been selected in this category,
+                            ;; first find all the texts they are associated with, and then
+                            ;; all the values in the corpus-cat category that those texts are
+                            ;; associated with in turn. In other words, we OR (take the union of)
+                            ;; all values that match one or more selections within a single category.
+                            (->> (sql-query (str "SELECT out('DescribesText').in('DescribesText')"
+                                                 "[corpus_cat = '&category'] AS vals FROM #TARGETS)")
+                                            {:targets targets
+                                             :strings {:category corpus-cat}})
+                                 first
+                                 :vals))
+          ;; Get a seq of seqs, with each seq containing the rids we found for a particular category
+          value-ids       (map #(if (sequential? %) % [%]) cat-results)
+          ;; Get the intersection of all those seqs. This gives us an AND relationship between
+          ;; selections made in different categories.
+          intersected-ids (apply set/intersection (map set value-ids))
+          total           (count intersected-ids)
+          res             (sql-query (str "SELECT @rid AS id, value AS text FROM #TARGETS "
+                                          "ORDER BY text SKIP &skip LIMIT &limit")
+                                     {:targets intersected-ids
+                                      :strings {:skip skip :limit limit}})]
+      [total res]))
 
 (defn get-metadata-categories []
   (select metadata-category (order :name)))
 
 (defn get-metadata-values [category-id value-filter selected-ids page]
-  (let [corpus-cat (-> (sql-query "SELECT corpus_cat FROM #TARGET" {:target category-id})
-                       first
-                       :corpus_cat)
-        skip       (* (dec page) metadata-pagesize)
-        limit      (+ skip metadata-pagesize)
+  (let [offs  (* (dec page) metadata-pagesize)
+        lim   (+ offs metadata-pagesize)
         [total res] (if selected-ids
-                      (constrained-metadata-values selected-ids category-id corpus-cat
-                                                   value-filter skip limit)
-                      (unconstrained-metadata-values category-id corpus-cat
-                                                     value-filter skip limit))
-        more?      (> total limit)]
-    {:results (map #(select-keys % [:id :text]) res)
-     :more?   more?}))
+                      (constrained-metadata-values selected-ids category-id cat
+                                                   value-filter lim offs)
+                      (unconstrained-metadata-values category-id cat value-filter lim offs))
+        more? (> total lim)]
+    {:results res
+     :more?   more?})
+  #_(let [corpus-cat (-> (sql-query "SELECT corpus_cat FROM #TARGET" {:target category-id})
+                         first
+                         :corpus_cat)
+          skip       (* (dec page) metadata-pagesize)
+          limit      (+ skip metadata-pagesize)
+          [total res] (if selected-ids
+                        (constrained-metadata-values selected-ids category-id corpus-cat
+                                                     value-filter skip limit)
+                        (unconstrained-metadata-values category-id corpus-cat
+                                                       value-filter skip limit))
+          more?      (> total limit)]
+      {:results (map #(select-keys % [:id :text]) res)
+       :more?   more?}))
