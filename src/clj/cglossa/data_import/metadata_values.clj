@@ -1,5 +1,6 @@
 (ns cglossa.data-import.metadata-values
-  (:require [clojure.java.io :as io]
+  (:require [clojure.string :as str]
+            [clojure.java.io :as io]
             [me.raynes.fs :as fs]
             [clojure.data.avl :as avl]
             [cglossa.data-import.utils :as utils]))
@@ -64,7 +65,7 @@
           ;; Convert rows to columns and remove null values
           cols         (->> (utils/read-csv value-tsv-file)
                             (apply map list)
-                            (map (partial remove (partial = "\\N"))))
+                            (map (partial remove #(or (str/blank? %) (= "\\N" %)))))
           ;; This only includes columns with values for actual metadata categories
           value-cols  (keep-indexed (fn [index col] (when (cat-indexes index) col)) cols)
           ;; Get a seq containing sorted sets of unique values for each column
