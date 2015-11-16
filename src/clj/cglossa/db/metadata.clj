@@ -26,38 +26,15 @@
 
 (defn unconstrained-metadata-values [category-id corpus-cat value-filter lim offs]
   (let [conditions (cond-> {:metadata_category_id category-id}
-                           value-filter (assoc :text_value ['like value-filter]))
+                           value-filter (assoc :text_value ['like (str value-filter \%)]))
         total      (-> (select metadata-value (aggregate (count :*) :total) (where conditions))
                        first
                        :total)
-        #_total      #_(-> (if value-filter
-                             (sql-query (str "SELECT COUNT(*) AS total FROM "
-                                             "(SELECT flatten(out('HasMetadataValue')) from #TARGET) "
-                                             "WHERE value LIKE '&filter%'")
-                                        {:target  category-id
-                                         :strings {:filter value-filter}})
-                             (sql-query (str "SELECT out('HasMetadataValue').size() AS total "
-                                             "FROM #TARGET")
-                                        {:target category-id}))
-                           first
-                           :total)
         res        (select metadata-value
                            (fields :id [:text_value :text])
                            (where conditions)
                            (limit lim)
-                           (offset offs))
-        #_res        #_(if value-filter
-                         (sql-query (str "SELECT @rid AS id, value AS text FROM MetadataValue "
-                                         "WHERE corpus_cat = ? AND value LIKE ? "
-                                         "ORDER BY text SKIP &skip LIMIT &limit")
-                                    {:target     category-id
-                                     :sql-params [corpus-cat (str value-filter "%")]
-                                     :strings    {:skip skip :limit limit}})
-                         (sql-query (str "SELECT @rid AS id, value AS text FROM "
-                                         "(SELECT flatten(out('HasMetadataValue')) FROM #TARGET "
-                                         "ORDER BY value SKIP &skip LIMIT &limit)")
-                                    {:target  category-id
-                                     :strings {:skip skip :limit limit}}))]
+                           (offset offs))]
     [total res]))
 
 (defn constrained-metadata-values [selected-ids category-id corpus-cat value-filter limit offset]
