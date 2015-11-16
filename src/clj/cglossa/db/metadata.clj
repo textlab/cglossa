@@ -73,9 +73,8 @@
                                     :strings {:skip skip :limit limit}})]
     [total res]))
 
-(defn get-metadata-categories [db]
-  (with-db db
-    (select metadata_category (order :name))))
+(defn get-metadata-categories []
+  (select metadata-category (order :name)))
 
 (defn get-metadata-values [category-id value-filter selected-ids page]
   (let [corpus-cat (-> (sql-query "SELECT corpus_cat FROM #TARGET" {:target category-id})

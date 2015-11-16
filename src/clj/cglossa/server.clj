@@ -86,9 +86,10 @@
 
 (defroutes db-routes
   (GET "/corpus" [code]
-    (transit-response {:corpus              (get-corpus code glossa-core)
-                       :metadata-categories (get-metadata-categories (get corpus-connections
-                                                                          (keyword code)))}))
+    (let [c    (get-corpus code)
+          cats (kdb/with-db (get corpus-connections (:id c)) (get-metadata-categories))]
+      (transit-response {:corpus              c
+                         :metadata-categories cats})))
   (POST "/corpus" [zipfile]
     (println zipfile))
   #_(GET "/metadata-values" [category-id value-filter selected-ids page]
@@ -110,6 +111,7 @@
   (let [r (routes #'db-routes #'search-routes #'app-routes)
         r (if (:is-dev env) (-> r reload/wrap-reload wrap-exceptions) r)]
     (-> r
+        wrap-db
         wrap-keyword-params
         wrap-json-params
         wrap-params)))

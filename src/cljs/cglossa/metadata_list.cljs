@@ -5,7 +5,7 @@
             [cglossa.select2 :as sel])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
-(defn- metadata-select [cat-id search selected open-metadata-cat]
+(defn- metadata-select [corpus cat-id search selected open-metadata-cat]
   (r/create-class
     {:component-did-mount
      ;; If the user has explicitly selected this category by clicking on its header/link,
@@ -38,14 +38,15 @@
                                      selected-ids (if (empty? md)
                                                     js/undefined
                                                     (js/JSON.stringify (clj->js md)))]
-                                 #js {:category-id  cat-id
+                                 #js {:corpus-id    (:id @corpus)
+                                      :category-id  cat-id
                                       :value-filter value-filter
                                       :selected-ids selected-ids
                                       :page         (.-page params)}))}}
         [:div
          [:select.list {:style {:width "90%"} :multiple true}]]])}))
 
-(defn metadata-list [{:keys [open-metadata-cat]} {:keys [search]}]
+(defn metadata-list [{:keys [open-metadata-cat]} {:keys [corpus search]}]
   (let [remove-cat-values (fn [cat-id]
                             (reset! open-metadata-cat nil)
                             (swap! search update :metadata dissoc cat-id)
@@ -80,4 +81,4 @@
                            :on-click   #(remove-cat-values cat-id)}
                  [b/glyphicon {:glyph "remove"}]]
                 ^{:key (str "select" cat-id)}
-                [metadata-select cat-id search selected open-metadata-cat]))]))])))
+                [metadata-select corpus cat-id search selected open-metadata-cat]))]))])))
