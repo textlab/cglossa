@@ -26,20 +26,15 @@
   (:import [java.io ByteArrayOutputStream])
   (:gen-class))
 
-(defn hyphenize-keys
-  "Recursively changes underscore to hyphen in all map keys, which are assumed
-   to be strings or keywords."
-  [m]
-  (let [f (fn [[k v]] [(keyword (str/replace (name k) "_" "-")) v])]
-    (walk/postwalk #(if (map? %) (into {} (map f %)) %) m)))
+(def core-db-name "glossa__core")
 
 (kdb/defdb glossa-core (kdb/mysql {:user     (:db-user env)
                                    :password (:db-password env)
-                                   :db       "glossa__core"}))
+                                   :db       core-db-name}))
 
 (def corpus-connections
-  (into {} (for [corpus (select corpus (fields :code))]
-             [(keyword (:code corpus))
+  (into {} (for [corpus (select corpus (fields :id :code))]
+             [(:id corpus)
               (kdb/create-db (kdb/mysql {:user     (:db-user env)
                                          :password (:db-password env)
                                          :db       (str "glossa_" (:code corpus))}))])))
@@ -51,6 +46,13 @@
     (reify Thread$UncaughtExceptionHandler
       (uncaughtException [_ thread ex]
         (log/error ex "Uncaught exception on" (.getName thread))))))
+
+(defn- hyphenize-keys
+  "Recursively changes underscore to hyphen in all map keys, which are assumed
+   to be strings or keywords."
+  [m]
+  (let [f (fn [[k v]] [(keyword (str/replace (name k) "_" "-")) v])]
+    (walk/postwalk #(if (map? %) (into {} (map f %)) %) m)))
 
 (defn- transit-response* [body]
   (let [baos   (ByteArrayOutputStream. 2000)
@@ -77,6 +79,18 @@
              (html-content
                (str "<tr><td style=\"width: 350px;\">AA</td>"
                     "<td><button class=\"btn btn-danger btn-xs\">Delete</td></tr>")))
+
+(defn wrap-db
+  "Middleware that checks if the request contains a corpus-id key, and if so,
+  sets the database for the given corpus as the default for the request. Otherwise
+  the core database is used."
+  [handler]
+  (fn [request]
+    (let [corpus-id (get-in request [:params :corpus-id])
+          db        (if corpus-id
+                      (get corpus-connections (Integer/parseInt corpus-id))
+                      glossa-core)]
+      (kdb/with-db db (handler request)))))
 
 (defroutes app-routes
   (resources "/")
