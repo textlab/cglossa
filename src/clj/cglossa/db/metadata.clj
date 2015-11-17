@@ -1,8 +1,8 @@
 (ns cglossa.db.metadata
   (:require [clojure.set :as set]
             [korma.db :refer [with-db]]
-            [korma.core :refer [defentity table belongs-to
-                                select fields aggregate where order limit offset]]))
+            [korma.core :refer [defentity table belongs-to select fields modifier aggregate
+                                where join order limit offset sqlfn]]))
 
 (defentity metadata-category (table :metadata_category))
 (defentity metadata-value (table :metadata_value)
@@ -27,14 +27,17 @@
 (defn unconstrained-metadata-values [category-id corpus-cat value-filter lim offs]
   (let [conditions (cond-> {:metadata_category_id category-id}
                            value-filter (assoc :text_value ['like (str value-filter \%)]))
-        total      (-> (select metadata-value (aggregate (count :*) :total) (where conditions))
-                       first
-                       :total)
         res        (select metadata-value
                            (fields :id [:text_value :text])
+                           (modifier "SQL_CALC_FOUND_ROWS")
                            (where conditions)
                            (limit lim)
-                           (offset offs))]
+                           (offset offs))
+        ;; NOTE: MySQL specific way to get the number of rows that would have been fetched
+        ;; by the previous query if it did not have a limit clause
+        total      (-> (korma.core/exec-raw "SELECT FOUND_ROWS() AS total" :results)
+                       first
+                       :total)]
     [total res]))
 
 (defn constrained-metadata-values [selected-ids category-id corpus-cat value-filter limit offset]
