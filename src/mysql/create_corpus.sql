@@ -1,6 +1,7 @@
 INSERT IGNORE INTO `{{glossa_prefix}}__core`.`corpus` SET `code` = '{{corpus}}';
 
 CREATE database IF NOT EXISTS `{{glossa_prefix}}_{{corpus}}` CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+GRANT ALL ON `{{glossa_prefix}}_{{corpus}}`.* TO `{{db_user}}`@`localhost`;
 
 USE {{glossa_prefix}}_{{corpus}};
 

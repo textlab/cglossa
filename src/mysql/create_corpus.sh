@@ -8,7 +8,9 @@ if [ "$#" -ne 1 ] ; then
 fi
 
 cat ./create_corpus.sql | \
-    sed -e s/{{corpus}}/$1/ -e s/{{glossa_prefix}}/"${GLOSSA_PREFIX:-glossa}"/ | \
+    sed -e s/{{corpus}}/$1/ \
+        -e s/{{glossa_prefix}}/"${GLOSSA_PREFIX:-glossa}"/ \
+        -e s/{{db_user}}/"${GLOSSA_DB_USER:-glossa}"/ | \
     mysql -u "${GLOSSA_DB_ADMIN:-root}" -p
 
 echo Created corpus $1
