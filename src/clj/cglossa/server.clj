@@ -28,15 +28,15 @@
 
 (def core-db-name "glossa__core")
 
-(kdb/defdb glossa-core (kdb/mysql {:user     (:db-user env)
-                                   :password (:db-password env)
+(kdb/defdb glossa-core (kdb/mysql {:user     (:glossa-db-user env)
+                                   :password (:glossa-db-password env)
                                    :db       core-db-name}))
 
 (def corpus-connections
   (into {} (for [corpus (select corpus (fields :id :code))]
              [(:id corpus)
-              (kdb/create-db (kdb/mysql {:user     (:db-user env)
-                                         :password (:db-password env)
+              (kdb/create-db (kdb/mysql {:user     (:glossa-db-user env)
+                                         :password (:glossa-db-password env)
                                          :db       (str "glossa_" (:code corpus))}))])))
 
 ;; Global exception handler. From http://stuartsierra.com/2015/05/27/clojure-uncaught-exceptions

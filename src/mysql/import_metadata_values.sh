@@ -15,7 +15,7 @@ catfile=`pwd`/$3
 
 # We don't want to stop if this fails because it's the first time we create this corpus
 # database, so we put it before the "set -e".
-mysql -u "${DB_ADMIN:-root}" -p  \
+mysql -u "${GLOSSA_DB_ADMIN:-root}" -p  \
     -e "DROP INDEX \`metadata_value_id\` ON \`metadata_value_text\`;" \
     -e "DROP INDEX \`text_id\` on \`metadata_value_text\`;" \
     -e "DROP INDEX \`metadata_value_text\` on \`metadata_value_text\`;" \
@@ -39,7 +39,7 @@ echo Importing values...
 # when we give it the --delete option.
 # Also note that we have to create indexes *after* importing the data - otherwise they don't
 # work correctly (and mysql reports them as having cardinality 2...??)
-mysql -u "${DB_ADMIN:-root}" -p  \
+mysql -u "${GLOSSA_DB_ADMIN:-root}" -p  \
     -e "TRUNCATE \`metadata_value\`;" \
     -e "LOAD DATA INFILE '$valfile2' INTO TABLE \`metadata_value\` (\`metadata_category_id\`, \`text_value\`);" \
     -e "TRUNCATE \`text\`;" \

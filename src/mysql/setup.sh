@@ -2,5 +2,5 @@
 
 set -e
 
-mysql -u "${DB_ADMIN:-root}" -p < ./setup.sql
+mysql -u "${GLOSSA_DB_ADMIN:-root}" -p < ./setup.sql
 echo Setup completed
