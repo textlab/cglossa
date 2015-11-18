@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -e
-
 if [ "$#" -ne 3 ] ; then
     echo "Usage: $0 CORPUS_NAME VALUE_FILE CATEGORY_FILE"
     exit
@@ -14,6 +12,16 @@ valfile3=${tmpd}/metadata_value_text.tsv
 valfile4=${tmpd}/text.tsv
 corpus=$1
 catfile=`pwd`/$3
+
+# We don't want to stop if this fails because it's the first time we create this corpus
+# database, so we put it before the "set -e".
+mysql -u "${DB_ADMIN:-root}" -p  \
+    -e "DROP INDEX \`metadata_value_id\` ON \`metadata_value_text\`;" \
+    -e "DROP INDEX \`text_id\` on \`metadata_value_text\`;" \
+    -e "DROP INDEX \`metadata_value_text\` on \`metadata_value_text\`;" \
+    glossa_${corpus}
+
+set -e
 
 echo Cleaning data...
 
@@ -37,9 +45,6 @@ mysql -u "${DB_ADMIN:-root}" -p  \
     -e "TRUNCATE \`text\`;" \
     -e "LOAD DATA INFILE '$valfile4' INTO TABLE \`text\` (\`startpos\`, \`endpos\`, \`bounds\`);" \
     -e "TRUNCATE \`metadata_value_text\`;" \
-    -e "DROP INDEX \`metadata_value_id\` ON \`metadata_value_text\`;" \
-    -e "DROP INDEX \`text_id\` on \`metadata_value_text\`;" \
-    -e "DROP INDEX \`metadata_value_text\` on \`metadata_value_text\`;" \
     -e "LOAD DATA INFILE '$valfile3' INTO TABLE \`metadata_value_text\`;" \
     -e "CREATE INDEX \`metadata_value_id\` ON \`metadata_value_text\` (\`metadata_value_id\`);" \
     -e "CREATE INDEX \`text_id\` on \`metadata_value_text\` (\`text_id\`);" \
