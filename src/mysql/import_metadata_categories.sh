@@ -19,7 +19,7 @@ cat $2 | egrep -v '^(id|startpos|endpos|bounds)\b' > $tmpfile
 mysql -u "${GLOSSA_DB_ADMIN:-root}" -p  \
     -e "TRUNCATE \`metadata_category\`;" \
     -e "LOAD DATA INFILE '$tmpfile' INTO TABLE \`metadata_category\` (code, name)" \
-    glossa_${corpus}
+    "${GLOSSA_PREFIX:-glossa}"_${corpus}
 
 rm $tmpfile
 

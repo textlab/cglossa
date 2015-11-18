@@ -1,6 +1,6 @@
-CREATE DATABASE IF NOT EXISTS `glossa__core` CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+CREATE DATABASE IF NOT EXISTS `{{glossa_prefix}}__core` CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 
-USE glossa__core;
+USE {{glossa_prefix}}__core;
 
 CREATE TABLE IF NOT EXISTS `corpus` (
 `id` smallint unsigned NOT NULL AUTO_INCREMENT KEY,

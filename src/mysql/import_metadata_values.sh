@@ -19,7 +19,7 @@ mysql -u "${GLOSSA_DB_ADMIN:-root}" -p  \
     -e "DROP INDEX \`metadata_value_id\` ON \`metadata_value_text\`;" \
     -e "DROP INDEX \`text_id\` on \`metadata_value_text\`;" \
     -e "DROP INDEX \`metadata_value_text\` on \`metadata_value_text\`;" \
-    glossa_${corpus}
+    "${GLOSSA_PREFIX:-glossa}"_${corpus}
 
 set -e
 
@@ -49,7 +49,7 @@ mysql -u "${GLOSSA_DB_ADMIN:-root}" -p  \
     -e "CREATE INDEX \`metadata_value_id\` ON \`metadata_value_text\` (\`metadata_value_id\`);" \
     -e "CREATE INDEX \`text_id\` on \`metadata_value_text\` (\`text_id\`);" \
     -e "CREATE INDEX \`metadata_value_text\` on \`metadata_value_text\` (\`metadata_value_id\`, \`text_id\`);" \
-    glossa_${corpus}
+    "${GLOSSA_PREFIX:-glossa}"_${corpus}
 
 rm $valfile1 $valfile2
 

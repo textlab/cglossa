@@ -7,6 +7,8 @@ if [ "$#" -ne 1 ] ; then
    exit
 fi
 
-sed s/{{corpus}}/$1/ ./create_corpus.sql | mysql -u "${GLOSSA_DB_ADMIN:-root}" -p
+cat ./create_corpus.sql | \
+    sed -e s/{{corpus}}/$1/ -e s/{{glossa_prefix}}/"${GLOSSA_PREFIX:-glossa}"/ | \
+    mysql -u "${GLOSSA_DB_ADMIN:-root}" -p
 
 echo Created corpus $1

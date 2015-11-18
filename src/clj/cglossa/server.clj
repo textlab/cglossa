@@ -26,7 +26,7 @@
   (:import [java.io ByteArrayOutputStream])
   (:gen-class))
 
-(def core-db-name "glossa__core")
+(def core-db-name (str (get env :glossa-prefix "glossa") "__core"))
 
 (kdb/defdb glossa-core (kdb/mysql {:user     (:glossa-db-user env)
                                    :password (:glossa-db-password env)
@@ -37,7 +37,8 @@
              [(:id corpus)
               (kdb/create-db (kdb/mysql {:user     (:glossa-db-user env)
                                          :password (:glossa-db-password env)
-                                         :db       (str "glossa_" (:code corpus))}))])))
+                                         :db       (str (get env :glossa-prefix "glossa") "_"
+                                                        (:code corpus))}))])))
 
 ;; Global exception handler. From http://stuartsierra.com/2015/05/27/clojure-uncaught-exceptions
 ;; Assuming require [clojure.tools.logging :as log]
