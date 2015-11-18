@@ -7,6 +7,6 @@ if [ "$#" -ne 1 ] ; then
    exit
 fi
 
-sed s/{{corpus}}/$1/ ./create_corpus.sql | mysql -u root
+sed s/{{corpus}}/$1/ ./create_corpus.sql | mysql -u "${DB_ADMIN:-root}" -p
 
 echo Created corpus $1

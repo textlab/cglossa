@@ -31,7 +31,7 @@ echo Importing values...
 # when we give it the --delete option.
 # Also note that we have to create indexes *after* importing the data - otherwise they don't
 # work correctly (and mysql reports them as having cardinality 2...??)
-mysql -u root \
+mysql -u "${DB_ADMIN:-root}" -p  \
     -e "TRUNCATE \`metadata_value\`;" \
     -e "LOAD DATA INFILE '$valfile2' INTO TABLE \`metadata_value\` (\`metadata_category_id\`, \`text_value\`);" \
     -e "TRUNCATE \`text\`;" \

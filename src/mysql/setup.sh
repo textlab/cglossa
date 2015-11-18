@@ -2,5 +2,5 @@
 
 set -e
 
-mysql -u root < ./setup.sql
+mysql -u "${DB_ADMIN:-root}" -p < ./setup.sql
 echo Setup completed
