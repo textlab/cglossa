@@ -1,30 +1,16 @@
 (ns cglossa.db.metadata
-  (:require [clojure.set :as set]
-            [korma.db :refer [with-db]]
-            [korma.core :refer [defentity table belongs-to select fields modifier aggregate
+  (:require [korma.db :refer [with-db]]
+            [korma.core :refer [defentity table belongs-to select select* fields modifier aggregate
                                 where join order limit offset sqlfn]]))
 
 (defentity metadata-category (table :metadata_category))
 (defentity metadata-value (table :metadata_value)
                           (belongs-to metadata-category))
-
-;;;; DUMMIES
-(defn build-sql [_ _])
-(defn sql-query [_ _])
+(defentity metadata-value-text (table :metadata_value_text))
 
 (def ^:private metadata-pagesize 100)
 
-;;;; Note: In the queries below, we vary between following edges (such as HasMetadataValue)
-;;;; and using indexes (such as corpus_cat). In each case, the chosen technique was found to
-;;;; be the most efficient one when tested on a category with 25,000 values (using OrientDB 2.1.2).
-
-;;;; It turns out that when fetching vertices via an edge (e.g.
-;;;; "SELECT flatten(out('HasMetadataValue')) FROM #13:1"), combining ORDER BY and SKIP/LIMIT
-;;;; doesn't work, because SKIP/LIMIT is applied *before* ORDER BY, which doesn't make sense
-;;;; (since we don't get the desired block from the total set of ordered values, but rather
-;;;; the block extracted and only *then* ordered...)
-
-(defn unconstrained-metadata-values [category-id corpus-cat value-filter lim offs]
+(defn- unconstrained-metadata-values [category-id value-filter lim offs]
   (let [conditions (cond-> {:metadata_category_id category-id}
                            value-filter (assoc :text_value ['like (str value-filter \%)]))
         res        (select metadata-value
@@ -35,38 +21,60 @@
                            (offset offs))
         ;; NOTE: MySQL specific way to get the number of rows that would have been fetched
         ;; by the previous query if it did not have a limit clause
-        total      (-> (korma.core/exec-raw "SELECT FOUND_ROWS() AS total" :results)
-                       first
-                       :total)]
+        total      (-> (korma.core/exec-raw "SELECT FOUND_ROWS() AS total" :results) first :total)]
     [total res]))
 
-(defn constrained-metadata-values [selected-ids category-id corpus-cat value-filter limit offset]
-  )
-#_(defn constrained-metadata-values [selected-ids category-id corpus-cat value-filter limit offset]
-    (let [cat-results     (;; Iterate over all categories where one or more values have been selected
-                            for [targets (vals selected-ids)]
-                            ;; For the set of values that have been selected in this category,
-                            ;; first find all the texts they are associated with, and then
-                            ;; all the values in the corpus-cat category that those texts are
-                            ;; associated with in turn. In other words, we OR (take the union of)
-                            ;; all values that match one or more selections within a single category.
-                            (->> (sql-query (str "SELECT out('DescribesText').in('DescribesText')"
-                                                 "[corpus_cat = '&category'] AS vals FROM #TARGETS)")
-                                            {:targets targets
-                                             :strings {:category corpus-cat}})
-                                 first
-                                 :vals))
-          ;; Get a seq of seqs, with each seq containing the rids we found for a particular category
-          value-ids       (map #(if (sequential? %) % [%]) cat-results)
-          ;; Get the intersection of all those seqs. This gives us an AND relationship between
-          ;; selections made in different categories.
-          intersected-ids (apply set/intersection (map set value-ids))
-          total           (count intersected-ids)
-          res             (sql-query (str "SELECT @rid AS id, value AS text FROM #TARGETS "
-                                          "ORDER BY text SKIP &skip LIMIT &limit")
-                                     {:targets intersected-ids
-                                      :strings {:skip skip :limit limit}})]
-      [total res]))
+(defn- join-selected-values [query selected-ids]
+  "Adds a join with the metadata_value_text table for each metadata category
+  for which we have already selected one or more values."
+  (reduce (fn [q join-index]
+            (let [alias1         (str \j (inc join-index))
+                  alias2         (str \j join-index)
+                  make-fieldname #(keyword (str % ".text_id"))]
+              (join q :inner [metadata-value-text alias1]
+                    (= (make-fieldname alias1) (make-fieldname alias2)))))
+          query
+          (-> selected-ids count range)))
+
+(defn- where-selected-values [query selected-ids]
+  "For each metadata category for which we have already selected one or more
+  values, adds a 'where' clause with the ids of the metadata values in that
+  category. The 'where' clause is associated with the corresponding instance of
+  the metadata_value_text table that is joined in by the join-selected-values
+  function.
+
+  This gives us an OR (union) relationship between values from the same
+  category and an AND (intersection) relationship between values from different
+  categories."
+  (let [cats (map-indexed (fn [index [_ ids]] [index ids]) selected-ids)]
+    (reduce (fn [q [cat-index cat-ids]]
+              (let [alias     (str \j (inc cat-index))
+                    fieldname (keyword (str alias ".metadata_value_id"))]
+                (where q {fieldname [in cat-ids]})))
+            query
+            cats)))
+
+(defn filter-value [query value-filter]
+  (if value-filter
+    (where query {:metadata_value.text_value [like (str value-filter \%)]})
+    query))
+
+(defn- constrained-metadata-values [selected-ids category-id value-filter lim offs]
+  (let [res   (-> (select* metadata-value)
+                  (fields :id [:text_value :text])
+                  (modifier "SQL_CALC_FOUND_ROWS DISTINCT")
+                  (join :inner [metadata-value-text :j0] (= :j0.metadata_value_id :id))
+                  (join-selected-values selected-ids)
+                  (where-selected-values selected-ids)
+                  (where {:metadata_category_id category-id})
+                  (filter-value value-filter)
+                  (limit lim)
+                  (offset offs)
+                  (select))
+        ;; NOTE: MySQL specific way to get the number of rows that would have been fetched
+        ;; by the previous query if it did not have a limit clause
+        total (-> (korma.core/exec-raw "SELECT FOUND_ROWS() AS total" :results) first :total)]
+    [total res]))
 
 (defn get-metadata-categories []
   (select metadata-category (order :name)))
@@ -75,22 +83,8 @@
   (let [offs  (* (dec page) metadata-pagesize)
         lim   (+ offs metadata-pagesize)
         [total res] (if selected-ids
-                      (constrained-metadata-values selected-ids category-id cat
-                                                   value-filter lim offs)
-                      (unconstrained-metadata-values category-id cat value-filter lim offs))
+                      (constrained-metadata-values selected-ids category-id value-filter lim offs)
+                      (unconstrained-metadata-values category-id value-filter lim offs))
         more? (> total lim)]
     {:results res
-     :more?   more?})
-  #_(let [corpus-cat (-> (sql-query "SELECT corpus_cat FROM #TARGET" {:target category-id})
-                         first
-                         :corpus_cat)
-          skip       (* (dec page) metadata-pagesize)
-          limit      (+ skip metadata-pagesize)
-          [total res] (if selected-ids
-                        (constrained-metadata-values selected-ids category-id corpus-cat
-                                                     value-filter skip limit)
-                        (unconstrained-metadata-values category-id corpus-cat
-                                                       value-filter skip limit))
-          more?      (> total limit)]
-      {:results (map #(select-keys % [:id :text]) res)
-       :more?   more?}))
+     :more?   more?}))
