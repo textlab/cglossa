@@ -1,8 +1,11 @@
 (ns cglossa.db.corpus
-  (:require [korma.core :refer [defentity select where]]
+  (:require [korma.db :as kdb]
+            [korma.core :refer [defentity select where]]
+            [cglossa.shared :refer [core-db]]
             [cglossa.db.metadata :refer [metadata-category]]))
 
 (defentity corpus)
 
-(defn get-corpus [code]
-  (first (select corpus (where {:code code}))))
+(defn corpus-by-code [code]
+  (kdb/with-db core-db
+    (first (select corpus (where {:code code})))))

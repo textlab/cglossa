@@ -19,8 +19,8 @@
             [cheshire.core :as cheshire]
             [korma.db :as kdb]
             [korma.core :refer [defentity select fields belongs-to]]
-            [cglossa.shared :refer [glossa-core]]
-            [cglossa.db.corpus :refer [corpus get-corpus]]
+            [cglossa.shared :refer [core-db]]
+            [cglossa.db.corpus :refer [corpus corpus-by-code]]
             [cglossa.db.metadata :refer [get-metadata-categories get-metadata-values]]
             [cglossa.search.core :as search]
             [cglossa.search_engines])
@@ -85,7 +85,7 @@
     (let [corpus-id (get-in request [:params :corpus-id])
           db        (if corpus-id
                       (get corpus-connections (Integer/parseInt corpus-id))
-                      glossa-core)]
+                      core-db)]
       (kdb/with-db db (handler request)))))
 
 (defroutes app-routes
@@ -96,7 +96,7 @@
 
 (defroutes db-routes
   (GET "/corpus" [code]
-    (let [c    (get-corpus code)
+    (let [c    (corpus-by-code code)
           cats (kdb/with-db (get corpus-connections (:id c)) (get-metadata-categories))]
       (transit-response {:corpus              c
                          :metadata-categories cats})))

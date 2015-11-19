@@ -4,6 +4,6 @@
 
 (def core-db-name (str (get env :glossa-prefix "glossa") "__core"))
 
-(kdb/defdb glossa-core (kdb/mysql {:user     (:glossa-db-user env)
-                                   :password (:glossa-db-password env)
-                                   :db       core-db-name}))
+(kdb/defdb core-db (kdb/mysql {:user     (:glossa-db-user env)
+                               :password (:glossa-db-password env)
+                               :db       core-db-name}))
