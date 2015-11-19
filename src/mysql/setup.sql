@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS `corpus` (
 `encoding` varchar(255) DEFAULT 'utf-8',
 `logo` varchar(255),
 `search_engine` varchar(255) DEFAULT 'cwb'
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `search` (
 `id` int unsigned NOT NULL AUTO_INCREMENT KEY,
@@ -18,4 +18,4 @@ CREATE TABLE IF NOT EXISTS `search` (
 `corpus_id` smallint unsigned NOT NULL,
 `queries` text NOT NULL,
 `metadata_value_ids` text
-);
+) ENGINE=InnoDB;

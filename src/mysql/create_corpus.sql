@@ -10,13 +10,13 @@ CREATE TABLE IF NOT EXISTS `text` (
 `startpos` bigint DEFAULT NULL,
 `endpos` bigint DEFAULT NULL,
 `bounds` text
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `metadata_category` (
 `id` smallint unsigned NOT NULL AUTO_INCREMENT KEY,
 `code` varchar(255) UNIQUE NOT NULL,
 `name` varchar(255)
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `metadata_value` (
 `id` int unsigned NOT NULL AUTO_INCREMENT KEY,
@@ -26,9 +26,9 @@ CREATE TABLE IF NOT EXISTS `metadata_value` (
 `integer_value` int DEFAULT NULL,
 `boolean_value` bool DEFAULT NULL,
 KEY (`metadata_category_id`)
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `metadata_value_text` (
 `metadata_value_id` int unsigned NOT NULL,
 `text_id` int unsigned NOT NULL
-);
+) ENGINE=InnoDB;
