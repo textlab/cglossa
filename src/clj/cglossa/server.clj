@@ -84,7 +84,9 @@
   (fn [request]
     (let [corpus-id (get-in request [:params :corpus-id])
           db        (if corpus-id
-                      (get corpus-connections (Integer/parseInt corpus-id))
+                      (get corpus-connections (if (string? corpus-id)
+                                                (Integer/parseInt corpus-id)
+                                                corpus-id))
                       core-db)]
       (kdb/with-db db (handler request)))))
 
@@ -113,7 +115,8 @@
 
 (defroutes search-routes
   (POST "/search" [corpus-id search-id queries metadata-ids step cut sort-by]
-    (transit-response (search/search corpus-id search-id queries metadata-ids step cut sort-by)))
+    (transit-response (search/search-corpus corpus-id search-id queries metadata-ids
+                                            step cut sort-by)))
   (GET "/results" [search-id start end sort-by]
     (transit-response (search/results search-id start end sort-by))))
 

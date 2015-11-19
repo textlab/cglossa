@@ -19,8 +19,7 @@
 
 (defn cwb-query-name [corpus search-id]
   "Constructs a name for the saved query in CQP, e.g. MYCORPUS11."
-  (str (str/upper-case (:code corpus))
-       (last (str/split search-id #":"))))
+  (str (str/upper-case (:code corpus)) search-id))
 
 (defn- build-monolingual-query [queries s-tag]
   ;; For monolingual queries, the query expressions should be joined together with '|' (i.e., "or")
@@ -54,17 +53,15 @@
 
 (defn construct-query-commands [corpus queries metadata-ids named-query search-id cut
                                 & {:keys [s-tag] :or {s-tag "s"}}]
-  (let [query-str          (if (:multilingual? corpus)
-                             (build-multilingual-query queries s-tag)
-                             (build-monolingual-query queries s-tag))
-        positions-filename (str (fs/tmpdir) "/positions_" search-id)
-        init-cmds          (if metadata-ids
-                             (do
-                               (print-positions-matching-metadata metadata-ids positions-filename)
-                               [(str "undump " named-query " < '" positions-filename \')
-                                named-query])
-                             [])
-        cut-str            (when cut (str " cut " cut))]
+  (let [query-str (if (:multilingual? corpus)
+                    (build-multilingual-query queries s-tag)
+                    (build-monolingual-query queries s-tag))
+        init-cmds (if metadata-ids
+                    (let [positions-filename (str (fs/tmpdir) "/positions_" search-id)]
+                      (print-positions-matching-metadata metadata-ids positions-filename)
+                      [(str "undump " named-query " < '" positions-filename \') named-query])
+                    [])
+        cut-str   (when cut (str " cut " cut))]
     (conj init-cmds (str named-query " = " query-str cut-str))))
 
 (defn run-cqp-commands [corpus commands]

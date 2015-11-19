@@ -9,3 +9,7 @@
 (defn corpus-by-code [code]
   (kdb/with-db core-db
     (first (select corpus (where {:code code})))))
+
+(defn corpus-by-id [id]
+  (kdb/with-db core-db
+    (first (select corpus (where {:id id})))))
