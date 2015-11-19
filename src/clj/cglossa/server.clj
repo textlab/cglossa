@@ -19,6 +19,7 @@
             [cheshire.core :as cheshire]
             [korma.db :as kdb]
             [korma.core :refer [defentity select fields belongs-to]]
+            [cglossa.shared :refer [glossa-core]]
             [cglossa.db.corpus :refer [corpus get-corpus]]
             [cglossa.db.metadata :refer [get-metadata-categories get-metadata-values]]
             [cglossa.search.core :as search]
@@ -26,19 +27,13 @@
   (:import [java.io ByteArrayOutputStream])
   (:gen-class))
 
-(def core-db-name (str (get env :glossa-prefix "glossa") "__core"))
-
-(kdb/defdb glossa-core (kdb/mysql {:user     (:glossa-db-user env)
-                                   :password (:glossa-db-password env)
-                                   :db       core-db-name}))
-
 (def corpus-connections
-  (into {} (for [corpus (select corpus (fields :id :code))]
-             [(:id corpus)
+  (into {} (for [c (select corpus (fields :id :code))]
+             [(:id c)
               (kdb/create-db (kdb/mysql {:user     (:glossa-db-user env)
                                          :password (:glossa-db-password env)
                                          :db       (str (get env :glossa-prefix "glossa") "_"
-                                                        (:code corpus))}))])))
+                                                        (:code c))}))])))
 
 ;; Global exception handler. From http://stuartsierra.com/2015/05/27/clojure-uncaught-exceptions
 ;; Assuming require [clojure.tools.logging :as log]
