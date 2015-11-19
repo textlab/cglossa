@@ -52,8 +52,7 @@
     {:search s
      :result result}))
 
-(defn results [search-id start end sort-by]
-  (let [corpus (first (sql-query "select expand(out('InCorpus')) from #TARGET"
-                                    {:target search-id}))
+(defn results [corpus-id search-id start end sort-by]
+  (let [corpus  (corpus-by-id corpus-id)
         results (get-results corpus search-id start end sort-by)]
     (transform-results corpus results)))

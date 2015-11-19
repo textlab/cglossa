@@ -117,8 +117,8 @@
   (POST "/search" [corpus-id search-id queries metadata-ids step cut sort-by]
     (transit-response (search/search-corpus corpus-id search-id queries metadata-ids
                                             step cut sort-by)))
-  (GET "/results" [search-id start end sort-by]
-    (transit-response (search/results search-id start end sort-by))))
+  (GET "/results" [corpus-id search-id start end sort-by]
+    (transit-response (search/results corpus-id search-id start end sort-by))))
 
 (def http-handler
   (let [r (routes #'db-routes #'search-routes #'app-routes)

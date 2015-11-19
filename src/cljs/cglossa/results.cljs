@@ -55,7 +55,9 @@
   already been fetched or that are currently being fetched in another request (note that such
   pages can only be located at the edges of the window, and not as 'holes' within the window,
   since they must have been fetched as part of an earlier window)."
-  [{{:keys [results sort-by]} :results-view} m search-id centre-page-no last-page-no]
+  [{{:keys [results sort-by]} :results-view}
+   {:keys [corpus] :as m}
+   search-id centre-page-no last-page-no]
   ;; Enclose the whole procedure in a go block. This way, the function will return the channel
   ;; returned by the go block, which will receive the value of the body of the go block when
   ;; it is done parking on channels. Hence, by reading from that channel we know when the
@@ -83,7 +85,8 @@
         (let [;; Calculate the first and last result index (zero-based) to request from the server
               first-result (* page-size (dec (first page-nos)))
               last-result  (dec (* page-size (last page-nos)))
-              results-ch   (http/get "/results" {:query-params {:search-id search-id
+              results-ch   (http/get "/results" {:query-params {:corpus-id (:id @corpus)
+                                                                :search-id search-id
                                                                 :start     first-result
                                                                 :end       last-result
                                                                 :sort-by   @sort-by}})
