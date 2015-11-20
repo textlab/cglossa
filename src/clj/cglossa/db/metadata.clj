@@ -24,7 +24,7 @@
         total      (-> (korma.core/exec-raw "SELECT FOUND_ROWS() AS total" :results) first :total)]
     [total res]))
 
-(defn- join-selected-values [query selected-ids]
+(defn- join-selected-values [sql selected-ids]
   "Adds a join with the metadata_value_text table for each metadata category
   for which we have already selected one or more values."
   (reduce (fn [q join-index]
@@ -33,10 +33,10 @@
                   make-fieldname #(keyword (str % ".text_id"))]
               (join q :inner [metadata-value-text alias1]
                     (= (make-fieldname alias1) (make-fieldname alias2)))))
-          query
+          sql
           (-> selected-ids count range)))
 
-(defn- where-selected-values [query selected-ids]
+(defn- where-selected-values [sql selected-ids]
   "For each metadata category for which we have already selected one or more
   values, adds a 'where' clause with the ids of the metadata values in that
   category. The 'where' clause is associated with the corresponding instance of
@@ -51,13 +51,13 @@
               (let [alias     (str \j (inc cat-index))
                     fieldname (keyword (str alias ".metadata_value_id"))]
                 (where q {fieldname [in cat-ids]})))
-            query
+            sql
             cats)))
 
-(defn filter-value [query value-filter]
+(defn filter-value [sql value-filter]
   (if value-filter
-    (where query {:metadata_value.text_value [like (str value-filter \%)]})
-    query))
+    (where sql {:metadata_value.text_value [like (str value-filter \%)]})
+    sql))
 
 (defn- constrained-metadata-values [selected-ids category-id value-filter lim offs]
   (let [res   (-> (select* metadata-value)
