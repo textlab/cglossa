@@ -4,13 +4,6 @@
             [cglossa.shared :refer [core-db]]
             [cglossa.db.corpus :refer [corpus-by-id]]))
 
-;;;; DUMMIES
-(defn run-sql
-  ([_ _])
-  ([_]))
-(defn sql-query [_ _])
-(defn vertex->map [_])
-
 (defentity search)
 
 (defmulti run-queries

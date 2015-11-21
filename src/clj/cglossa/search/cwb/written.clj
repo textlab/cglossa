@@ -1,10 +1,15 @@
 (ns cglossa.search.cwb.written
   "Support for written corpora encoded with the IMS Open Corpus Workbench."
   (:require [me.raynes.fs :as fs]
+            [korma.core :as korma]
             [cglossa.search.core :refer [run-queries get-results transform-results]]
             [cglossa.search.cwb.shared :refer [cwb-query-name cwb-corpus-name run-cqp-commands
-                                               construct-query-commands]]
+                                               construct-query-commands position-fields]]
             [clojure.string :as str]))
+
+(defmethod position-fields :default [_ positions-filename]
+  "The database fields that contain corpus positions for texts."
+  (korma/raw (str "startpos, endpos INTO OUTFILE '" positions-filename "'")))
 
 (defmethod run-queries :default [corpus search queries metadata-ids step cut sort-by]
   (let [search-id   (:id search)
@@ -12,7 +17,7 @@
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
                      (cwb-corpus-name corpus queries)
                      (construct-query-commands corpus queries metadata-ids named-query
-                                               search-id cut)
+                                               search-id cut step)
                      (when (> step 1)
                        (str "save " named-query))
                      (str "set Context 1 s")

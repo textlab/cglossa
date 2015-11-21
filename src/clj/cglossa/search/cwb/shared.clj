@@ -1,12 +1,14 @@
 (ns cglossa.search.cwb.shared
   "Shared code for all types of corpora encoded with the IMS Open Corpus Workbench."
-  (:require [clojure.string :as str]
+  (:require [korma.core :refer [defentity select select* modifier fields join where raw]]
+            [clojure.string :as str]
             [me.raynes.fs :as fs]
-            [me.raynes.conch.low-level :as sh]))
+            [me.raynes.conch.low-level :as sh]
+            [cglossa.db.metadata :refer [metadata-value-text]]
+            [korma.core :as korma])
+  (:import [java.sql SQLException]))
 
-;;;; DUMMIES
-(defn build-sql [_ _])
-(defn sql-query [_ _])
+(defentity text)
 
 (defn cwb-corpus-name [corpus queries]
   (let [uc-code (str/upper-case (:code corpus))]
@@ -34,31 +36,71 @@
   ;; TODO
   )
 
-(defn- print-positions-matching-metadata [metadata-ids positions-filename]
-  (let [fragments (for [targets (vals metadata-ids)]
-                    (build-sql "(SELECT EXPAND(out('DescribesText')) FROM #TARGETS)"
-                               {:targets targets}))
-        sql       (str "SELECT intersect(" (str/join ", " fragments) ")")
-        doc-ids   (:intersect (first (sql-query sql)))
-        positions (sql-query (str "SELECT startpos, endpos FROM #TARGETS")
-                             {:targets doc-ids})]
-    (spit positions-filename (str (count positions)
-                                  \newline
-                                  (->> positions
-                                       (map (juxt :startpos :endpos))
-                                       sort
-                                       (map #(str/join \tab %))
-                                       (str/join \newline))
-                                  \newline))))
+(defmulti position-fields
+  "The database fields that contain corpus positions for texts."
+  (fn [corpus _] (:search_engine corpus)))
 
-(defn construct-query-commands [corpus queries metadata-ids named-query search-id cut
+(defn- join-metadata [sql metadata-ids]
+  "Adds a join with the metadata_value_text table for each metadata category
+  for which we have selected one or more values."
+  (reduce (fn [q join-index]
+            (let [alias1         (str \j (inc join-index))
+                  alias2         (str \j join-index)
+                  make-fieldname #(keyword (str % ".text_id"))]
+              (join q :inner [metadata-value-text alias1]
+                    (= (make-fieldname alias1) (if (zero? join-index)
+                                                 :t.id
+                                                 (make-fieldname alias2))))))
+          sql
+          (-> metadata-ids count range)))
+
+(defn- where-metadata [sql metadata-ids]
+  "For each metadata category for which we have selected one or more
+  values, adds a 'where' clause with the ids of the metadata values in that
+  category. The 'where' clause is associated with the corresponding instance of
+  the metadata_value_text table that is joined in by the join-metadata
+  function.
+
+  This gives us an OR (union) relationship between values from the same
+  category and an AND (intersection) relationship between values from different
+  categories."
+  (let [cats (map-indexed (fn [index [_ ids]] [index ids]) metadata-ids)]
+    (reduce (fn [q [cat-index cat-ids]]
+              (let [alias     (str \j (inc cat-index))
+                    fieldname (keyword (str alias ".metadata_value_id"))]
+                (where q {fieldname [in cat-ids]})))
+            sql
+            cats)))
+
+(defn- print-positions-matching-metadata [corpus metadata-ids positions-filename]
+  "Returns start and stop positions of all corpus texts that are associated
+  with the metadata values that have the given database ids, with an OR
+  relationship between values within the same category and an AND relationship
+  between categories."
+  ;; It seems impossible to prevent Korma (or rather the underlying Java library)
+  ;; from throwing an exception when we do a SELECT that does not return any results
+  ;; because they are written to file instead using INTO OUTFILE. However, the
+  ;; results are written to the file just fine despite the exception (which happens
+  ;; after the query has run), so we can just catch and ignore the exception.
+  (try
+    (-> (select* [text :t])
+        (modifier "DISTINCT")
+        (fields (position-fields corpus positions-filename))
+        (join-metadata metadata-ids)
+        (where-metadata metadata-ids)
+        (select))
+    (catch SQLException _)))
+
+(defn construct-query-commands [corpus queries metadata-ids named-query search-id cut step
                                 & {:keys [s-tag] :or {s-tag "s"}}]
   (let [query-str (if (:multilingual? corpus)
                     (build-multilingual-query queries s-tag)
                     (build-monolingual-query queries s-tag))
+        positions-filename (str (fs/tmpdir) "/positions_" search-id)
         init-cmds (if metadata-ids
                     (let [positions-filename (str (fs/tmpdir) "/positions_" search-id)]
-                      (print-positions-matching-metadata metadata-ids positions-filename)
+                      (when (= step 1)
+                        (print-positions-matching-metadata corpus metadata-ids positions-filename))
                       [(str "undump " named-query " < '" positions-filename \') named-query])
                     [])
         cut-str   (when cut (str " cut " cut))]

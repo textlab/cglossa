@@ -2,13 +2,18 @@
   "Support for speech corpora encoded with the IMS Open Corpus Workbench."
   (:require [clojure.string :as str]
             [me.raynes.fs :as fs]
+            [korma.core :as korma]
             [cglossa.search.core :refer [run-queries get-results transform-results]]
-            [cglossa.search.cwb.shared :refer [cwb-query-name cwb-corpus-name
-                                               construct-query-commands run-cqp-commands]]))
+            [cglossa.search.cwb.shared :refer [cwb-query-name cwb-corpus-name run-cqp-commands
+                                               construct-query-commands position-fields]]))
 
 ;; TODO: Fetch these from the definition of the tag set for the tagger that is being used
 (def ^:private display-attrs [:lemma :phon :pos :gender :num :type :defn
                               :temp :pers :case :degr :descr :nlex :mood :voice])
+
+(defmethod position-fields "cwb_speech" [_ positions-filename]
+  "The database fields that contain corpus positions for texts."
+  (korma/raw (str "bounds INTO OUTFILE '" positions-filename "'")))
 
 (defmethod run-queries "cwb_speech" [corpus search queries metadata-ids step cut sort-by]
   (let [search-id   (:id search)
@@ -16,7 +21,7 @@
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
                      (cwb-corpus-name corpus queries)
                      (construct-query-commands corpus queries metadata-ids named-query
-                                               search-id cut
+                                               search-id cut step
                                                :s-tag "sync_time")
                      (when (> step 1)
                        (str "save " named-query))
