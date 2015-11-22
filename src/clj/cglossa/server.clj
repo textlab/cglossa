@@ -98,10 +98,12 @@
 
 (defroutes db-routes
   (GET "/corpus" [code]
-    (let [c    (corpus-by-code code)
-          cats (kdb/with-db (get corpus-connections (:id c)) (get-metadata-categories))]
-      (transit-response {:corpus              c
-                         :metadata-categories cats})))
+    (if-let [c (corpus-by-code code)]
+      (let [cats (kdb/with-db (get corpus-connections (:id c)) (get-metadata-categories))]
+        (transit-response {:corpus              c
+                           :metadata-categories cats}))
+      {:status 500
+       :body   (str "No corpus named " code " exists!")}))
   (POST "/corpus" [zipfile]
     (println zipfile))
   (GET "/metadata-values" [category-id value-filter selected-ids page]
