@@ -116,9 +116,15 @@
   [b/button {:style {:marginLeft 20} :on-click #()} "Add language"])
 
 (defn- add-phrase-button [view]
-  [b/button {:bs-size  "small"
+  [b/button {:bs-size  "xsmall"
              :style    {:margin-top (if (= view extended) -15 0)}
              :on-click #()} "Or..."])
+
+(defn- show-texts-button [view]
+  [b/button {:bs-size  "xsmall"
+             :style    {:margin-top (if (= view extended) -15 0)
+                        :margin-left 1}
+             :on-click #()} "Show texts"])
 
 (defn- language-select [languages selected-language]
   [:select {:value selected-language}
@@ -280,4 +286,5 @@
                            (when multilingual?
                              [language-select languages selected-language])
                            [view a m wrapped-query show-remove-row-btn?]]]))))
-            (when-not multilingual? [add-phrase-button view])]))})))
+            (when-not multilingual? [add-phrase-button view])
+            [show-texts-button view]]))})))
