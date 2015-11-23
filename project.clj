@@ -61,6 +61,7 @@
                     :source-map-timestamp true
                     :optimizations        :none
                     :cache-analysis       true
+                    :recompile-dependents false
                     :main                 "cglossa.core"
                     :asset-path           "js/out"
                     :foreign-libs         [{:file     "resources/public/js/select2.js"
