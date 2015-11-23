@@ -44,7 +44,7 @@
   (let [startpos-index (.indexOf cat-codes "startpos")
         endpos-index   (.indexOf cat-codes "endpos")
         bounds-index   (.indexOf cat-codes "bounds")]
-    (assert (or (and (= -1 startpos-index) (= -1 (endpos-index) (not= -1 bounds-index)))
+    (assert (or (and (= -1 startpos-index) (= -1 endpos-index (not= -1 bounds-index)))
                 (and (not= -1 startpos-index (not= -1 endpos-index) (= -1 bounds-index))))
             "Metadata should contain either a bounds category or startpos and endpos categories")
     (if (not= -1 bounds-index)
