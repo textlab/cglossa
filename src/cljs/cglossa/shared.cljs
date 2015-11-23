@@ -159,20 +159,20 @@
    [b/buttontoolbar {:style {:margin-bottom 20}}
     (when (seq @metadata-categories)
       (if (showing-metadata? a m)
-        [b/button {:bs-size  "xsmall"
+        [b/button {:bs-size  "small"
                    :title    "Hide search criteria"
                    :on-click (fn [e]
                                (reset! show-metadata? false)
                                (.preventDefault e))}
          "Hide filters"]
-        [b/button {:bs-size  "xsmall"
+        [b/button {:bs-size  "small"
                    :title    "Show search criteria"
                    :on-click (fn [e]
                                (reset! show-metadata? true)
                                (.preventDefault e))}
          "Filters"]))
     [b/button {:bs-style "primary"
-               :bs-size  "xsmall"
+               :bs-size  "small"
                :title    "Reset form"
                :on-click (fn []
                            (reset! queries [{:query ""}])
