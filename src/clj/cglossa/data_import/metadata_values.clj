@@ -48,7 +48,7 @@
                 (and (not= -1 startpos-index (not= -1 endpos-index) (= -1 bounds-index))))
             "Metadata should contain either a bounds category or startpos and endpos categories")
     (if (not= -1 bounds-index)
-      (nth cols bounds-index)
+      (map list (nth cols bounds-index))
       (map list (nth cols startpos-index) (nth cols endpos-index)))))
 
 (defn- create-import-data [value-tsv-path cat-tsv-path]
