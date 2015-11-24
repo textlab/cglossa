@@ -9,6 +9,7 @@
 (defentity metadata-value-text (table :metadata_value_text))
 
 (def ^:private metadata-pagesize 100)
+(def ^:private show-texts-pagesize 100)
 
 (defn- unconstrained-metadata-values [category-id value-filter lim offs]
   (let [conditions (cond-> {:metadata_category_id category-id}
@@ -19,8 +20,6 @@
                            (where conditions)
                            (limit lim)
                            (offset offs))
-        ;; NOTE: MySQL specific way to get the number of rows that would have been fetched
-        ;; by the previous query if it did not have a limit clause
         total      (-> (korma.core/exec-raw "SELECT FOUND_ROWS() AS total" :results) first :total)]
     [total res]))
 
@@ -71,8 +70,6 @@
                   (limit lim)
                   (offset offs)
                   (select))
-        ;; NOTE: MySQL specific way to get the number of rows that would have been fetched
-        ;; by the previous query if it did not have a limit clause
         total (-> (korma.core/exec-raw "SELECT FOUND_ROWS() AS total" :results) first :total)]
     [total res]))
 
@@ -87,4 +84,27 @@
                       (unconstrained-metadata-values category-id value-filter lim offs))
         more? (> total lim)]
     {:results res
+     :more?   more?}))
+
+(defn show-texts [selected-ids page]
+  (let [ncats    (-> (select metadata-category (aggregate (count :*) :count)) first :count)
+        pagesize (* show-texts-pagesize ncats)
+        offs     (* (dec page) pagesize)
+        lim      (+ offs pagesize)
+        res      (-> (select* metadata-value)
+                     (fields :text_value)
+                     (modifier "SQL_CALC_FOUND_ROWS")
+                     (join :inner [metadata-category :c] (= :c.id :metadata_category_id))
+                     (join :inner [metadata-value-text :j0] (= :j0.metadata_value_id :id))
+                     (join-selected-values selected-ids)
+                     (where-selected-values selected-ids)
+                     (order :j0.text_id)
+                     (order :c.name)
+                     (limit lim)
+                     (offset offs)
+                     (select))
+        total    (-> (korma.core/exec-raw "SELECT FOUND_ROWS() AS total" :results) first :total)
+        more?    (> total lim)
+        rows     (partition ncats (map :text_value res))]
+    {:results rows
      :more?   more?}))

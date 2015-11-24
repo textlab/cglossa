@@ -21,6 +21,7 @@
                  [cljsjs/react-bootstrap "0.23.7-0"]
                  [cljsjs/jquery "1.9.0-0"]
                  [cljsjs/jquery-ui "1.11.3-1"]
+                 [cljsjs/fixed-data-table "0.4.1-0"]
                  [environ "1.0.0"]
                  [http-kit "2.1.19"]
                  [cljs-http "0.1.35"]

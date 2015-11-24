@@ -120,11 +120,14 @@
              :style    {:margin-top (if (= view extended) -15 0)}
              :on-click #()} "Or..."])
 
-(defn- show-texts-button [view]
+(defn- show-texts-button [{:keys [show-texts?]} view]
   [b/button {:bs-size  "small"
-             :style    {:margin-top (if (= view extended) -15 0)
-                        :margin-left 1}
-             :on-click #()} "Show texts"])
+             :style    {:margin-top  (if (= view extended) -15 0)
+                        :margin-left 10}
+             :on-click (fn [e]
+                         (reset! show-texts? true)
+                         (.preventDefault e))}
+   "Show texts"])
 
 (defn- language-select [languages selected-language]
   [:select {:value selected-language}
@@ -287,4 +290,4 @@
                              [language-select languages selected-language])
                            [view a m wrapped-query show-remove-row-btn?]]]))))
             (when-not multilingual? [add-phrase-button view])
-            [show-texts-button view]]))})))
+            [show-texts-button a view]]))})))

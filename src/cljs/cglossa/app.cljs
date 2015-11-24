@@ -5,6 +5,7 @@
             [cglossa.metadata-list :refer [metadata-list]]
             [cglossa.start :refer [start]]
             [cglossa.results :refer [results]]
+            [cglossa.show-texts :refer [show-texts-modal]]
             [cglossa.react-adapters.bootstrap :as b]))
 
 (defn- header []
@@ -17,10 +18,12 @@
       [results a m]
       [start a m])]])
 
-(defn app [a {:keys [corpus] :as m}]
+(defn app [{:keys [show-texts?] :as a} {:keys [corpus] :as m}]
   (let [width (if (showing-metadata? a m) 170 0)]
     [:div
      [header]
+     (when @show-texts?
+       [show-texts-modal a])
      (when @corpus
        [:div.table-display
         [:div.table-row

@@ -15,6 +15,7 @@
 
 (defonce app-state {:narrow-view?      (r/atom (narrow-view?))
                     :show-metadata?    (r/atom nil)
+                    :show-texts?       (r/atom false)
                     :results-view      {:show-results?      (r/atom false)
                                         :results            (r/atom nil)
                                         :total              (r/atom 0)
