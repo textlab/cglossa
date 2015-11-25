@@ -23,7 +23,7 @@
     [:div
      [header]
      (when @show-texts?
-       [show-texts-modal a])
+       [show-texts-modal a m])
      (when @corpus
        [:div.table-display
         [:div.table-row

@@ -262,3 +262,11 @@ div.interval {
       padding-top: 3px;
     }
 }
+
+.griddle {
+    overflow-x: auto;
+
+    .griddle-body {
+        width: 3000px;
+    }
+}

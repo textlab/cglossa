@@ -21,7 +21,7 @@
             [korma.core :refer [defentity select fields belongs-to]]
             [cglossa.shared :refer [core-db]]
             [cglossa.db.corpus :refer [corpus corpus-by-code]]
-            [cglossa.db.metadata :refer [get-metadata-categories get-metadata-values]]
+            [cglossa.db.metadata :refer [get-metadata-categories get-metadata-values show-texts]]
             [cglossa.search.core :as search]
             [cglossa.search_engines])
   (:import [java.io ByteArrayOutputStream])
@@ -96,6 +96,10 @@
   (GET "/" req (page))
   (GET "/admin" req (admin)))
 
+;;;;;;;;;;;;
+;; Routes
+;;;;;;;;;;;;
+
 (defroutes db-routes
   (GET "/corpus" [code]
     (if-let [c (corpus-by-code code)]
@@ -104,8 +108,10 @@
                            :metadata-categories cats}))
       {:status 500
        :body   (str "No corpus named " code " exists!")}))
+
   (POST "/corpus" [zipfile]
     (println zipfile))
+
   (GET "/metadata-values" [category-id value-filter selected-ids page]
     (let [selected-ids* (when selected-ids (cheshire/parse-string selected-ids))
           page*         (if page (Integer/parseInt page) 1)
@@ -113,14 +119,24 @@
       (-> (response/response (cheshire/generate-string {:results    (:results data)
                                                         :pagination {:more (:more? data)}}))
           (response/content-type "application/json")
-          (response/charset "utf-8")))))
+          (response/charset "utf-8"))))
+
+  (POST "/texts" [selected-metadata ncats page]
+    (let [ncats* (or ncats 1)
+          page*  (or page 1)]
+      (transit-response (show-texts selected-metadata ncats* page*)))))
 
 (defroutes search-routes
   (POST "/search" [corpus-id search-id queries metadata-ids step cut sort-by]
     (transit-response (search/search-corpus corpus-id search-id queries metadata-ids
                                             step cut sort-by)))
+
   (GET "/results" [corpus-id search-id start end sort-by]
     (transit-response (search/results corpus-id search-id start end sort-by))))
+
+;;;;;;;;;;;;;;
+;; End routes
+;;;;;;;;;;;;;;
 
 (def http-handler
   (let [r (routes #'db-routes #'search-routes #'app-routes)

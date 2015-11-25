@@ -21,7 +21,6 @@
                  [cljsjs/react-bootstrap "0.23.7-0"]
                  [cljsjs/jquery "1.9.0-0"]
                  [cljsjs/jquery-ui "1.11.3-1"]
-                 [cljsjs/fixed-data-table "0.4.1-0"]
                  [environ "1.0.0"]
                  [http-kit "2.1.19"]
                  [cljs-http "0.1.35"]
@@ -75,8 +74,14 @@
                                            {:file     "resources/public/js/jplayer.js"
                                             :provides ["react-jplayer"]
                                             :requires ["js-jplayer" "cljsjs.react"
-                                                       "cljsjs.jquery-ui"]}]
-                    :externs              ["resources/public/js/externs/select2.ext.js"]
+                                                       "cljsjs.jquery-ui"]}
+                                           {:file     "resources/public/js/underscore-min.js"
+                                            :provides ["underscore"]}
+                                           {:file     "resources/public/js/griddle_619dc5f.js"
+                                            :provides ["griddle"]
+                                            :requires ["cljsjs.react" "underscore"]}]
+                    :externs              ["resources/public/js/externs/select2.ext.js"
+                                           "resources/public/js/externs/griddle_619dc5f.ext.js"]
                     :pretty-print         true}}}}
 
   :sassc [{:src       "src/scss/style.scss"
@@ -95,7 +100,7 @@
 
                        :figwheel     {:css-dirs          ["resources/public/css"]
                                       :open-file-command "idea-opener"
-                                      :server-port 3450}
+                                      :server-port       3450}
 
                        :env          {:is-dev true}
 

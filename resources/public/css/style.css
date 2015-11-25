@@ -138,8 +138,8 @@ div.interval {
 
 .metadata {
   overflow: hidden;
-  transition: width 0.1s;
-  transition: max-width 0.1s; }
+  transition: width .1s;
+  transition: max-width .1s; }
 
 .table-display {
   display: table !important; }
@@ -185,3 +185,8 @@ div.interval {
 .metadata-category .close-cat-btn {
   margin-left: 10px;
   padding-top: 3px; }
+
+.griddle {
+  overflow-x: auto; }
+  .griddle .griddle-body {
+    width: 3000px; }
