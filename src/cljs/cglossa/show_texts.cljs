@@ -9,17 +9,22 @@
 
 (def table (r/adapt-react-class js/Griddle))
 
-(defn- get-external-data [{:keys [corpus metadata-categories search]} results page]
+(defn- get-external-data [{:keys [corpus metadata-categories search]}
+                          results loading? mxpages cur-page page]
+  (reset! loading? true)
   (go (let [response (<! (http/post "/texts" {:json-params
                                               {:corpus-id         (:id @corpus)
                                                :selected-metadata (:metadata @search)
                                                :ncats             (count @metadata-categories)
                                                :page              page}}))
-            body     (:body response)]
+            {:keys [rows max-pages] :as body} (:body response)]
         (if (http/unexceptional-status? (:status response))
           (let [cat-names (map :name (sort-by :id @metadata-categories))
-                rows      (map zipmap (repeat cat-names) body)]
-            (reset! results rows))
+                rows*     (map zipmap (repeat cat-names) rows)]
+            (reset! loading? false)
+            (reset! results rows*)
+            (reset! mxpages max-pages)
+            (reset! cur-page page))
           (.error js/console (str "Error: " body))))))
 
 (defn loading []
@@ -39,7 +44,8 @@
         external-results-per-page (r/atom 10)
         external-sort-column      (r/atom nil)
         external-sort-ascending   (r/atom true)
-        get-data                  (partial get-external-data m results)]
+        get-data                  (partial get-external-data m
+                                           results loading? max-pages current-page)]
     (r/create-class
       {:display-name
        "show-texts-modal"
@@ -57,7 +63,7 @@
           [b/modalbody
            [table {:columns                    (map :name (sort-by :id @metadata-categories))
                    :use-external               true
-                   :external-set-page          #()
+                   :external-set-page          #(get-data %)
                    :enable-sort                false
                    :external-set-page-size     #()
                    :external-max-page          @max-pages
