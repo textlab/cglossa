@@ -22,7 +22,7 @@
           (let [cat-names (map :name (sort-by :id @metadata-categories))
                 rows*     (map zipmap (repeat cat-names) rows)]
             (reset! loading? false)
-            (reset! results rows*)
+            (swap! results concat rows*)
             (reset! mxpages max-pages)
             (reset! cur-page page))
           (.error js/console (str "Error: " body))))))
