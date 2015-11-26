@@ -78,7 +78,7 @@
 
 (defn get-metadata-values [category-id value-filter selected-ids page]
   (let [offs  (* (dec page) metadata-pagesize)
-        lim   (+ offs metadata-pagesize)
+        lim   metadata-pagesize
         [total res] (if selected-ids
                       (constrained-metadata-values selected-ids category-id value-filter lim offs)
                       (unconstrained-metadata-values category-id value-filter lim offs))
@@ -89,7 +89,7 @@
 (defn show-texts [selected-metadata ncats page]
   (let [pagesize  (* show-texts-pagesize ncats)
         offs      (* (dec page) pagesize)
-        lim       (+ offs pagesize)
+        lim       pagesize
         res       (-> (select* metadata-value)
                       (fields :text_value)
                       (modifier "SQL_CALC_FOUND_ROWS")

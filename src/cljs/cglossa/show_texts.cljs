@@ -70,7 +70,7 @@
                                                      (get-data page)))
                      :enable-sort                false
                      :external-set-page-size     #()
-                     :external-max-page          @max-pages
+                     :external-max-page          (inc @max-pages)
                      :external-change-sort       #()
                      :external-set-filter        #()
                      :external-current-page      @current-page
