@@ -19,27 +19,21 @@
 (defn- create-value-text-joins [value-cols unique-vals]
   "Creates data to import into the metadata_values_texts join table, linking
   metadata values and texts in a many-to-many relationship."
-  (let [prev-col-counts (atom 0)
-        vals            (mapcat (fn [col-vals col-unique-vals]
-                                  (let [prev-col-counts* @prev-col-counts]
-                                    (swap! prev-col-counts + (count col-unique-vals))
-                                    (map-indexed (fn [row-index val]
-                                                   ;; Since each row in the input tsv file
-                                                   ;; represents a corpus text, and the texts table
-                                                   ;; is truncated before import, we can use
-                                                   ;; (inc row-index) as text id. The metadata
-                                                   ;; value is calculated as the sum of the number
-                                                   ;; of unique values in previous columns plus the
-                                                   ;; rank of the value in the sorted set of values
-                                                   ;; for this column plus one.
-                                                   (if (or (str/blank? val) (= "\\N" val))
-                                                     nil
-                                                     [(inc (+ prev-col-counts*
-                                                              (avl/rank-of col-unique-vals val)))
-                                                      (inc row-index)]))
-                                                 col-vals)))
-                                value-cols unique-vals)]
-    (remove nil? vals)))
+  (let [prev-col-counts (atom 0)]
+    (mapcat (fn [col-vals col-unique-vals]
+              (let [prev-col-counts* @prev-col-counts]
+                (swap! prev-col-counts + (count col-unique-vals))
+                (map-indexed (fn [row-index val]
+                               ;; Since each row in the input tsv file represents a corpus text, and
+                               ;; the texts table is truncated before import, we can use
+                               ;; (inc row-index) as text id. The metadata value is calculated as
+                               ;; the sum of the number of unique values in previous columns plus
+                               ;; the rank of the value in the sorted set of values for this column
+                               ;; plus one.
+                               [(inc (+ prev-col-counts* (avl/rank-of col-unique-vals val)))
+                                (inc row-index)])
+                             col-vals)))
+            value-cols unique-vals)))
 
 (defn create-texts [cols cat-codes]
   "Creates data to import into the texts table. The returned vectors will
@@ -67,16 +61,14 @@
                                             (when-not (#{"id" "startpos" "endpos" "bounds"} cat)
                                               index))
                                           cat-codes))
-          ;; Convert rows to columns and remove null values
+          ;; Convert rows to columns
           cols         (->> (utils/read-csv value-tsv-file)
                             (apply map list))
           ;; This only includes columns with values for actual metadata categories
           value-cols   (keep-indexed (fn [index col] (when (cat-indexes index) col)) cols)
           ;; Get a seq containing sorted sets of unique values for each column
-          unique-vals  (for [col value-cols]
-                         (->> col
-                              (remove #(or (str/blank? %) (= "\\N" %)))
-                              (apply avl/sorted-set-by String/CASE_INSENSITIVE_ORDER)))
+          unique-vals  (map (partial apply avl/sorted-set-by String/CASE_INSENSITIVE_ORDER)
+                            value-cols)
           ;; Get import data for the metadata_values table
           value-data   (create-value-data unique-vals)
           ;; Get import data for the metadata_values_texts table
