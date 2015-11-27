@@ -1,0 +1,17 @@
+[["adj" "adjective"
+  [:type "ord" "ordinal"]
+  [:person-type2 "pcp1" "present participle"]
+  [:person-type2 "pcp2" "perfect participle"]
+  [:header* "degree" nil]
+  [:degr-dia "pos" "positive"]
+  [:degr-dia "comp" "comparative"]
+  [:degr-dia "sup" "superlative"]
+  [:header* "gender" nil]
+  [:gender "f" "feminine"]
+  [:gender "m/f" "feminine or masculine"]
+  [:gender "m" "masculine"]
+  [:gender "n" "neuter"]]
+ ["adv" "adverb"]
+ ;"adverb" "determiner" "infinitive marker" "interjection" "conjunction" "preposition"
+ ;"pronoun" "subjunction" "noun" "punctuation" "unknown" "verb"
+ ]

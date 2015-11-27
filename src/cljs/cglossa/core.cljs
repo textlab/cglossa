@@ -39,13 +39,15 @@
                                         :queries   (r/atom [#_{:query "[word=\"han\" %c] []{1,2} [word=\"er\" %c]"}
                                                             #_{:query "[word=\"de\" %c] [word=\"sa\" %c]"}
                                                             {:query "[word=\"hun\" %c] [word=\"vet\" %c]"}])
-                                        :query-ids (r/atom nil)}
+                                        :query-ids (r/atom nil)
+                                        :selected-attrs (r/atom {})}
                     :searching?        (r/atom false)
                     :open-metadata-cat (r/atom nil)
                     :num-resets        (r/atom 0)})
 
 (defonce model-state {:corpus              (r/atom nil)
                       :metadata-categories (r/atom nil)
+                      :menu-data           (r/atom nil)
                       :search              (r/atom {})})
 
 ;; Set :narrow-view in app-state whenever the window is resized (throttled to 200ms)

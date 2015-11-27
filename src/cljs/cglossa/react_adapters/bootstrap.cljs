@@ -21,6 +21,7 @@
         "ModalHeader"
         "ModalTitle"
         "Navbar"
+        "Panel"
         "TabbedArea"
         "Table"
         "TabPane")

@@ -127,9 +127,30 @@
 ;;;; Components
 ;;;;;;;;;;;;;;;;
 
-(defn- menu-button []
-  [b/dropdownbutton {:bs-size "small"}
-   [b/menuitem "Hei"]])
+(defn- menu-button [{{:keys [selected-attrs]} :search-view} {:keys [menu-data]}]
+  [b/modal {:bs-size "large"
+            :show    true
+            :on-hide #()}
+   [b/modalheader {:close-button true}
+    [b/modaltitle "Attributes"]]
+   [b/modalbody
+    [b/panel {:header "Parts-of-speech"}
+     (doall (for [[name text values] @menu-data
+                  :let [selected? (contains? @selected-attrs [name text])]]
+              ^{:key name}
+              [b/button {:style    {:margin-left 2}
+                         :bs-size  "small"
+                         :bs-style (if selected? "info" "default")
+                         :on-click #(swap! selected-attrs (fn [s]
+                                                            (if selected?
+                                                              (dissoc s [name text])
+                                                              (assoc s [name text] {}))))}
+               text]))]
+    (for [[name text] (keys @selected-attrs)]
+      ^{:key name}
+      [b/panel {:header (str "Morphosyntactic features for " text)}])]
+   [b/modalfooter
+    [b/button {:on-click #()} "Close"]]])
 
 (defn- text-input [a m wrapped-term show-remove-term-btn?]
   [:div.table-cell
@@ -137,7 +158,7 @@
              :bs-size       "small"
              :style         {:font-size 14
                              :width     (if show-remove-term-btn? 108 140)}
-             :button-before (r/as-element (menu-button))
+             :button-before (r/as-element (menu-button a m))
              :button-after  (when show-remove-term-btn?
                               (r/as-element [b/button {:on-click #(reset! wrapped-term nil)}
                                              [b/glyphicon {:glyph "minus"}]]))
