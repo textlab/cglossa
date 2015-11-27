@@ -25,12 +25,11 @@
 
 (defn- build-monolingual-query [queries s-tag]
   ;; For monolingual queries, the query expressions should be joined together with '|' (i.e., "or")
-  (let [queries* (map :query queries)]
-    (if (> (count queries*) 1)
-      (->> queries*
-           (map #(str "(" % ") within " s-tag))
-           (str/join " | "))
-      (str (first queries*) " within " s-tag))))
+  (let [queries*  (map :query queries)
+        query-str (if (> (count queries*) 1)
+                    (str/join " | " queries*)
+                    (first queries*))]
+    (str query-str " within " s-tag)))
 
 (defn- build-multilingual-query [queries s-tag]
   ;; TODO
@@ -96,7 +95,6 @@
   (let [query-str (if (:multilingual? corpus)
                     (build-multilingual-query queries s-tag)
                     (build-monolingual-query queries s-tag))
-        positions-filename (str (fs/tmpdir) "/positions_" search-id)
         init-cmds (if metadata-ids
                     (let [positions-filename (str (fs/tmpdir) "/positions_" search-id)]
                       (when (= step 1)

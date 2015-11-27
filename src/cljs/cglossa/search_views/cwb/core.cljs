@@ -115,10 +115,12 @@
 (defn- add-language-button []
   [b/button {:style {:marginLeft 20} :on-click #()} "Add language"])
 
-(defn- add-phrase-button [view]
+(defn- add-phrase-button [{{:keys [queries query-ids]} :search-view} view]
   [b/button {:bs-size  "small"
              :style    {:margin-top (if (= view extended) -15 0)}
-             :on-click #()} "Or..."])
+             :on-click (fn [_]
+                         (swap! queries conj {:query ""})
+                         (swap! query-ids #(conj % (count %))))} "Or..."])
 
 (defn- show-texts-button [{:keys [show-texts?]} view]
   [b/button {:bs-size  "small"
@@ -207,87 +209,86 @@
 (defmethod search-inputs :default [_ _]
   "Component that lets the user select a search view (simple, extended
   or CQP query view) and displays it."
-  (let [query-ids (atom nil)]
-    (r/create-class
-      {:display-name
-       "search-inputs"
+  (r/create-class
+    {:display-name
+     "search-inputs"
 
-       :component-did-mount
-       focus-text-input
+     :component-did-mount
+     focus-text-input
 
-       :reagent-render
-       (fn [{{:keys [view-type queries]} :search-view :as a} {:keys [corpus] :as m}]
-         (let [view          (case @view-type
-                               :extended extended
-                               :cqp cqp
-                               simple)
-               languages     (:langs @corpus)
-               multilingual? (> (count languages) 1)
-               set-view      (fn [view e] (reset! view-type view) (.preventDefault e))]
-           [:span
-            [:div.row.search-input-links>div.col-sm-12
-             (if (= view simple)
-               [:b "Simple"]
-               [:a {:href     ""
-                    :title    "Simple search box"
-                    :on-click #(set-view :simple %)}
-                "Simple"])
-             " | "
-             (if (= view extended)
-               [:b "Extended"]
-               [:a {:href     ""
-                    :title    "Search for grammatical categories etc."
-                    :on-click #(set-view :extended %)}
-                "Extended"])
-             " | "
-             (if (= view cqp)
-               [:b "CQP query"]
-               [:a {:href     ""
-                    :title    "CQP expressions"
-                    :on-click #(set-view :cqp %)}
-                "CQP query"])
-             [search-button a m (if (= @view-type :extended) 63 233)]
-             (when multilingual? [add-language-button])]
+     :reagent-render
+     (fn [{{:keys [view-type queries query-ids]} :search-view :as a} {:keys [corpus] :as m}]
+       (let [view          (case @view-type
+                             :extended extended
+                             :cqp cqp
+                             simple)
+             languages     (:langs @corpus)
+             multilingual? (> (count languages) 1)
+             set-view      (fn [view e] (reset! view-type view) (.preventDefault e))]
+         [:span
+          [:div.row.search-input-links>div.col-sm-12
+           (if (= view simple)
+             [:b "Simple"]
+             [:a {:href     ""
+                  :title    "Simple search box"
+                  :on-click #(set-view :simple %)}
+              "Simple"])
+           " | "
+           (if (= view extended)
+             [:b "Extended"]
+             [:a {:href     ""
+                  :title    "Search for grammatical categories etc."
+                  :on-click #(set-view :extended %)}
+              "Extended"])
+           " | "
+           (if (= view cqp)
+             [:b "CQP query"]
+             [:a {:href     ""
+                  :title    "CQP expressions"
+                  :on-click #(set-view :cqp %)}
+              "CQP query"])
+           [search-button a m (if (= @view-type :extended) 63 233)]
+           (when multilingual? [add-language-button])]
 
-            ; Now create a cursor into the queries ratom for each search expression
-            ; and display a row of search inputs for each of them. The doall call is needed
-            ; because ratoms cannot be derefed inside lazy seqs.
-            (let [nqueries             (count @queries)
-                  query-range          (range nqueries)
-                  show-remove-row-btn? (> nqueries 1)]
-              ;; See explanation of query-term-ids in the extended view - query-ids is used
-              ;; in the same way, but for queries instead of query terms
-              (when (nil? @query-ids)
-                (reset! query-ids (vec query-range)))
-              (doall (for [index query-range
-                           :let [query-id (nth @query-ids index)]]
-                       ;; Use wrap rather than cursor to send individual queries down to
-                       ;; child components (and in the extended view, we do the same for
-                       ;; individual terms). When a query (or query term) changes, the wrap
-                       ;; callbacks are called all the way up to the one setting the top-level
-                       ;; queries ratom, and all query views (potentially) re-render.
-                       ;;
-                       ;; By using cursors we could have restricted re-rendering to smaller
-                       ;; sub-views, but we need to do some processing of the query (such as
-                       ;; changing " .* " to []) before updating it in the queries ratom.
-                       ;; We could do this with a getter/setter-style cursor, but then we would
-                       ;; have to update the queries ratom anyway, causing the same
-                       ;; potential re-rendering of all query views.
-                       ;;
-                       ;; Probably the most efficient approach would be to use a standard cursor
-                       ;; (which only re-renders the view that derefs it) and explicitly call the
-                       ;; query processing function before updating the cursor, but then we would
-                       ;; have to make sure to do that every time we change a query...
-                       (let [wrapped-query     (r/wrap
-                                                 (nth @queries index)
-                                                 wrapped-query-changed queries
-                                                 index query-ids)
-                             selected-language (-> @wrapped-query :query :lang)]
-                         ^{:key query-id}
-                         [:div.row
-                          [:div.col-sm-12
-                           (when multilingual?
-                             [language-select languages selected-language])
-                           [view a m wrapped-query show-remove-row-btn?]]]))))
-            (when-not multilingual? [add-phrase-button view])
-            [show-texts-button a view]]))})))
+          ; Now create a cursor into the queries ratom for each search expression
+          ; and display a row of search inputs for each of them. The doall call is needed
+          ; because ratoms cannot be derefed inside lazy seqs.
+          (let [nqueries             (count @queries)
+                query-range          (range nqueries)
+                show-remove-row-btn? (> nqueries 1)]
+            ;; See explanation of query-term-ids in the extended view - query-ids is used
+            ;; in the same way, but for queries instead of query terms
+            (when (nil? @query-ids)
+              (reset! query-ids (vec query-range)))
+            (doall (for [index query-range
+                         :let [query-id (nth @query-ids index)]]
+                     ;; Use wrap rather than cursor to send individual queries down to
+                     ;; child components (and in the extended view, we do the same for
+                     ;; individual terms). When a query (or query term) changes, the wrap
+                     ;; callbacks are called all the way up to the one setting the top-level
+                     ;; queries ratom, and all query views (potentially) re-render.
+                     ;;
+                     ;; By using cursors we could have restricted re-rendering to smaller
+                     ;; sub-views, but we need to do some processing of the query (such as
+                     ;; changing " .* " to []) before updating it in the queries ratom.
+                     ;; We could do this with a getter/setter-style cursor, but then we would
+                     ;; have to update the queries ratom anyway, causing the same
+                     ;; potential re-rendering of all query views.
+                     ;;
+                     ;; Probably the most efficient approach would be to use a standard cursor
+                     ;; (which only re-renders the view that derefs it) and explicitly call the
+                     ;; query processing function before updating the cursor, but then we would
+                     ;; have to make sure to do that every time we change a query...
+                     (let [wrapped-query     (r/wrap
+                                               (nth @queries index)
+                                               wrapped-query-changed queries
+                                               index query-ids)
+                           selected-language (-> @wrapped-query :query :lang)]
+                       ^{:key query-id}
+                       [:div.row
+                        [:div.col-sm-12
+                         (when multilingual?
+                           [language-select languages selected-language])
+                         [view a m wrapped-query show-remove-row-btn?]]]))))
+          (when-not multilingual? [add-phrase-button a view])
+          [show-texts-button a view]]))}))
