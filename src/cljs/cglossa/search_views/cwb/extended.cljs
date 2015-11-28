@@ -128,29 +128,43 @@
 ;;;;;;;;;;;;;;;;
 
 (defn- menu-button [{{:keys [selected-attrs]} :search-view} {:keys [menu-data]}]
-  [b/modal {:bs-size "large"
-            :show    true
-            :on-hide #()}
-   [b/modalheader {:close-button true}
-    [b/modaltitle "Attributes"]]
-   [b/modalbody
-    [b/panel {:header "Parts-of-speech"}
-     (doall (for [[name text values] @menu-data
-                  :let [selected? (contains? @selected-attrs [name text])]]
-              ^{:key name}
-              [b/button {:style    {:margin-left 2}
-                         :bs-size  "small"
-                         :bs-style (if selected? "info" "default")
-                         :on-click #(swap! selected-attrs (fn [s]
-                                                            (if selected?
-                                                              (dissoc s [name text])
-                                                              (assoc s [name text] {}))))}
-               text]))]
-    (for [[name text] (keys @selected-attrs)]
-      ^{:key name}
-      [b/panel {:header (str "Morphosyntactic features for " text)}])]
-   [b/modalfooter
-    [b/button {:on-click #()} "Close"]]])
+  (list
+    ^{:key "btn"}
+    [b/button "Hei"]
+    ^{:key "modal"}
+    [b/modal {:bs-size "large"
+              :show    true
+              :on-hide #()}
+     [b/modalbody
+      [b/panel {:header "Parts-of-speech"}
+       (doall (for [[pos name morphsyn] @menu-data
+                    :let [selected? (contains? @selected-attrs [pos name morphsyn])]]
+                ^{:key pos}
+                [b/button {:style    {:margin-left 3}
+                           :bs-size  "small"
+                           :bs-style (if selected? "info" "default")
+                           :on-click #(swap! selected-attrs (fn [s]
+                                                              (if selected?
+                                                                (dissoc s [pos name morphsyn])
+                                                                (assoc s [pos name morphsyn] {}))))}
+                 name]))]
+      (for [[pos name morphsyn] (keys @selected-attrs)]
+        (when (seq morphsyn)
+          ^{:key pos}
+          [b/panel {:header (str "Morphosyntactic features for " name)}
+           [:div.table-display
+            (for [[header attrs] (partition 2 morphsyn)]
+              ^{:key header}
+              [:div.table-row
+               [:div.table-cell header ": "]
+               [:div.table-cell {:style {:padding-bottom 5}}
+                (doall (for [[attr value name] attrs]
+                         ^{:key value}
+                         [b/button {:style   {:margin-left 3}
+                                    :bs-size "small"}
+                          name]))]])]]))]
+     [b/modalfooter
+      [b/button {:on-click #()} "Close"]]]))
 
 (defn- text-input [a m wrapped-term show-remove-term-btn?]
   [:div.table-cell
