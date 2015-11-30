@@ -9,10 +9,11 @@
             [cglossa.react-adapters.bootstrap :as b]))
 
 (defn- header []
-  [b/navbar {:fixedTop true}
+  [b/navbar
    [:div.container-fluid
     [:div.navbar-header>span.navbar-brand "Glossa"]
-    [:img.navbar-right {:src "img/clarino_duo-219.png" :style {:width 80 :margin-top 15}}]]])
+    [:img.navbar-right.hidden-xs {:src "img/logo.png" :style {:margin-top 13}}]
+    [:img.navbar-right.hidden-xs {:src "img/clarino_duo-219.png" :style {:width 80 :margin-top 15}}]]])
 
 (defn- main-area [{{:keys [show-results?]} :results-view :as a} m]
   [:div.container-fluid {:style {:padding-left 50}}
@@ -34,5 +35,4 @@
          [:div.table-cell.metadata {:style {:max-width width :width width}}
           [metadata-list a m]]
          [:div.table-cell
-          [main-area a m]]]])
-     [:div.app-footer>img.textlab-logo {:src "img/tekstlab.gif"}]]))
+          [main-area a m]]]])]))
