@@ -9,7 +9,10 @@
             [cglossa.react-adapters.bootstrap :as b]))
 
 (defn- header []
-  [b/navbar {:fixedTop true :brand "Glossa"}])
+  [b/navbar {:fixedTop true}
+   [:div.container-fluid
+    [:div.navbar-header>span.navbar-brand "Glossa"]
+    [:img.navbar-right {:src "img/clarino_duo-219.png" :style {:width 80 :margin-top 15}}]]])
 
 (defn- main-area [{{:keys [show-results?]} :results-view :as a} m]
   [:div.container-fluid {:style {:padding-left 50}}
