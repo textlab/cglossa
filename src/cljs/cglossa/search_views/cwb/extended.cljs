@@ -147,6 +147,9 @@
 ;;;; Components
 ;;;;;;;;;;;;;;;;
 
+(defn hide-attr-popup [show-attr-popup-for]
+  (reset! show-attr-popup-for nil))
+
 (defn- menu-button [{{:keys [show-attr-popup-for]} :search-view} {:keys [menu-data]}
                     wrapped-term index]
   (list
@@ -154,9 +157,10 @@
     [b/button {:on-click #(reset! show-attr-popup-for index)}
      [b/glyphicon {:glyph "menu-hamburger"}]]
     ^{:key "modal"}
-    [b/modal {:bs-size "large"
-              :show    (= @show-attr-popup-for index)
-              :on-hide #()}
+    [b/modal {:bs-size  "large"
+              :keyboard true
+              :show     (= @show-attr-popup-for index)
+              :on-hide  #(hide-attr-popup show-attr-popup-for)}
      [b/modalbody
       [b/panel {:header "Parts-of-speech"}
        (doall (for [[pos title morphsyn] @menu-data
@@ -183,7 +187,7 @@
              [:div.table-cell header ": "]
              [:div.table-cell {:style {:padding-bottom 5}}
               (doall (for [[attr value title] attrs
-                           :let [attr* (name attr)
+                           :let [attr*     (name attr)
                                  selected? (contains? (get-in @wrapped-term [:features pos attr*])
                                                       value)]]
                        ^{:key value}
@@ -202,7 +206,9 @@
                                                        dissoc attr*)))}
                         title]))]])]])]
      [b/modalfooter
-      [b/button {:on-click #(reset! show-attr-popup-for nil)} "Close"]]]))
+      [b/button {:bs-style "danger"} "Clear"]
+      [b/button {:bs-style "success"
+                 :on-click #(hide-attr-popup show-attr-popup-for)} "Close"]]]))
 
 (defn- text-input [a m wrapped-term index show-remove-term-btn?]
   [:div.table-cell
