@@ -221,7 +221,9 @@
              :button-after  (when show-remove-term-btn?
                               (r/as-element [b/button {:on-click #(reset! wrapped-term nil)}
                                              [b/glyphicon {:glyph "minus"}]]))
-             :default-value (str/replace (:form @wrapped-term) #"^\.\*$" "")
+             :default-value (if (:form @wrapped-term)
+                              (str/replace (:form @wrapped-term) #"^\.\*$" "")
+                              "")
              :on-change     #(swap! wrapped-term assoc :form (.-target.value %))
              :on-key-down   #(on-key-down % a m)}]])
 
