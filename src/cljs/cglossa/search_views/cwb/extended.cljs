@@ -6,6 +6,8 @@
             [cglossa.shared :refer [on-key-down remove-row-btn headword-search-checkbox]]
             [cglossa.react-adapters.bootstrap :as b]))
 
+(enable-console-print!)
+
 (defn- combine-regexes [regexes]
   "Since there is no way to concatenate regexes directly, we convert
   them to strings, remove the initial and final slash from each one,
@@ -38,23 +40,14 @@
       [["[]"]]
       terms)))
 
-(defn- process-attr [term attr]
-  (let [[_ name val] (re-find #"\(?(\S+)\s*=\s*\"(\S+)\"" attr)]
-    (case name
-      ("word" "lemma" "phon")
-      (cond-> (assoc term :form (-> val
-                                    (str/replace #"^(?:\.\+)?(.+?)" "$1")
-                                    (str/replace #"(.+?)(?:\.\+)?$" "$1")))
-              (= name "lemma") (assoc :lemma? true)
-              (= name "phon") (assoc :phonetic? true)
-              (re-find #"\.\+$" val) (assoc :start? true)
-              (re-find #"^\.\+" val) (assoc :end? true))
-
-      "pos"
-      (assoc term :pos val)
-
-      ;; default
-      (assoc-in term [:features name] val))))
+(defn- process-form [term name val]
+  (cond-> (assoc term :form (-> val
+                                (str/replace #"^(?:\.\+)?(.+?)" "$1")
+                                (str/replace #"(.+?)(?:\.\+)?$" "$1")))
+          (= name "lemma") (assoc :lemma? true)
+          (= name "phon") (assoc :phonetic? true)
+          (re-find #"\.\+$" val) (assoc :start? true)
+          (re-find #"^\.\+" val) (assoc :end? true)))
 
 
 (defn construct-query-terms [parts]
@@ -64,39 +57,67 @@
   (let [interval (atom [nil nil])]
     (reduce (fn [terms part]
               (condp re-matches (first part)
-                interval-rx (let [values (second part)
-                                  min    (some->> values
-                                                  (re-find #"(\d+),")
-                                                  last)
-                                  max    (some->> values
-                                                  (re-find #",(\d+)")
-                                                  last)]
-                              (reset! interval [min max])
-                              terms)
-                attribute-value-rx (let [attrs (str/split (last part) #"\s*&\s*")
-                                         term  (as-> {} $
-                                                     (reduce process-attr $ attrs)
-                                                     (assoc $ :interval @interval))]
-                                     (reset! interval [nil nil])
-                                     (conj terms term))
-                quoted-or-empty-term-rx (let [p    (first part)
-                                              len  (count p)
-                                              form (if (> len 2)
-                                                     (subs p 1 len)
-                                                     "")
-                                              term (cond-> {:form     form
-                                                            :interval @interval}
-                                                           (re-find #"\.\+$" form)
-                                                           (assoc :start? true)
+                interval-rx
+                (let [values (second part)
+                      min    (some->> values
+                                      (re-find #"(\d+),")
+                                      last)
+                      max    (some->> values
+                                      (re-find #",(\d+)")
+                                      last)]
+                  (reset! interval [min max])
+                  terms)
 
-                                                           (re-find #"^\.\+" form)
-                                                           (assoc :end? true))]
-                                          (reset! interval [nil nil])
-                                          (conj terms term))))
+                attribute-value-rx
+                (let [term (as-> {:interval @interval} $
+                                 (if-let [[_ name val] (re-find #"(word|lemma|phon)\s*=\s*(\S+)"
+                                                                (last part))]
+                                   (process-form $ name val)
+                                   $)
+                                 (if-let [pos-exprs (re-seq #"\(pos=\"(.+?)\"(.+?)\)" (last part))]
+                                   (reduce (fn [t [_ pos rest]]
+                                             (let [others (re-seq #"(\w+)=\"([\w\|]+)\"" rest)]
+                                               (assoc-in t [:features pos]
+                                                         (into {} (map (fn [[_ name vals]]
+                                                                         [name
+                                                                          (set (str/split vals #"\|"))])
+                                                                       others)))))
+                                           $
+                                           pos-exprs)
+                                   $))]
+                  (println term)
+                  (reset! interval [nil nil])
+                  (conj terms term))
+
+                quoted-or-empty-term-rx
+                (let [p    (first part)
+                      len  (count p)
+                      form (if (> len 2)
+                             (subs p 1 len)
+                             "")
+                      term (cond-> {:form     form
+                                    :interval @interval}
+                                   (re-find #"\.\+$" form)
+                                   (assoc :start? true)
+
+                                   (re-find #"^\.\+" form)
+                                   (assoc :end? true))]
+                  (reset! interval [nil nil])
+                  (conj terms term))))
             []
             parts)))
 
+(defn- process-attr-map [[attr-name values]]
+  (str attr-name "=\"" (str/join "|" values) "\""))
+
+(defn- process-pos-map [[pos attrs]]
+  (let [attr-strings (map process-attr-map attrs)
+        attr-str     (when (seq attr-strings)
+                       (str " & " (str/join " & " attr-strings)))]
+    (str "pos=\"" pos "\"" attr-str)))
+
 (defn- construct-cqp-query [terms query-term-ids]
+  ;(.log js/console terms)
   (let [;; Remove ids whose corresponding terms have been set to nil
         _      (swap! query-term-ids #(keep-indexed (fn [index id] (when (nth terms index) id)) %))
         terms* (filter identity terms)                      ; nil means term should be removed
@@ -106,18 +127,19 @@
                                 phonetic? "phon"
                                 :else "word")
                        form*  (if (empty? form)
-                                ".*"
+                                (when (empty? features) ".*")
                                 (cond-> form
                                         start? (str ".+")
                                         end? (#(str ".+" %))))
-                       main   (str "(" attr "=\"" form* "\" %c)")
-                       feats  (for [[name value] features]
-                                (str name "=\"" value "\""))
+                       main   (when form*
+                                (str attr "=\"" form* "\" %c"))
+                       feats  (when (seq features)
+                                (str/join " | " (map process-pos-map features)))
                        [min max] interval
                        interv (if (or min max)
                                 (str "[]{" (or min 0) "," (or max "") "} ")
                                 "")]
-                   (str interv "[" (str/join " & " (cons main feats)) "]")))]
+                   (str interv "[" (str/join " & " (filter identity [main feats])) "]")))]
     (str/join \space parts)))
 
 (defn wrapped-term-changed [wrapped-query terms index query-term-ids term]
@@ -127,7 +149,9 @@
 ;;;; Components
 ;;;;;;;;;;;;;;;;
 
-(defn- menu-button [{{:keys [selected-attrs]} :search-view} {:keys [menu-data]}]
+(defn- menu-button [{{:keys [selected-attrs]} :search-view} {:keys [menu-data]} wrapped-term]
+  ;(.log js/console @menu-data)
+  ;(.log js/console @wrapped-term)
   (list
     ^{:key "btn"}
     [b/button "Hei"]
@@ -137,32 +161,43 @@
               :on-hide #()}
      [b/modalbody
       [b/panel {:header "Parts-of-speech"}
-       (doall (for [[pos name morphsyn] @menu-data
-                    :let [selected? (contains? @selected-attrs [pos name morphsyn])]]
+       (doall (for [[pos title morphsyn] @menu-data
+                    :let [selected? (contains? (:features @wrapped-term) pos)]]
                 ^{:key pos}
-                [b/button {:style    {:margin-left 3}
-                           :bs-size  "small"
-                           :bs-style (if selected? "info" "default")
-                           :on-click #(swap! selected-attrs (fn [s]
-                                                              (if selected?
-                                                                (dissoc s [pos name morphsyn])
-                                                                (assoc s [pos name morphsyn] {}))))}
-                 name]))]
-      (for [[pos name morphsyn] (keys @selected-attrs)]
-        (when (seq morphsyn)
-          ^{:key pos}
-          [b/panel {:header (str "Morphosyntactic features for " name)}
-           [:div.table-display
-            (for [[header attrs] (partition 2 morphsyn)]
-              ^{:key header}
-              [:div.table-row
-               [:div.table-cell header ": "]
-               [:div.table-cell {:style {:padding-bottom 5}}
-                (doall (for [[attr value name] attrs]
-                         ^{:key value}
-                         [b/button {:style   {:margin-left 3}
-                                    :bs-size "small"}
-                          name]))]])]]))]
+                [b/button
+                 {:style    {:margin-left 3}
+                  :bs-size  "small"
+                  :bs-style (if selected? "info" "default")
+                  :on-click (fn [_] (swap! wrapped-term update :features
+                                           #(if selected? (dissoc % pos) (assoc % pos {})))
+                              ;(.log js/console (get-in @wrapped-term [:features]))
+                              )}
+                 title]))]
+      (for [[pos title morphsyn] @menu-data
+            :when (and (contains? (:features @wrapped-term) pos)
+                       (seq morphsyn))]
+        ^{:key pos}
+        [b/panel {:header (str "Morphosyntactic features for " title)}
+         [:div.table-display
+          (for [[header attrs] (partition 2 morphsyn)]
+            ^{:key header}
+            [:div.table-row
+             [:div.table-cell header ": "]
+             [:div.table-cell {:style {:padding-bottom 5}}
+              (doall (for [[attr value title] attrs
+                           :let [selected? (contains? (get-in @wrapped-term [:features pos attr])
+                                                      value)]]
+                       ^{:key value}
+                       [b/button {:style    {:margin-left 3}
+                                  :bs-size  "small"
+                                  :bs-style (if selected? "info" "default")
+                                  :on-click (fn [_]
+                                              ;(.log js/console (get-in @wrapped-term [:features]))
+                                              (swap! wrapped-term update-in [:features pos attr]
+                                                     (fn [a] (if selected?
+                                                               (disj a value)
+                                                               (set (conj a value))))))}
+                        title]))]])]])]
      [b/modalfooter
       [b/button {:on-click #()} "Close"]]]))
 
@@ -172,7 +207,7 @@
              :bs-size       "small"
              :style         {:font-size 14
                              :width     (if show-remove-term-btn? 108 140)}
-             :button-before (r/as-element (menu-button a m))
+             :button-before (r/as-element (menu-button a m wrapped-term))
              :button-after  (when show-remove-term-btn?
                               (r/as-element [b/button {:on-click #(reset! wrapped-term nil)}
                                              [b/glyphicon {:glyph "minus"}]]))

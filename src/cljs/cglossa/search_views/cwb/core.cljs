@@ -85,9 +85,7 @@
                        ;; Simplify the query (".*" is used in the simple search instead of [])
                        (str/replace $ #"\[\(?word=\"\.\*\"(?:\s+%c)?\)?\]" "[]")
                        (str/replace $ #"^\s*\[\]\s*$" ""))]
-      (swap! queries assoc-in [index :query] query*)
-      ;; TODO: Handle state.maxHits and state.lastSelectedMaxHits
-      )))
+      (swap! queries assoc-in [index :query] query*))))
 
 ;;;;;;;;;;;;;;;;;
 ; Event handlers
