@@ -70,7 +70,7 @@
 
                 attribute-value-rx
                 (let [term (as-> {:interval @interval} $
-                                 (if-let [[_ name val] (re-find #"(word|lemma|phon)\s*=\s*\"(.+)\""
+                                 (if-let [[_ name val] (re-find #"(word|lemma|phon)\s*=\s*\"(.+?)\""
                                                                 (last part))]
                                    (process-form $ name val)
                                    $)
