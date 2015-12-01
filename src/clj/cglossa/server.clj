@@ -50,19 +50,22 @@
   (let [f (fn [[k v]] [(keyword (str/replace (name k) "_" "-")) v])]
     (walk/postwalk #(if (map? %) (into {} (map f %)) %) m)))
 
-(defn- transit-response* [body]
-  (let [baos   (ByteArrayOutputStream. 2000)
-        writer (transit/writer baos (if (:is-dev env) :json-verbose :json))
-        _      (transit/write writer (hyphenize-keys body))
-        res    (.toString baos)]
-    (.reset baos)
-    (-> (response/response res)
-        (response/content-type "application/transit+json")
-        (response/charset "utf-8"))))
+(defn- transit-response*
+  ([body]
+   (transit-response* body true))
+  ([body hyphenize?]
+   (let [baos   (ByteArrayOutputStream. 2000)
+         writer (transit/writer baos (if (:is-dev env) :json-verbose :json))
+         _      (transit/write writer (if hyphenize? (hyphenize-keys body) body))
+         res    (.toString baos)]
+     (.reset baos)
+     (-> (response/response res)
+         (response/content-type "application/transit+json")
+         (response/charset "utf-8")))))
 
-(defmacro transit-response [fn-call]
+(defmacro transit-response [fn-call & args]
   `(try (let [res# ~fn-call]
-          (transit-response* res#))
+          (transit-response* res# ~@args))
         (catch Exception e#
           (log/error e#)
           {:status 500
@@ -131,7 +134,7 @@
 (defroutes search-routes
   (POST "/search" [corpus-id search-id queries metadata-ids step cut sort-by]
     (transit-response (search/search-corpus corpus-id search-id queries metadata-ids
-                                            step cut sort-by)))
+                                            step cut sort-by) false))
 
   (GET "/results" [corpus-id search-id start end sort-by]
     (transit-response (search/results corpus-id search-id start end sort-by))))
