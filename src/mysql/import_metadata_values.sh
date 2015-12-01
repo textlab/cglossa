@@ -42,7 +42,7 @@ echo Cleaning data...
 
 # The bounds field in old Glossa uses tabs to separate positions; replace them with colons
 TAB=$'\t'
-cat $2 | sed "s/\\\\${TAB}/:/g" > $valfile1
+cat $2 | sed -e "s/\\\\${TAB}/:/g" -e "s/:${TAB}/${TAB}/" > $valfile1
 
 echo Creating import files...
 

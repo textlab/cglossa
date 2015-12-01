@@ -13,7 +13,8 @@
 
 (defmethod position-fields "cwb_speech" [_ positions-filename]
   "The database fields that contain corpus positions for texts."
-  (korma/raw (str "bounds INTO OUTFILE '" positions-filename "'")))
+  (korma/raw (str "replace(replace(`bounds`, '-', '\t'), ':', '\n') INTO OUTFILE '"
+                  positions-filename "' FIELDS ESCAPED BY ''")))
 
 (defmethod run-queries "cwb_speech" [corpus search queries metadata-ids step cut sort-by]
   (let [search-id   (:id search)
