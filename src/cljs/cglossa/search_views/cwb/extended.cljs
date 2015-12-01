@@ -74,7 +74,7 @@
                                                                 (last part))]
                                    (process-form $ name val)
                                    $)
-                                 (if-let [pos-exprs (re-seq #"\(pos=\"(.+?)\"(.+?)\)" (last part))]
+                                 (if-let [pos-exprs (re-seq #"\(pos=\"(.+?)\"(.*?)\)" (last part))]
                                    (reduce (fn [t [_ pos rest]]
                                              (let [others (re-seq #"(\w+)=\"([\w\|/]+)\"" rest)]
                                                (assoc-in t [:features pos]
@@ -85,7 +85,6 @@
                                            $
                                            pos-exprs)
                                    $))]
-                  (println term)
                   (reset! interval [nil nil])
                   (conj terms term))
 
@@ -114,10 +113,9 @@
   (let [attr-strings (map process-attr-map attrs)
         attr-str     (when (seq attr-strings)
                        (str " & " (str/join " & " attr-strings)))]
-    (str "pos=\"" pos "\"" attr-str)))
+    (str "(pos=\"" pos "\"" attr-str ")")))
 
 (defn- construct-cqp-query [terms query-term-ids]
-  ;(.log js/console terms)
   (let [;; Remove ids whose corresponding terms have been set to nil
         _      (swap! query-term-ids #(keep-indexed (fn [index id] (when (nth terms index) id)) %))
         terms* (filter identity terms)                      ; nil means term should be removed
@@ -132,9 +130,9 @@
                                         start? (str ".+")
                                         end? (#(str ".+" %))))
                        main   (when form*
-                                (str attr "=\"" form* "\" %c"))
+                                (str attr "=" form* " %c"))
                        feats  (when (seq features)
-                                (str/join " | " (map process-pos-map features)))
+                                (str "(" (str/join " | " (map process-pos-map features)) ")"))
                        [min max] interval
                        interv (if (or min max)
                                 (str "[]{" (or min 0) "," (or max "") "} ")
@@ -151,7 +149,7 @@
 
 (defn- menu-button [{{:keys [selected-attrs]} :search-view} {:keys [menu-data]} wrapped-term]
   ;(.log js/console @menu-data)
-  ;(.log js/console @wrapped-term)
+  ;(println "wrapped-term:" @wrapped-term)
   (list
     ^{:key "btn"}
     [b/button "Hei"]
@@ -170,7 +168,7 @@
                   :bs-style (if selected? "info" "default")
                   :on-click (fn [_] (swap! wrapped-term update :features
                                            #(if selected? (dissoc % pos) (assoc % pos {})))
-                              ;(.log js/console (get-in @wrapped-term [:features]))
+                              ;(println "w:" (get-in @wrapped-term [:features]))
                               )}
                  title]))]
       (for [[pos title morphsyn] @menu-data
@@ -185,7 +183,7 @@
              [:div.table-cell header ": "]
              [:div.table-cell {:style {:padding-bottom 5}}
               (doall (for [[attr value title] attrs
-                           :let [selected? (contains? (get-in @wrapped-term [:features pos attr])
+                           :let [selected? (contains? (get-in @wrapped-term [:features pos (name attr)])
                                                       value)]]
                        ^{:key value}
                        [b/button {:style    {:margin-left 3}
@@ -193,7 +191,7 @@
                                   :bs-style (if selected? "info" "default")
                                   :on-click (fn [_]
                                               ;(.log js/console (get-in @wrapped-term [:features]))
-                                              (swap! wrapped-term update-in [:features pos attr]
+                                              (swap! wrapped-term update-in [:features pos (name attr)]
                                                      (fn [a] (if selected?
                                                                (disj a value)
                                                                (set (conj a value))))))}
