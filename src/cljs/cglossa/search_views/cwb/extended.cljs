@@ -147,7 +147,7 @@
 ;;;; Components
 ;;;;;;;;;;;;;;;;
 
-(defn- menu-button [{{:keys [selected-attrs]} :search-view} {:keys [menu-data]} wrapped-term]
+(defn- menu-button [{:keys [menu-data]} wrapped-term]
   ;(.log js/console @menu-data)
   ;(println "wrapped-term:" @wrapped-term)
   (list
@@ -205,7 +205,7 @@
              :bs-size       "small"
              :style         {:font-size 14
                              :width     (if show-remove-term-btn? 108 140)}
-             :button-before (r/as-element (menu-button a m wrapped-term))
+             :button-before (r/as-element (menu-button m wrapped-term))
              :button-after  (when show-remove-term-btn?
                               (r/as-element [b/button {:on-click #(reset! wrapped-term nil)}
                                              [b/glyphicon {:glyph "minus"}]]))
