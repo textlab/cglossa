@@ -30,7 +30,11 @@
                        "cat Last"
                        ;; When we are retrieving more results, we just tell the browser how
                        ;; many results we have found (so far)
-                       "size Last")]]
+                       "size Last")]
+        ;;;; TEMPORARY HACK! Change to configure pos attribute based on tagger/corpus
+        commands    (if (= "bokmal" (:code corpus))
+                      (map #(str/replace % "pos=" "ordkl=") (filter identity (flatten commands)))
+                      commands)]
     (run-cqp-commands corpus (filter identity (flatten commands)))))
 
 (defmethod get-results :default [corpus search-id start end sort-by]
