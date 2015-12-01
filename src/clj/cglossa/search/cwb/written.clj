@@ -31,7 +31,7 @@
                        ;; When we are retrieving more results, we just tell the browser how
                        ;; many results we have found (so far)
                        "size Last")]]
-    (run-cqp-commands corpus (flatten commands))))
+    (run-cqp-commands corpus (filter identity (flatten commands)))))
 
 (defmethod get-results :default [corpus search-id start end sort-by]
   (let [named-query (cwb-query-name corpus search-id)
