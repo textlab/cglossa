@@ -9,6 +9,19 @@
 .app-footer .textlab-logo {
   float: right; }
 
+.attr-modal .modal-body {
+  padding-bottom: 5px; }
+
+.attr-modal .modal-footer {
+  padding: 10px; }
+
+.attr-modal .panel {
+  margin-bottom: 15px; }
+  .attr-modal .panel .panel-heading {
+    font-size: bold; }
+  .attr-modal .panel .panel-body {
+    padding: 10px; }
+
 h5.category-header {
   color: #1010C2;
   font-weight: normal;

@@ -11,6 +11,28 @@
   float: right;
 }
 
+.attr-modal {
+  .modal-body {
+    padding-bottom: 5px;
+  }
+
+  .modal-footer {
+    padding: 10px;
+  }
+
+  .panel {
+    margin-bottom: 15px;
+
+    .panel-heading {
+      font-size: bold;
+    }
+
+    .panel-body {
+      padding: 10px;
+    }
+  }
+}
+
 h5.category-header {
   color: #1010C2;
   font-weight: normal;

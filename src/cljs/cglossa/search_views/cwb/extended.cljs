@@ -157,7 +157,8 @@
     [b/button {:on-click #(reset! show-attr-popup-for index)}
      [b/glyphicon {:glyph "menu-hamburger"}]]
     ^{:key "modal"}
-    [b/modal {:bs-size  "large"
+    [b/modal {:class-name "attr-modal"
+              :bs-size  "large"
               :keyboard true
               :show     (= @show-attr-popup-for index)
               :on-hide  #(hide-attr-popup show-attr-popup-for)}
