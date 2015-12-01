@@ -66,7 +66,7 @@
 (defn- focus-text-input [c]
   ;; Use (aget % "type") instead of (.-type %) simply because the latter makes the syntax
   ;; checker in Cursive Clojure go bananas for some reason...
-  (.focus (dom/findNode (r/dom-node c) #(= "text" (aget % "type")))))
+  (.focus (dom/findNode (r/dom-node c) #(#{"text" "textarea"} (aget % "type")))))
 
 (defn- wrapped-query-changed [queries index query-ids query]
   "Takes a changed query, performs some cleanup on it, and swaps it into
@@ -137,7 +137,7 @@
 (defn- single-input-view
   "HTML that is shared by the search views that only show a single text input,
   i.e., the simple and CQP views."
-  [a {:keys [corpus] :as m} wrapped-query displayed-query
+  [a {:keys [corpus] :as m} input-type wrapped-query displayed-query
    show-remove-row-btn? show-checkboxes? on-text-changed]
   (let [query     (:query @wrapped-query)
         phonetic? (not= -1 (.indexOf query "phon="))]
@@ -147,7 +147,7 @@
       [b/input {:style            {:width 500}
                 :class-name       "col-sm-12"
                 :group-class-name "table-cell"
-                :type             "text"
+                :type             input-type
                 :default-value    displayed-query
                 :on-change        #(on-text-changed % wrapped-query phonetic?)
                 :on-key-down      #(on-key-down % a m)}]]
@@ -188,7 +188,7 @@
                           (let [value (.-target.value event)
                                 query (if (= value "") "" (phrase->cqp value phonetic?))]
                             (swap! wrapped-query assoc :query query)))]
-    [single-input-view a m wrapped-query displayed-query show-remove-row-btn?
+    [single-input-view a m "text" wrapped-query displayed-query show-remove-row-btn?
      true on-text-changed]))
 
 
@@ -201,7 +201,7 @@
                                 query      (->non-headword-query value)
                                 hw-search? (= (->headword-query query) value)]
                             (swap! wrapped-query assoc :query query :headword-search hw-search?)))]
-    [single-input-view a m wrapped-query displayed-query show-remove-row-btn?
+    [single-input-view a m "textarea" wrapped-query displayed-query show-remove-row-btn?
      false on-text-changed]))
 
 (defmethod search-inputs :default [_ _]
