@@ -183,7 +183,8 @@
              [:div.table-cell header ": "]
              [:div.table-cell {:style {:padding-bottom 5}}
               (doall (for [[attr value title] attrs
-                           :let [selected? (contains? (get-in @wrapped-term [:features pos (name attr)])
+                           :let [attr* (name attr)
+                                 selected? (contains? (get-in @wrapped-term [:features pos attr*])
                                                       value)]]
                        ^{:key value}
                        [b/button {:style    {:margin-left 3}
@@ -191,10 +192,14 @@
                                   :bs-style (if selected? "info" "default")
                                   :on-click (fn [_]
                                               ;(.log js/console (get-in @wrapped-term [:features]))
-                                              (swap! wrapped-term update-in [:features pos (name attr)]
+                                              (swap! wrapped-term update-in [:features pos attr*]
                                                      (fn [a] (if selected?
                                                                (disj a value)
-                                                               (set (conj a value))))))}
+                                                               (set (conj a value)))))
+                                              (if (empty? (get-in @wrapped-term
+                                                                  [:features pos attr*]))
+                                                (swap! wrapped-term update-in [:features pos]
+                                                       dissoc attr*)))}
                         title]))]])]])]
      [b/modalfooter
       [b/button {:on-click #()} "Close"]]]))
