@@ -70,7 +70,7 @@
 
                 attribute-value-rx
                 (let [term (as-> {:interval @interval} $
-                                 (if-let [[_ name val] (re-find #"(word|lemma|phon)\s*=\s*(\S+)"
+                                 (if-let [[_ name val] (re-find #"(word|lemma|phon)\s*=\s*\"(.+)\""
                                                                 (last part))]
                                    (process-form $ name val)
                                    $)
@@ -130,7 +130,7 @@
                                         start? (str ".+")
                                         end? (#(str ".+" %))))
                        main   (when form*
-                                (str attr "=" form* " %c"))
+                                (str attr "=\"" form* "\" %c"))
                        feats  (when (seq features)
                                 (str "(" (str/join " | " (map process-pos-map features)) ")"))
                        [min max] interval
