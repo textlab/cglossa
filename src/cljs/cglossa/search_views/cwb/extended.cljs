@@ -206,7 +206,8 @@
                                                        dissoc attr*)))}
                         title]))]])]])]
      [b/modalfooter
-      [b/button {:bs-style "danger"} "Clear"]
+      [b/button {:bs-style "danger"
+                 :on-click #(swap! wrapped-term assoc :features nil)} "Clear"]
       [b/button {:bs-style "success"
                  :on-click #(hide-attr-popup show-attr-popup-for)} "Close"]]]))
 
