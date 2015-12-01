@@ -137,7 +137,7 @@
                                             step cut sort-by) false))
 
   (GET "/results" [corpus-id search-id start end sort-by]
-    (transit-response (search/results corpus-id search-id start end sort-by))))
+    (transit-response (search/results corpus-id search-id start end sort-by) false)))
 
 ;;;;;;;;;;;;;;
 ;; End routes
