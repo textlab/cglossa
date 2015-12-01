@@ -34,9 +34,7 @@
 (defn show-texts-modal [{:keys [show-texts?]} {:keys [metadata-categories] :as m}]
   ;; Loading of external data with infinite scroll
   ;; mimics example at http://jsfiddle.net/joellanciaux/m9hyhwra/2/
-  (let [hide                      (fn [e]
-                                    (reset! show-texts? false)
-                                    (.preventDefault e))
+  (let [hide                      #(reset! show-texts? false)
         results                   (r/atom [])
         current-page              (r/atom 0)
         loading?                  (r/atom false)
