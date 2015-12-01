@@ -35,12 +35,13 @@
                                         :media              {:player-row-index    (r/atom nil)
                                                              :current-player-type (r/atom nil)
                                                              :current-media-type  (r/atom nil)}}
-                    :search-view       {:view-type (r/atom :simple)
-                                        :queries   (r/atom [#_{:query "[word=\"han\" %c] []{1,2} [word=\"er\" %c]"}
-                                                            #_{:query "[word=\"de\" %c] [word=\"sa\" %c]"}
-                                                            {:query "[word=\"hun\" %c]"}
-                                                            #_{:query "[word=\"hun\" %c] [word=\"vet\" %c]"}])
-                                        :query-ids (r/atom nil)}
+                    :search-view       {:view-type           (r/atom :simple)
+                                        :queries             (r/atom [#_{:query "[word=\"han\" %c] []{1,2} [word=\"er\" %c]"}
+                                                                      #_{:query "[word=\"de\" %c] [word=\"sa\" %c]"}
+                                                                      {:query "[word=\"hun\" %c]"}
+                                                                      #_{:query "[word=\"hun\" %c] [word=\"vet\" %c]"}])
+                                        :query-ids           (r/atom nil)
+                                        :show-attr-popup-for (r/atom nil)}
                     :searching?        (r/atom false)
                     :open-metadata-cat (r/atom nil)
                     :num-resets        (r/atom 0)})

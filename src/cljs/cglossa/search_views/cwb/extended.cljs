@@ -147,15 +147,15 @@
 ;;;; Components
 ;;;;;;;;;;;;;;;;
 
-(defn- menu-button [{:keys [menu-data]} wrapped-term]
-  ;(.log js/console @menu-data)
-  ;(println "wrapped-term:" @wrapped-term)
+(defn- menu-button [{{:keys [show-attr-popup-for]} :search-view} {:keys [menu-data]}
+                    wrapped-term index]
   (list
     ^{:key "btn"}
-    [b/button "Hei"]
+    [b/button {:on-click #(reset! show-attr-popup-for index)}
+     [b/glyphicon {:glyph "menu-hamburger"}]]
     ^{:key "modal"}
     [b/modal {:bs-size "large"
-              :show    true
+              :show    (= @show-attr-popup-for index)
               :on-hide #()}
      [b/modalbody
       [b/panel {:header "Parts-of-speech"}
@@ -202,15 +202,15 @@
                                                        dissoc attr*)))}
                         title]))]])]])]
      [b/modalfooter
-      [b/button {:on-click #()} "Close"]]]))
+      [b/button {:on-click #(reset! show-attr-popup-for nil)} "Close"]]]))
 
-(defn- text-input [a m wrapped-term show-remove-term-btn?]
+(defn- text-input [a m wrapped-term index show-remove-term-btn?]
   [:div.table-cell
    [b/input {:type          "text"
              :bs-size       "small"
              :style         {:font-size 14
                              :width     (if show-remove-term-btn? 108 140)}
-             :button-before (r/as-element (menu-button m wrapped-term))
+             :button-before (r/as-element (menu-button a m wrapped-term index))
              :button-after  (when show-remove-term-btn?
                               (r/as-element [b/button {:on-click #(reset! wrapped-term nil)}
                                              [b/glyphicon {:glyph "minus"}]]))
@@ -285,13 +285,13 @@
    [:div.tags]])
 
 (defn multiword-term [a m wrapped-query wrapped-term query-term-ids
-                      first? last? has-phonetic? show-remove-row-btn?
+                      index first? last? has-phonetic? show-remove-row-btn?
                       show-remove-term-btn?]
   [:div.table-cell>div.multiword-term>div.control-group
    [:div.table-row
     (when first?
       [remove-row-btn show-remove-row-btn? wrapped-query])
-    [text-input a m wrapped-term show-remove-term-btn?]
+    [text-input a m wrapped-term index show-remove-term-btn?]
     (when last?
       [add-term-btn wrapped-query query-term-ids])]
 
@@ -359,7 +359,7 @@
                                        [interval a m wrapped-term corpus])
                                      ^{:key (str "term" term-id)}
                                      [multiword-term a m wrapped-query wrapped-term query-term-ids
-                                      first? last? has-phonetic? show-remove-row-btn?
+                                      index first? last? has-phonetic? show-remove-row-btn?
                                       show-remove-term-btn?])))
                            terms))]
            (when (:has-headword-search @corpus)
