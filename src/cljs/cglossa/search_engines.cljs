@@ -4,6 +4,7 @@
   namespaces."
   (:require cglossa.search-views.cwb.core
             cglossa.search-views.fcs.core
+            cglossa.search-views.ud.core
             cglossa.result-views.cwb.core
             cglossa.result-views.cwb.written
             cglossa.result-views.cwb.speech

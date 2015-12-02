@@ -10,13 +10,15 @@
             [clojure.string :as str]))
 
 (defmethod run-queries "ud" [corpus search queries metadata-ids step cut sort-by]
-  (condp = step
-    2 ["1"]
-    3 ["1"]
-    1 [(-> (str "http://bionlp-www.utu.fi/dep_search/?db=English&search="
-                (ring.util.codec/form-encode (apply str (interpose " " (map second (re-seq #"word=\"(.+?)\"" (:query (first queries))))))))
-           slurp
-           (str/replace "src=\"js" "src=\"http://bionlp-www.utu.fi/dep_search/js")
-           (str/replace "var root = ''" "var root = 'http://bionlp-www.utu.fi/dep_search/'")
-           (str/replace "<form class=\"query-form\"" "<form class=\"query-form\" style=\"display:none\"")
-           (str/replace "nav class=\"navbar" "nav style=\"display:none\" class=\"navbar"))]))
+  (let [q (first queries)
+        lang (or (:lang q) "English")]
+    (condp = step
+      2 ["1"]
+      3 ["1"]
+      1 [(-> (str "http://bionlp-www.utu.fi/dep_search/?db=" lang
+                  "&search=" (ring.util.codec/form-encode (:query q)))
+             slurp
+             (str/replace "src=\"js" "src=\"http://bionlp-www.utu.fi/dep_search/js")
+             (str/replace "var root = ''" "var root = 'http://bionlp-www.utu.fi/dep_search/'")
+             (str/replace "<form class=\"query-form\"" "<form class=\"query-form\" style=\"display:none\"")
+             (str/replace "nav class=\"navbar" "nav style=\"display:none\" class=\"navbar"))])))
