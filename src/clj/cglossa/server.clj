@@ -106,10 +106,11 @@
 (defroutes db-routes
   (GET "/corpus" [code]
     (if-let [c (corpus-by-code code)]
-      (let [cats      (kdb/with-db (get corpus-connections (:id c)) (get-metadata-categories))
-            menu-data (read-string (slurp "resources/taggers/obt_bm_lbk.edn"))]
+      (let [cats (kdb/with-db (get corpus-connections (:id c)) (get-metadata-categories))
+            [gram-titles & menu-data] (read-string (slurp "resources/taggers/obt_bm_lbk.edn"))]
         (transit-response {:corpus              c
                            :metadata-categories cats
+                           :gram-titles         gram-titles
                            :menu-data           menu-data}))
       {:status 500
        :body   (str "No corpus named " code " exists!")}))

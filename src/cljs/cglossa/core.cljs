@@ -48,6 +48,7 @@
 
 (defonce model-state {:corpus              (r/atom nil)
                       :metadata-categories (r/atom nil)
+                      :gram-titles         (r/atom nil)
                       :menu-data           (r/atom nil)
                       :search              (r/atom {})})
 
