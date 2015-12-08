@@ -64,6 +64,8 @@ mysql -u "${GLOSSA_DB_ADMIN:-root}" -p  \
     -e "CREATE INDEX \`metadata_value_id\` ON \`metadata_value_text\` (\`metadata_value_id\`);" \
     -e "CREATE INDEX \`text_id\` on \`metadata_value_text\` (\`text_id\`);" \
     -e "CREATE INDEX \`metadata_value_text\` on \`metadata_value_text\` (\`metadata_value_id\`, \`text_id\`);" \
+    -e "DELETE FROM \`metadata_value_text\` WHERE \`metadata_value_id\` IN (SELECT \`id\` FROM \`metadata_value\` AS v WHERE v.\`text_value\` = '' OR v.\`text_value\` IS NULL);" \
+    -e "DELETE FROM metadata_value WHERE text_value = '' OR text_value IS NULL;" \
     "${GLOSSA_PREFIX:-glossa}"_${corpus}
 
 rm $valfile1 $valfile2
