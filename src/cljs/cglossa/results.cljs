@@ -230,9 +230,9 @@
     [top-toolbar a m]
     [results-info a]]
    ^{:key @num-resets} [search-inputs a m]                  ; See comments in cglossa.start
-   [b/tabbedarea {:style              {:margin-top 15}
+   [b/tabs {:style              {:margin-top 15}
                   :animation          false
                   :default-active-key :concordance}
-    [b/tabpane {:tab "Concordance" :event-key :concordance}
+    [b/tab {:tab "Concordance" :event-key :concordance}
      [concordances a m]]
-    [b/tabpane {:tab "Statistics" :event-key :statistics}]]])
+    [b/tab {:tab "Statistics" :event-key :statistics}]]])

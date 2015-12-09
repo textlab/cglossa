@@ -17,8 +17,7 @@
                  [com.cognitect/transit-clj "0.8.275"]
                  [compojure "1.3.4"]
                  [enlive "1.1.5"]
-                 [reagent "0.5.1" :exclusions [cljsjs/react]]
-                 [cljsjs/react-bootstrap "0.23.7-0"]
+                 [reagent "0.6.0-SNAPSHOT"]
                  [cljsjs/jquery "1.9.0-0"]
                  [cljsjs/jquery-ui "1.11.3-1"]
                  [environ "1.0.0"]
@@ -64,7 +63,10 @@
                     :recompile-dependents false
                     :main                 "cglossa.core"
                     :asset-path           "js/out"
-                    :foreign-libs         [{:file     "resources/public/js/select2.js"
+                    :foreign-libs         [{:file     "resources/public/js/react-bootstrap_0.28.1.min.js"
+                                            :provides ["react-bootstrap"]
+                                            :requires ["cljsjs.react"]}
+                                           {:file     "resources/public/js/select2.js"
                                             :file-min "resources/public/js/select2.min.js"
                                             :provides ["js-select2"]
                                             :requires ["cljsjs.jquery"]}
@@ -80,7 +82,8 @@
                                            {:file     "resources/public/js/griddle_619dc5f.js"
                                             :provides ["griddle"]
                                             :requires ["cljsjs.react" "underscore"]}]
-                    :externs              ["resources/public/js/externs/select2.ext.js"
+                    :externs              ["resources/public/js/externs/react-bootstrap_0.28.1.ext.js"
+                                           "resources/public/js/externs/select2.ext.js"
                                            "resources/public/js/externs/griddle_619dc5f.ext.js"]
                     :pretty-print         true}}}}
 

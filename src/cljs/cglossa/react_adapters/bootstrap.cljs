@@ -1,5 +1,5 @@
 (ns cglossa.react-adapters.bootstrap
-  (:require cljsjs.react-bootstrap
+  (:require react-bootstrap
             reagent.core)
   (:require-macros [cglossa.react-adapters.bootstrap :refer [adapt!]]))
 
@@ -22,6 +22,6 @@
         "ModalTitle"
         "Navbar"
         "Panel"
-        "TabbedArea"
-        "Table"
-        "TabPane")
+        "Tabs"
+        "Tab"
+        "Table")
