@@ -9,7 +9,7 @@
             [cglossa.react-adapters.bootstrap :as b]))
 
 (defn- results-info [{{total :total} :results-view searching? :searching?}]
-  [:div.col-sm-5
+  [:div.col-sm-7
    (if (pos? @total)
      (let [npages    (-> (/ @total page-size) Math/ceil int)
            pages-str (if (= npages 1) " page" " pages")]
