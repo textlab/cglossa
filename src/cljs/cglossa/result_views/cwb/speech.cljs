@@ -6,8 +6,6 @@
             [cglossa.result-views.cwb.shared :as shared]
             react-jplayer))
 
-(def jplayer (r/adapt-react-class js/Jplayer))
-
 (defn- toggle-player [index player-type media-type
                       {{{:keys [player-row-index
                                 current-player-type current-media-type]} :media} :results-view}]
@@ -122,9 +120,9 @@
                          "jplayer"
                          [:tr
                           [:td {:col-span 10}
-                           [jplayer {:media-obj  media-obj
-                                     :media-type @current-media-type
-                                     :ctx_lines  (:initial-context-size @corpus 1)}]]]
+                           [:> js/Jplayer {:media-obj  media-obj
+                                           :media-type @current-media-type
+                                           :ctx_lines  (:initial-context-size @corpus 1)}]]]
 
                          "wfplayer"
                          [:tr

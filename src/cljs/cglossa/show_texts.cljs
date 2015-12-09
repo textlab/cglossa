@@ -7,8 +7,6 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:import [goog.dom ViewportSizeMonitor]))
 
-(def table (r/adapt-react-class js/Griddle))
-
 (defn- get-external-data [{:keys [corpus metadata-categories search]}
                           results loading? mxpages cur-page page]
   (reset! loading? true)
@@ -60,28 +58,29 @@
             [b/modalheader {:close-button true}
              [b/modaltitle "Corpus texts"]]
             [b/modalbody
-             [table {:columns                    (map :name (sort-by :id @metadata-categories))
-                     :use-external               true
-                     :external-set-page          (fn [page]
-                                                   (when-not (contains? @fetched-pages page)
-                                                     (swap! fetched-pages conj page)
-                                                     (get-data page)))
-                     :enable-sort                false
-                     :external-set-page-size     #()
-                     :external-max-page          (inc @max-pages)
-                     :external-change-sort       #()
-                     :external-set-filter        #()
-                     :external-current-page      @current-page
-                     :results                    @results
-                     :table-class-name           "table"
-                     :results-per-page           @external-results-per-page
-                     :external-sort-column       @external-sort-column
-                     :external-sort-ascending    @external-sort-ascending
-                     :external-loading-component loading-comp
-                     :external-is-loading        @loading?
-                     :enable-infinite-scroll     true
-                     :body-height                (- (.. (ViewportSizeMonitor.) getSize -height) 300)
-                     :body-width                 1000
-                     :use-fixed-header           true}]]
+             [:> js/Griddle
+              {:columns                    (map :name (sort-by :id @metadata-categories))
+               :use-external               true
+               :external-set-page          (fn [page]
+                                             (when-not (contains? @fetched-pages page)
+                                               (swap! fetched-pages conj page)
+                                               (get-data page)))
+               :enable-sort                false
+               :external-set-page-size     #()
+               :external-max-page          (inc @max-pages)
+               :external-change-sort       #()
+               :external-set-filter        #()
+               :external-current-page      @current-page
+               :results                    @results
+               :table-class-name           "table"
+               :results-per-page           @external-results-per-page
+               :external-sort-column       @external-sort-column
+               :external-sort-ascending    @external-sort-ascending
+               :external-loading-component loading-comp
+               :external-is-loading        @loading?
+               :enable-infinite-scroll     true
+               :body-height                (- (.. (ViewportSizeMonitor.) getSize -height) 300)
+               :body-width                 1000
+               :use-fixed-header           true}]]
             [b/modalfooter
              [b/button {:on-click hide} "Close"]]]))})))
