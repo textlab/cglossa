@@ -1,6 +1,7 @@
 (ns cglossa.search-views.cwb.core
   (:require [clojure.string :as str]
             [reagent.core :as r]
+            [reagent.dom :as rdom]
             [goog.dom :as dom]
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.shared :refer [search! on-key-down remove-row-btn headword-search-checkbox]]
@@ -66,7 +67,7 @@
 (defn- focus-text-input [c]
   ;; Use (aget % "type") instead of (.-type %) simply because the latter makes the syntax
   ;; checker in Cursive Clojure go bananas for some reason...
-  (.focus (dom/findNode (r/dom-node c) #(#{"text" "textarea"} (aget % "type")))))
+  (.focus (dom/findNode (rdom/dom-node c) #(#{"text" "textarea"} (aget % "type")))))
 
 (defn- wrapped-query-changed [queries index query-ids query]
   "Takes a changed query, performs some cleanup on it, and swaps it into

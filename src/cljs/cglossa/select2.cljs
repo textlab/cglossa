@@ -1,5 +1,6 @@
 (ns cglossa.select2
   (:require [reagent.core :as r]
+            [reagent.dom :as rdom]
             [cljsjs.jquery]
             js-select2))
 
@@ -10,7 +11,7 @@
   (if (satisfies? IDeref obj) @obj obj))
 
 (defn- get-select-el [component]
-  (js/$ "select.list" (r/dom-node component)))
+  (js/$ "select.list" (rdom/dom-node component)))
 
 (defn handle-event [component event-name handler]
   (.on (get-select-el component) event-name handler))

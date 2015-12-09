@@ -1,5 +1,6 @@
 (ns cglossa.core
   (:require [reagent.core :as r]
+            [reagent.dom :as rdom]
             [cljs-http.client :as http]
             [cljs.core.async :refer [<!]]
             [devtools.core :as devtools]
@@ -71,7 +72,7 @@
   (js/alert "Please provide a corpus in the query string (on the form corpus=mycorpus)"))
 
 (defn ^:export main []
-  (r/render
+  (rdom/render
     [app app-state model-state]
     (. js/document (getElementById "app"))))
 
