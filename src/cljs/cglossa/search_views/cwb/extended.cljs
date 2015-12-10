@@ -158,10 +158,10 @@
      [b/glyphicon {:glyph "menu-hamburger"}]]
     ^{:key "modal"}
     [b/modal {:class-name "attr-modal"
-              :bs-size  "large"
-              :keyboard true
-              :show     (= @show-attr-popup-for index)
-              :on-hide  #(hide-attr-popup show-attr-popup-for)}
+              :bs-size    "large"
+              :keyboard   true
+              :show       (= @show-attr-popup-for index)
+              :on-hide    #(hide-attr-popup show-attr-popup-for)}
      [b/modalbody
       [b/panel {:header "Parts-of-speech"}
        (doall (for [[pos title morphsyn] @menu-data
