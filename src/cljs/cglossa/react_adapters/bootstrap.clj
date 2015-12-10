@@ -9,5 +9,5 @@
 ;; js/ReactBootstrap.Button.
 (defmacro adapt! [& components]
   `(do ~@(for [c components]
-           `(def ~(symbol (str/lower-case c))
+           `(def ~(symbol (-> c str/lower-case (str/replace \. \-)))
               (reagent.core/adapt-react-class ~(symbol "js" (str "ReactBootstrap." c)))))))
