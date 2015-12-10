@@ -231,8 +231,8 @@
     [results-info a]]
    ^{:key @num-resets} [search-inputs a m]                  ; See comments in cglossa.start
    [b/tabs {:style              {:margin-top 15}
-                  :animation          false
-                  :default-active-key :concordance}
-    [b/tab {:tab "Concordance" :event-key :concordance}
+            :animation          false
+            :default-active-key :concordance}
+    [b/tab {:title "Concordance" :event-key :concordance}
      [concordances a m]]
-    [b/tab {:tab "Statistics" :event-key :statistics}]]])
+    [b/tab {:title "Statistics" :event-key :statistics}]]])
