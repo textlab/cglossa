@@ -39,7 +39,8 @@
                     :search-view       {:view-type           (r/atom :simple)
                                         :queries             (r/atom [#_{:query "[word=\"han\" %c] []{1,2} [word=\"er\" %c]"}
                                                                       #_{:query "[word=\"de\" %c] [word=\"sa\" %c]"}
-                                                                      {:query "[word=\"hun\" %c]"}
+                                                                      #_{:query "[word=\"hun\" %c]"}
+                                                                      {:query ""}
                                                                       #_{:query "[word=\"hun\" %c] [word=\"vet\" %c]"}])
                                         :query-ids           (r/atom nil)
                                         :show-attr-popup-for (r/atom nil)}
