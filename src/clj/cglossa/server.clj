@@ -107,7 +107,11 @@
   (GET "/corpus" [code]
     (if-let [c (corpus-by-code code)]
       (let [cats (kdb/with-db (get corpus-connections (:id c)) (get-metadata-categories))
-            [gram-titles & menu-data] (read-string (slurp "resources/taggers/obt_bm_lbk.edn"))]
+            tagfile (case (:code c)
+                      "gigaword_fre_3" "treetagger_fr"
+                      "obt_bm_lbk")
+            [gram-titles & menu-data] (read-string (slurp (str "resources/taggers/"
+                                                               tagfile ".edn")))]
         (transit-response {:corpus              c
                            :metadata-categories cats
                            :gram-titles         gram-titles
