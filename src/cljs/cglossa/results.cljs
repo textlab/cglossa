@@ -235,4 +235,4 @@
             :default-active-key :concordance}
     [b/tab {:title "Concordance" :event-key :concordance}
      [concordances a m]]
-    [b/tab {:title "Statistics" :event-key :statistics}]]])
+    [b/tab {:title "Statistics" :event-key :statistics :disabled true}]]])
