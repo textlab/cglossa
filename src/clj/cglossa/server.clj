@@ -27,13 +27,17 @@
   (:import [java.io ByteArrayOutputStream])
   (:gen-class))
 
-(def corpus-connections
-  (into {} (for [c (select corpus (fields :id :code))]
-             [(:id c)
-              (kdb/create-db (kdb/mysql {:user     (:glossa-db-user env)
-                                         :password (:glossa-db-password env)
-                                         :db       (str (get env :glossa-prefix "glossa") "_"
-                                                        (:code c))}))])))
+(def corpus-connections (atom {}))
+
+(defn- init-corpus-connections! []
+  (reset! corpus-connections
+          (into {} (for [c (select corpus (fields :id :code))]
+                     [(:id c)
+                      (kdb/create-db (kdb/mysql {:user     (:glossa-db-user env)
+                                                 :password (:glossa-db-password env)
+                                                 :db       (str (get env :glossa-prefix "glossa")
+                                                                "_"
+                                                                (:code c))}))]))))
 
 ;; Global exception handler. From http://stuartsierra.com/2015/05/27/clojure-uncaught-exceptions
 ;; Assuming require [clojure.tools.logging :as log]
@@ -87,9 +91,9 @@
   (fn [request]
     (let [corpus-id (get-in request [:params :corpus-id])
           db        (if corpus-id
-                      (get corpus-connections (if (string? corpus-id)
-                                                (Integer/parseInt corpus-id)
-                                                corpus-id))
+                      (get @corpus-connections (if (string? corpus-id)
+                                                 (Integer/parseInt corpus-id)
+                                                 corpus-id))
                       core-db)]
       (kdb/with-db db (handler request)))))
 
@@ -106,7 +110,7 @@
 (defroutes db-routes
   (GET "/corpus" [code]
     (if-let [c (corpus-by-code code)]
-      (let [cats (kdb/with-db (get corpus-connections (:id c)) (get-metadata-categories))
+      (let [cats    (kdb/with-db (get @corpus-connections (:id c)) (get-metadata-categories))
             tagfile (case (:code c)
                       "gigaword_fre_3" "treetagger_fr"
                       "obt_bm_lbk")
@@ -159,6 +163,7 @@
 
 (defn run [& [port]]
   (set-default-exception-handler!)
+  (init-corpus-connections!)
   (defonce ^:private server
            (do
              (let [port (Integer. (or port (env :port) 10555))]
