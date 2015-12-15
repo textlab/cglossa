@@ -1,4 +1,4 @@
-[{}
+[{:type "Type" :mood_case "Mood/Case" :tense_defin "Tense/definiteness"}
  ["abbr" "abbreviation" []]
  ["adj" "adjective" []]
  ["adv" "adverb" []]
