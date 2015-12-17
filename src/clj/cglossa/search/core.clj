@@ -30,20 +30,17 @@
     (first (select search (where {:id id})))))
 
 (defn search-corpus [corpus-id search-id queries metadata-ids step cut sort-by]
-  (let [corpus           (corpus-by-id corpus-id)
-        search-id*       (if (= step 1)
-                           (:generated_key (create-search! corpus-id queries))
-                           search-id)
-        s                (get-search search-id*)
-        results-or-count (run-queries corpus s queries metadata-ids step cut sort-by)
-        result           (if (= step 1)
-                           ;; On the first search, we get actual search results back
-                           (transform-results corpus results-or-count)
-                           ;; On subsequent searches, which just retrieve more results from
-                           ;; the same query, we just get the number of results found (so far)
-                           (Integer/parseInt (first results-or-count)))]
-    {:search s
-     :result result}))
+  (let [corpus     (corpus-by-id corpus-id)
+        search-id* (if (= step 1)
+                     (:generated_key (create-search! corpus-id queries))
+                     search-id)
+        s          (get-search search-id*)
+        [res cnt]  (run-queries corpus s queries metadata-ids step cut sort-by)
+        results    (transform-results corpus res)
+        count      (if (string? cnt) (Integer/parseInt cnt) cnt)]
+    {:search  s
+     :results results
+     :count   count}))
 
 (defn results [corpus-id search-id start end sort-by]
   (let [corpus  (corpus-by-id corpus-id)

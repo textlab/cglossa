@@ -34,8 +34,11 @@
         ;;;; TEMPORARY HACK! Change to configure pos attribute based on tagger/corpus
         commands    (if (= "bokmal" (:code corpus))
                       (map #(str/replace % "pos=" "ordkl=") (filter identity (flatten commands)))
-                      commands)]
-    (run-cqp-commands corpus (filter identity (flatten commands)))))
+                      commands)
+        res         (run-cqp-commands corpus (filter identity (flatten commands)))
+        results     (when (= step 1) res)
+        count       (if (= step 1) (count res) (first res))]
+    [results count]))
 
 (defmethod get-results :default [corpus search-id start end sort-by]
   (let [named-query (cwb-query-name corpus search-id)
@@ -49,4 +52,5 @@
     (run-cqp-commands corpus (flatten commands))))
 
 (defmethod transform-results :default [_ results]
-  (map (fn [r] {:text r}) results))
+  (when results
+    (map (fn [r] {:text r}) results)))
