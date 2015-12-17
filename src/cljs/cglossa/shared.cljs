@@ -1,7 +1,7 @@
 (ns cglossa.shared
-  (:require-macros [cljs.core.async.macros :refer [go]])
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [clojure.string :as str]
-            [cljs.core.async :refer [<!]]
+            [cljs.core.async :as async :refer [<!]]
             [cljs-http.client :as http]
             [cglossa.react-adapters.bootstrap :as b]))
 
@@ -13,6 +13,10 @@
 ;; actually be found), we subtract this margin to be on the safe side.
 (def result-margin 200)
 
+(def ^:private cancel-search-ch
+  "Core.async channel used to cancel any already ongoing search when we start a new one."
+  (async/chan))
+
 (defmulti cleanup-result
   "Multimethod that accepts two arguments - a model/domain state map and a
   single search result - and dispatches to the correct method based on the
@@ -20,69 +24,55 @@
   map. The :default case implements CWB support."
   (fn [{corpus :corpus} _] (:search-engine @corpus)))
 
-(defn- search-step3 [url params total searching? search-id]
-  "Performs an unrestricted search."
-  (go
-    (let [results-ch (http/post url {:json-params (merge params {:step      3
-                                                                 :cut       nil
-                                                                 :search-id search-id})})
-          {:keys [status success] {res :result} :body} (<! results-ch)]
-      (if-not success
-        (.log js/console status)
-        (do
-          ;; The results from the third request should be the number of results found so far.
-          ;; Just set the total ratom (we'll postpone fetching any results until the user switches
-          ;; to a different result page) and mark searching as finished.
-          (reset! total res)
-          (reset! searching? false))))))
-
-(defn- search-step2 [url params total searching? search-id]
-  "Performs a search restricted to 20 pages of search results."
-  (go
-    (let [results-ch (http/post url {:json-params (merge params {:step      2
-                                                                 :cut       (* 20 page-size)
-                                                                 :search-id search-id})})
-          {:keys [status success] {res :result} :body} (<! results-ch)]
-      (if-not success
-        (.log js/console status)
-        (do
-          ;; The response from the second request should be the number of results found so far.
-          ;; Just set the total ratom - we'll postpone fetching any results until the user switches
-          ;; to a different result page.
-          (reset! total res)
-          (if (< res (- (* 20 page-size) result-margin))
-            ;; We found less than 20 search pages (minus the safety margin) of results,
-            ;; so stop searching
-            (reset! searching? false)
-            (search-step3 url params total searching? search-id)))))))
-
-(defn- search-step1 [m url params total searching? current-search current-results]
-  "Performs a search restricted to one page of search results."
-  (go
-    (let [results-ch (http/post url {:json-params (merge params {:step 1 :cut (* 2 page-size)})})
-          {:keys [status success] {:keys [search result]} :body} (<! results-ch)]
-      (if-not success
-        (.log js/console status)
-        (do
-          (swap! current-search merge search)
-          ;; The response from the first request should be (at most) two pages of search results.
-          ;; Set the results ratom to those results and the total ratom to the number of results.
-          (reset! current-results (into {} (map (fn [page-index res]
+(defn- do-search-steps! [{:keys [searching?] {:keys [results total]} :results-view}
+                         {:keys [search] :as m}
+                         url search-params step-params]
+  (go-loop [params step-params]
+    (let [[step cut] (first params)
+          json-params (cond-> search-params
+                              true (assoc :step step :cut cut)
+                              (:id @search) (assoc :search-id (:id @search)))
+          ;; Fire off a search query
+          results-ch  (http/post url {:json-params json-params})
+          ;; Wait for either the results of the query or a message to cancel the query
+          ;; because we have started another search
+          [val ch] (async/alts! [cancel-search-ch results-ch] :priority true)]
+      (when (= ch results-ch)
+        (let [{:keys [status success] {resp-search  :search
+                                       resp-results :results
+                                       resp-count   :count} :body} val]
+          (if-not success
+            (.log js/console status)
+            (do
+              (swap! search merge resp-search)
+              ;; Only the first request actually returns results; the others just save the results
+              ;; on the server to be fetched on demand
+              (if resp-results
+                (do
+                  (reset! results (into {} (map (fn [page-index res]
                                                   [(inc page-index)
                                                    (map (partial cleanup-result m) res)])
                                                 (range)
-                                                (partition-all page-size result))))
-          (reset! total (count result))
-          ;; Since CQP may return fewer than the number or results we asked for, always do at
-          ;; least one more search
-          (search-step2 url params total searching? (:id search)))))))
+                                                (partition-all page-size resp-results))))
+                  (reset! total (count resp-results)))
+                (reset! total resp-count))
+              (if (or (nil? (next params))
+                      (< resp-count (- cut result-margin)))
+                ;; Either we haven't specified any more steps, or we found less results than we
+                ;; asked for (minus the safety margin). In either case, don't do any more searches.
+                (reset! searching? false)
+                ;; Keep searching with the remaining step specifications
+                (recur (next params))))))))))
 
 (defn search! [{{queries :queries}                   :search-view
                 {:keys [show-results? results total page-no
                         paginator-page-no
                         paginator-text-val sort-by]} :results-view
-                searching?                           :searching?}
+                searching?                           :searching?
+                :as                                  a}
                {:keys [corpus search] :as m}]
+  ;; Start by cancelling any already ongoing search.
+  (async/offer! cancel-search-ch true)
   (let [first-query (:query (first @queries))]
     (when (and first-query
                (not= first-query "\"\""))
@@ -106,7 +96,7 @@
         (reset! page-no 1)
         (reset! paginator-page-no 1)
         (reset! paginator-text-val 1)
-        (search-step1 m url params total searching? search results)))))
+        (do-search-steps! a m url params [[1 (* 2 page-size)] [2 (* 20 page-size)] [3 nil]])))))
 
 (defn showing-metadata? [{:keys                   [show-metadata? narrow-view?]
                           {:keys [show-results?]} :results-view}
@@ -150,10 +140,10 @@
             :id        "headword_search"
             :name      "headword_search"} " Headword search"])
 
-(defn top-toolbar [{:keys [num-resets show-metadata?]
-                    {:keys [queries]} :search-view
+(defn top-toolbar [{:keys                   [num-resets show-metadata?]
+                    {:keys [queries]}       :search-view
                     {:keys [show-results?]} :results-view
-                    :as a}
+                    :as                     a}
                    {:keys [search metadata-categories] :as m}]
   [:div.col-sm-5
    [b/buttontoolbar {:style {:margin-bottom 20}}
