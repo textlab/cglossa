@@ -71,11 +71,12 @@
                 searching?                           :searching?
                 :as                                  a}
                {:keys [corpus search] :as m}]
-  ;; Start by cancelling any already ongoing search.
-  (async/offer! cancel-search-ch true)
   (let [first-query (:query (first @queries))]
     (when (and first-query
+               (not (str/blank? first-query))
                (not= first-query "\"\""))
+      ;; Start by cancelling any already ongoing search.
+      (async/offer! cancel-search-ch true)
       (let [q      (if (= (:lang @corpus) "zh")
                      ;; For Chinese: If the tone number is missing, add a pattern
                      ;; that matches all tones
