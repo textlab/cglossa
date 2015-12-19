@@ -2,10 +2,11 @@
   (:require [reagent.core :as r]
             [cljs.core.async :refer [<!]]
             [cglossa.react-adapters.bootstrap :as b]
-            [cglossa.select2 :as sel])
+            [cglossa.select2 :as sel]
+            [cglossa.shared :refer [search!]])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
-(defn- metadata-select [corpus cat-id search selected open-metadata-cat]
+(defn- metadata-select [a m corpus cat-id search selected open-metadata-cat]
   (r/create-class
     {:component-did-mount
      ;; If the user has explicitly selected this category by clicking on its header/link,
@@ -15,6 +16,8 @@
      ;; longer opened automatically after the user closes it.
      (when (= @open-metadata-cat cat-id)
        (fn [c]
+         (sel/handle-event c "select2:select" #(search! a m))
+         (sel/handle-event c "select2:unselect" #(search! a m))
          (sel/handle-event c "select2:close" #(reset! open-metadata-cat nil))
          (sel/trigger-event c "open")))
 
@@ -46,7 +49,7 @@
         [:div
          [:select.list {:style {:width "90%"} :multiple true}]]])}))
 
-(defn metadata-list [{:keys [open-metadata-cat]} {:keys [corpus search]}]
+(defn metadata-list [{:keys [open-metadata-cat] :as a} {:keys [corpus search] :as m}]
   (let [remove-cat-values (fn [cat-id]
                             (reset! open-metadata-cat nil)
                             (swap! search update :metadata dissoc cat-id)
@@ -81,4 +84,4 @@
                            :on-click   #(remove-cat-values cat-id)}
                  [b/glyphicon {:glyph "remove"}]]
                 ^{:key (str "select" cat-id)}
-                [metadata-select corpus cat-id search selected open-metadata-cat]))]))])))
+                [metadata-select a m corpus cat-id search selected open-metadata-cat]))]))])))
