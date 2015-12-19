@@ -168,8 +168,8 @@
                     :let [selected? (contains? (:features @wrapped-term) pos)]]
                 ^{:key pos}
                 [b/button
-                 {:style    {:margin-left 3 :margin-bottom 5}
-                  :bs-size  "small"
+                 {:style    {:margin-left 3 :margin-top 2 :margin-bottom 3}
+                  :bs-size  "xsmall"
                   :bs-style (if selected? "info" "default")
                   :on-click (fn [_] (swap! wrapped-term update :features
                                            #(if selected? (dissoc % pos) (assoc % pos {})))
@@ -193,7 +193,7 @@
                                                       value)]]
                        ^{:key value}
                        [b/button {:style    {:margin-left 3 :margin-bottom 5}
-                                  :bs-size  "small"
+                                  :bs-size  "xsmall"
                                   :bs-style (if selected? "info" "default")
                                   :on-click (fn [_]
                                               ;(.log js/console (get-in @wrapped-term [:features]))

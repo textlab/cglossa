@@ -13,7 +13,7 @@
 
 .attr-modal {
   .modal-body {
-    padding-bottom: 5px;
+    padding-bottom: 0;
   }
 
   .modal-footer {
@@ -21,10 +21,12 @@
   }
 
   .panel {
-    margin-bottom: 15px;
+    margin-bottom: 8px;
 
     .panel-heading {
-      font-size: bold;
+      font-weight: bold;
+      color: #4E4E4E;
+      padding: 5px 15px;
     }
 
     .panel-body {
