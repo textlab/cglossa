@@ -3,7 +3,7 @@
   and menus for easily building complex and grammatically specified queries."
   (:require [clojure.string :as str]
             [reagent.core :as r]
-            [cglossa.shared :refer [on-key-down remove-row-btn headword-search-checkbox]]
+            [cglossa.shared :refer [on-key-down remove-row-btn headword-search-checkbox search!]]
             [cglossa.react-adapters.bootstrap :as b]))
 
 (enable-console-print!)
@@ -150,7 +150,7 @@
 (defn hide-attr-popup [show-attr-popup-for]
   (reset! show-attr-popup-for nil))
 
-(defn- menu-button [{{:keys [show-attr-popup-for]} :search-view} {:keys [menu-data]}
+(defn- menu-button [{{:keys [show-attr-popup-for]} :search-view :as a} {:keys [menu-data] :as m}
                     wrapped-term index]
   (list
     ^{:key "btn"}
@@ -172,9 +172,7 @@
                   :bs-size  "xsmall"
                   :bs-style (if selected? "info" "default")
                   :on-click (fn [_] (swap! wrapped-term update :features
-                                           #(if selected? (dissoc % pos) (assoc % pos {})))
-                              ;(println "w:" (get-in @wrapped-term [:features]))
-                              )}
+                                           #(if selected? (dissoc % pos) (assoc % pos {}))))}
                  title]))]
       (for [[pos title morphsyn] @menu-data
             :when (and (contains? (:features @wrapped-term) pos)
@@ -196,7 +194,6 @@
                                   :bs-size  "xsmall"
                                   :bs-style (if selected? "info" "default")
                                   :on-click (fn [_]
-                                              ;(.log js/console (get-in @wrapped-term [:features]))
                                               (swap! wrapped-term update-in [:features pos attr*]
                                                      (fn [a] (if selected?
                                                                (disj a value)
@@ -210,6 +207,8 @@
       [b/button {:bs-style "danger"
                  :on-click #(swap! wrapped-term assoc :features nil)} "Clear"]
       [b/button {:bs-style "success"
+                 :on-click (fn [_] (hide-attr-popup show-attr-popup-for) (search! a m))} "Search"]
+      [b/button {:bs-style "info"
                  :on-click #(hide-attr-popup show-attr-popup-for)} "Close"]]]))
 
 (defn- text-input [a m wrapped-term index show-remove-term-btn?]
