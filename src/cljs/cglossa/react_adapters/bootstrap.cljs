@@ -10,6 +10,9 @@
 ;; (:require [cglossa.react-adapters.bootstrap :refer [button modal label])
 (adapt! "Button"
         "ButtonToolbar"
+        "Dropdown"
+        "Dropdown.Menu"
+        "Dropdown.Toggle"
         "DropdownButton"
         "Glyphicon"
         "Input"
