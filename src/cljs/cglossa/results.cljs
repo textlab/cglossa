@@ -10,12 +10,18 @@
 
 (defn- results-info [{{total :total} :results-view searching? :searching?}]
   [:div.col-sm-7
-   (if (pos? @total)
+   (cond
+     (pos? @total)
      (let [npages    (-> (/ @total page-size) Math/ceil int)
            pages-str (if (= npages 1) " page" " pages")]
        (if @searching?
          (str "Showing the first " @total " matches (" npages pages-str "); searching for more...")
          (str "Found " @total " matches (" npages " pages)")))
+
+     (zero? @total)
+     "No matches found"
+
+     :else
      (when @searching? "Searching..."))])
 
 (defn- sort-button [{{sb :sort-by total :total} :results-view searching? :searching? :as a} m]
@@ -26,6 +32,7 @@
     [b/dropdownbutton {:title    "Sort"
                        :bs-size  "small"
                        :disabled (or @searching?
+                                     (nil? @total)
                                      (zero? @total))
                        :style    {:margin-bottom 10}}
      [b/menuitem {:event-key :position, :on-select on-select}
