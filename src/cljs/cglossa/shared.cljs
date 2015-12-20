@@ -93,7 +93,7 @@
         (reset! show-results? true)
         (reset! results nil)
         (reset! searching? true)
-        (reset! total 0)
+        (reset! total nil)
         (reset! page-no 1)
         (reset! paginator-page-no 1)
         (reset! paginator-text-val 1)

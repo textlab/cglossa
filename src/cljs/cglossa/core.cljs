@@ -19,7 +19,7 @@
                     :show-texts?       (r/atom false)
                     :results-view      {:show-results?      (r/atom false)
                                         :results            (r/atom nil)
-                                        :total              (r/atom 0)
+                                        :total              (r/atom nil)
                                         :page-no            (r/atom 1)
                                         ;; This is the page selected in the result paginator;
                                         ;; it may differ from the one shown in the result table
