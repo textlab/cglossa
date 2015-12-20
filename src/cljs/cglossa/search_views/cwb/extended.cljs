@@ -154,8 +154,22 @@
                     wrapped-term index]
   (list
     ^{:key "btn"}
-    [b/button {:on-click #(reset! show-attr-popup-for index)}
-     [b/glyphicon {:glyph "menu-hamburger"}]]
+    [b/dropdown
+     [b/button {:bs-size  "small"
+                :on-click #(reset! show-attr-popup-for index)}
+      [b/glyphicon {:glyph "list"}]]
+     [b/dropdown-toggle {:bs-size "small"}]
+     [b/dropdown-menu
+      (for [[pos title] @menu-data
+            :let [selected? (contains? (:features @wrapped-term) pos)]]
+        ^{:key pos}
+        [b/menuitem {:active   selected?
+                     ;; In the menu, the most intuitive behaviour is probably to deselect any
+                     ;; previously selected part-of-speech whenever we select another one
+                     ;; (the popup, on the other hand, allows multiple selection).
+                     :on-click (fn [_] (swap! wrapped-term assoc :features
+                                              (if selected? {} {pos {}})))}
+         title])]]
     ^{:key "modal"}
     [b/modal {:class-name "attr-modal"
               :bs-size    "large"
@@ -164,7 +178,7 @@
               :on-hide    #(hide-attr-popup show-attr-popup-for)}
      [b/modalbody
       [b/panel {:header "Parts-of-speech"}
-       (doall (for [[pos title morphsyn] @menu-data
+       (doall (for [[pos title] @menu-data
                     :let [selected? (contains? (:features @wrapped-term) pos)]]
                 ^{:key pos}
                 [b/button
@@ -259,7 +273,7 @@
 
 (defn- checkboxes [wrapped-term has-phonetic?]
   (let [term-val @wrapped-term]
-    [:div.table-cell {:style {:min-width 182}}
+    [:div.table-cell {:style {:min-width 200}}
      [:div.word-checkboxes
       [:label.checkbox-inline {:style {:padding-left 15}}
        [:input {:type      "checkbox"
@@ -267,14 +281,14 @@
                 :checked   (:lemma? term-val)
                 :on-change #(swap! wrapped-term assoc :lemma? (.-target.checked %))
                 }] "Lemma"]
-      [:label.checkbox-inline {:style {:padding-left 15}}
+      [:label.checkbox-inline {:style {:padding-left 23}}
        [:input {:type      "checkbox"
                 :style     {:margin-left -15}
                 :title     "Start of word"
                 :checked   (:start? term-val)
                 :on-change #(swap! wrapped-term assoc :start? (.-target.checked %))
                 }] "Start"]
-      [:label.checkbox-inline {:style {:padding-left 15}}
+      [:label.checkbox-inline {:style {:padding-left 23}}
        [:input {:type      "checkbox"
                 :style     {:margin-left -15}
                 :title     "End of word"
@@ -282,7 +296,7 @@
                 :on-change #(swap! wrapped-term assoc :end? (.-target.checked %))
                 }] "End"]]
      (when has-phonetic?
-       [:div>label.checkbox-inline {:style {:padding-left 15}}
+       [:div>label.checkbox-inline {:style {:padding-left 23}}
         [:input {:type      "checkbox"
                  :style     {:margin-left -15}
                  :checked   (:phonetic? term-val)
