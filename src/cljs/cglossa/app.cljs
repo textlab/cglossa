@@ -17,7 +17,7 @@
 
 (defn- main-area [{{:keys [show-results?]} :results-view :as a} m]
   [:div.container-fluid {:style {:padding-left 50}}
-   [:div.row>div#main-content.col-sm-12
+   [:div.row>div#main-content.col-sm-12 {:style {:min-width 560}}
     (if @show-results?
       [results a m]
       [start a m])]])
