@@ -2,7 +2,7 @@
   "Implementation of search view component with text inputs, checkboxes
   and menus for easily building complex and grammatically specified queries."
   (:require [clojure.string :as str]
-            [reagent.core :as r]
+            [reagent.core :as r :include-macros true]
             [cglossa.shared :refer [on-key-down remove-row-btn headword-search-checkbox search!]]
             [cglossa.react-adapters.bootstrap :as b]))
 
@@ -336,56 +336,55 @@
 (defn extended
   "Search view component with text inputs, checkboxes and menus
   for easily building complex and grammatically specified queries."
-  [_ _ _ _]
-  (let [;; This will hold a unique ID for each query term component. React wants a
-        ;; unique key for each component in a sequence, such as the set of search inputs
-        ;; in the multiword interface, and it will mess up the text in the search boxes
-        ;; when we remove a term from the query if we don't provide this. Using the index
-        ;; of the term is meaningless, since it does not provide any more information
-        ;; than the order of the term itself. What we need is a way to uniquely identify
-        ;; each term irrespective of ordering.
-        ;;
-        ;; Normally, the items in a list have some kind of database ID that we can use,
-        ;; but query terms don't. Also, we cannot just use a hash code created from the
-        ;; term object, since we may have several identical terms in a query. Hence, we
-        ;; need to provide this list of query term IDs containing a unique ID number for
-        ;; each term in the initial query (i.e., the one provided in the props when this
-        ;; component is mounted), and then we add a newly created ID when adding a query
-        ;; term in the multiword interface and remove the ID from the list when the term is
-        ;; removed. This is the kind of ugly state manipulation that React normally saves
-        ;; us from, but in cases like this it seems unavoidable...
-        query-term-ids (atom nil)]
-    (fn [a {:keys [corpus] :as m} wrapped-query show-remove-row-btn?]
-      (let [parts           (split-query (:query @wrapped-query))
-            terms           (construct-query-terms parts)
-            last-term-index (dec (count terms))]
-        (when (nil? @query-term-ids)
-          (reset! query-term-ids (range (count terms))))
-        [:div.multiword-container
-         [:form.form-inline.multiword-search-form {:style {:margin-left -35}}
-          [:div.table-display
+  [a {:keys [corpus] :as m} wrapped-query show-remove-row-btn?]
+  (r/with-let [;; This will hold a unique ID for each query term component. React wants a
+               ;; unique key for each component in a sequence, such as the set of search inputs
+               ;; in the multiword interface, and it will mess up the text in the search boxes
+               ;; when we remove a term from the query if we don't provide this. Using the index
+               ;; of the term is meaningless, since it does not provide any more information
+               ;; than the order of the term itself. What we need is a way to uniquely identify
+               ;; each term irrespective of ordering.
+               ;;
+               ;; Normally, the items in a list have some kind of database ID that we can use,
+               ;; but query terms don't. Also, we cannot just use a hash code created from the
+               ;; term object, since we may have several identical terms in a query. Hence, we
+               ;; need to provide this list of query term IDs containing a unique ID number for
+               ;; each term in the initial query (i.e., the one provided in the props when this
+               ;; component is mounted), and then we add a newly created ID when adding a query
+               ;; term in the multiword interface and remove the ID from the list when the term is
+               ;; removed. This is the kind of ugly state manipulation that React normally saves
+               ;; us from, but in cases like this it seems unavoidable...
+               query-term-ids (atom nil)]
+    (let [parts           (split-query (:query @wrapped-query))
+          terms           (construct-query-terms parts)
+          last-term-index (dec (count terms))]
+      (when (nil? @query-term-ids)
+        (reset! query-term-ids (range (count terms))))
+      [:div.multiword-container
+       [:form.form-inline.multiword-search-form {:style {:margin-left -35}}
+        [:div.table-display
+         [:div.table-row
+          (doall
+            (map-indexed (fn [index term]
+                           (let [wrapped-term          (r/wrap term
+                                                               wrapped-term-changed
+                                                               wrapped-query terms index
+                                                               query-term-ids)
+                                 term-id               (nth @query-term-ids index)
+                                 first?                (zero? index)
+                                 last?                 (= index last-term-index)
+                                 ;; Show buttons to remove terms if there is more than one term
+                                 show-remove-term-btn? (pos? last-term-index)
+                                 has-phonetic?         (:has-phonetic @corpus)]
+                             (list (when-not first?
+                                     ^{:key (str "interval" term-id)}
+                                     [interval a m wrapped-term corpus])
+                                   ^{:key (str "term" term-id)}
+                                   [multiword-term a m wrapped-query wrapped-term query-term-ids
+                                    index first? last? has-phonetic? show-remove-row-btn?
+                                    show-remove-term-btn?])))
+                         terms))]
+         (when (:has-headword-search @corpus)
            [:div.table-row
-            (doall
-              (map-indexed (fn [index term]
-                             (let [wrapped-term          (r/wrap term
-                                                                 wrapped-term-changed
-                                                                 wrapped-query terms index
-                                                                 query-term-ids)
-                                   term-id               (nth @query-term-ids index)
-                                   first?                (zero? index)
-                                   last?                 (= index last-term-index)
-                                   ;; Show buttons to remove terms if there is more than one term
-                                   show-remove-term-btn? (pos? last-term-index)
-                                   has-phonetic?         (:has-phonetic @corpus)]
-                               (list (when-not first?
-                                       ^{:key (str "interval" term-id)}
-                                       [interval a m wrapped-term corpus])
-                                     ^{:key (str "term" term-id)}
-                                     [multiword-term a m wrapped-query wrapped-term query-term-ids
-                                      index first? last? has-phonetic? show-remove-row-btn?
-                                      show-remove-term-btn?])))
-                           terms))]
-           (when (:has-headword-search @corpus)
-             [:div.table-row
-              [:div.table-cell {:style {:padding-left 40 :padding-top 10}}
-               [headword-search-checkbox wrapped-query]]])]]]))))
+            [:div.table-cell {:style {:padding-left 40 :padding-top 10}}
+             [headword-search-checkbox wrapped-query]]])]]])))

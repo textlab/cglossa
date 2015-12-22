@@ -1,5 +1,5 @@
 (ns cglossa.metadata-list
-  (:require [reagent.core :as r]
+  (:require [reagent.core :as r :include-macros true]
             [cljs.core.async :refer [<!]]
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.select2 :as sel]
@@ -49,39 +49,39 @@
         [:div
          [:select.list {:style {:width "90%"} :multiple true}]]])}))
 
-(defn metadata-list [{:keys [open-metadata-cat] :as a} {:keys [corpus search] :as m}]
-  (let [remove-cat-values (fn [cat-id]
-                            (reset! open-metadata-cat nil)
-                            (swap! search update :metadata dissoc cat-id)
-                            (when (empty? (:metadata @search))
-                              (swap! search dissoc :metadata)))]
-    (fn [{:keys [open-metadata-cat]} {:keys [search metadata-categories]}]
-      [:span
-       (doall
-         (for [cat @metadata-categories
-               :let [cat-id   (:id cat)
-                     selected (r/cursor search [:metadata cat-id])
-                     ;; Show the select2 component for this category if the user has
-                     ;; explicitly opened it or the search contains a non-empty seq of
-                     ;; values from this category
-                     show?    (or (= @open-metadata-cat cat-id)
-                                  (seq @selected))]]
-           ^{:key cat-id}
-           [:div.metadata-category
-            [:a {:href "#" :on-click (fn [e]
-                                       (if show?
-                                         (remove-cat-values cat-id)
-                                         (reset! open-metadata-cat cat-id))
-                                       (.preventDefault e))}
-             (:name cat)]
-            (when show?
-              (list
-                ^{:key (str "close-btn" cat-id)}
-                [b/button {:bs-size    "xsmall"
-                           :bs-style   "danger"
-                           :title      "Remove selection"
-                           :class-name "close-cat-btn"
-                           :on-click   #(remove-cat-values cat-id)}
-                 [b/glyphicon {:glyph "remove"}]]
-                ^{:key (str "select" cat-id)}
-                [metadata-select a m corpus cat-id search selected open-metadata-cat]))]))])))
+(defn metadata-list [{:keys [open-metadata-cat] :as a}
+                     {:keys [corpus search metadata-categories] :as m}]
+  (r/with-let [remove-cat-values (fn [cat-id]
+                                   (reset! open-metadata-cat nil)
+                                   (swap! search update :metadata dissoc cat-id)
+                                   (when (empty? (:metadata @search))
+                                     (swap! search dissoc :metadata)))]
+    [:span
+     (doall
+       (for [cat @metadata-categories
+             :let [cat-id   (:id cat)
+                   selected (r/cursor search [:metadata cat-id])
+                   ;; Show the select2 component for this category if the user has
+                   ;; explicitly opened it or the search contains a non-empty seq of
+                   ;; values from this category
+                   show?    (or (= @open-metadata-cat cat-id)
+                                (seq @selected))]]
+         ^{:key cat-id}
+         [:div.metadata-category
+          [:a {:href "#" :on-click (fn [e]
+                                     (if show?
+                                       (remove-cat-values cat-id)
+                                       (reset! open-metadata-cat cat-id))
+                                     (.preventDefault e))}
+           (:name cat)]
+          (when show?
+            (list
+              ^{:key (str "close-btn" cat-id)}
+              [b/button {:bs-size    "xsmall"
+                         :bs-style   "danger"
+                         :title      "Remove selection"
+                         :class-name "close-cat-btn"
+                         :on-click   #(remove-cat-values cat-id)}
+               [b/glyphicon {:glyph "remove"}]]
+              ^{:key (str "select" cat-id)}
+              [metadata-select a m corpus cat-id search selected open-metadata-cat]))]))]))
