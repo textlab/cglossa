@@ -17,7 +17,7 @@
                  [com.cognitect/transit-clj "0.8.275"]
                  [compojure "1.3.4"]
                  [enlive "1.1.5"]
-                 [reagent "0.6.0-SNAPSHOT"]
+                 [reagent "0.6.0-alpha"]
                  [cljsjs/jquery "1.9.0-0"]
                  [cljsjs/jquery-ui "1.11.3-1"]
                  [environ "1.0.0"]
