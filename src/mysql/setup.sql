@@ -1,5 +1,6 @@
 CREATE DATABASE IF NOT EXISTS `{{glossa_prefix}}__core` CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 GRANT ALL ON `{{glossa_prefix}}__core`.* TO `{{db_user}}`@`localhost` IDENTIFIED BY '{{db_password}}';
+GRANT FILE ON *.* TO `{{db_user}}`@`localhost`;
 
 USE {{glossa_prefix}}__core;
 
