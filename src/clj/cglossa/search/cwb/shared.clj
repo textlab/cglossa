@@ -4,8 +4,7 @@
             [clojure.string :as str]
             [me.raynes.fs :as fs]
             [me.raynes.conch.low-level :as sh]
-            [cglossa.db.metadata :refer [metadata-value-text]]
-            [korma.core :as korma])
+            [cglossa.db.metadata :refer [metadata-value-text]])
   (:import [java.sql SQLException]))
 
 (defentity text)
@@ -81,6 +80,7 @@
   ;; because they are written to file instead using INTO OUTFILE. However, the
   ;; results are written to the file just fine despite the exception (which happens
   ;; after the query has run), so we can just catch and ignore the exception.
+  (println positions-filename)
   (try
     (-> (select* [text :t])
         (modifier "DISTINCT")
@@ -88,7 +88,9 @@
         (join-metadata metadata-ids)
         (where-metadata metadata-ids)
         (select))
-    (catch SQLException _)))
+    (catch SQLException e
+      (when-not (.contains (.toString e) "ResultSet is from UPDATE")
+        (println e)))))
 
 (defn construct-query-commands [corpus queries metadata-ids named-query search-id cut step
                                 & {:keys [s-tag] :or {s-tag "s"}}]
