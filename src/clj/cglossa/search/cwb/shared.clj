@@ -80,7 +80,6 @@
   ;; because they are written to file instead using INTO OUTFILE. However, the
   ;; results are written to the file just fine despite the exception (which happens
   ;; after the query has run), so we can just catch and ignore the exception.
-  (println positions-filename)
   (try
     (-> (select* [text :t])
         (modifier "DISTINCT")
@@ -97,7 +96,7 @@
   (let [query-str (if (:multilingual? corpus)
                     (build-multilingual-query queries s-tag)
                     (build-monolingual-query queries s-tag))
-        init-cmds (if metadata-ids
+        init-cmds (if (seq metadata-ids)
                     (let [positions-filename (str (fs/tmpdir) "/positions_" search-id)]
                       (when (= step 1)
                         (print-positions-matching-metadata corpus metadata-ids positions-filename))
