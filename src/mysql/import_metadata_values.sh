@@ -46,7 +46,11 @@ cat $2 | sed -e "s/\\\\${TAB}/:/g" -e "s/:${TAB}/${TAB}/" > $valfile1
 
 echo Creating import files...
 
-lein run -m cglossa.data-import.metadata-values/write-import-tsv $valfile1 $catfile
+if [ "$ENV" = "dev" ]; then
+    lein run -m cglossa.data-import.metadata-values $valfile1 $catfile
+else
+    java -cp cglossa.jar cglossa.data_import.metadata_values $valfile1 $catfile
+fi
 
 echo Importing values...
 

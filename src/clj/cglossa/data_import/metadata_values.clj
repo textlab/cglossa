@@ -3,7 +3,8 @@
             [clojure.java.io :as io]
             [me.raynes.fs :as fs]
             [clojure.data.avl :as avl]
-            [cglossa.data-import.utils :as utils]))
+            [cglossa.data-import.utils :as utils])
+  (:gen-class))
 
 (defn- create-value-data [unique-vals]
   "Creates seqs of [category-id, value] vectors from each column and
@@ -77,7 +78,7 @@
           texts        (create-texts cols cat-codes)]
       [value-data values-texts texts])))
 
-(defn write-import-tsv [value-tsv-path cat-tsv-path]
+(defn -main [value-tsv-path cat-tsv-path]
   (with-open [values-tsv-file       (io/writer (str (fs/tmpdir) "/metadata_value.tsv"))
               values-texts-tsv-file (io/writer (str (fs/tmpdir) "/metadata_value_text.tsv"))
               texts-tsv-file        (io/writer (str (fs/tmpdir) "/text.tsv"))]
