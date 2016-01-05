@@ -88,7 +88,7 @@
             url    "/search"
             params {:corpus-id    (:id @corpus)
                     :queries      q
-                    :metadata-ids (:metadata @search)
+                    :metadata-ids (->> (:metadata @search) (filter #(second %)) (into {}))
                     :sort-by      @sort-by}]
         (reset! show-results? true)
         (reset! results nil)
