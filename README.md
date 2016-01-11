@@ -1,9 +1,28 @@
 # cglossa
 
 ## Installation
-### Database setup
-Glossa currently requires MySQL. It has been tested with MySQL versions >= 5.1.73.
+### 
+Glossa is written in Clojure, which compiles to Java bytecode and runs on the 
+Java Virtual Machine (JVM). This means that Java needs to be installed on your
+machine, which is probably already the case;  otherwise it can be downloaded from
+https://www.java.com or (preferably) installed via the package manager for your system.
 
+Glossa also requires MySQL, which can probably also be installed via your package
+manager or alternatively downloaded from http://dev.mysql.com/downloads/mysql/.
+Glossa has been tested with MySQL versions >= 5.1.73.
+
+Finally, the default search engine used by Glossa is the IMS Open Corpus Workbench 
+(CWB). Some packages are required to compile this system. In Debian-based distributions 
+you may need to run:
+
+    apt-get install flex libglib2.0-dev
+
+Follow the installation instructions of [The IMS Open Corpus Workbench
+(CWB)](http://cwb.sourceforge.net/download.php#svn). Check out the latest
+version from SVN, as described at the bottom of the page, to get support for
+UTF-8-encoded corpora.
+
+### Database setup
 Glossa uses a core database as well as a separate database for each corpus.
 This makes it easy to copy a corpus to a different server (just dump its database 
 on the old machine and run the create_corpus.sh script and subsequently import the 
