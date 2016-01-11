@@ -15,7 +15,7 @@ Finally, the default search engine used by Glossa is the IMS Open Corpus Workben
 (CWB). Some packages are required to compile this system. In Debian-based distributions 
 you may need to run:
 
-    apt-get install flex libglib2.0-dev
+    apt-get install flex libglib2.0-dev gawk
 
 Follow the installation instructions of [The IMS Open Corpus Workbench
 (CWB)](http://cwb.sourceforge.net/download.php#svn). Check out the latest
