@@ -9,7 +9,7 @@
   :test-paths ["spec/clj"]
 
   :dependencies [[org.clojure/clojure "1.7.0"]
-                 [org.clojure/clojurescript "1.7.170" :scope "provided"]
+                 [org.clojure/clojurescript "1.7.228" :scope "provided"]
                  [org.clojure/core.async "0.2.371"]
                  [ring "1.3.2"]
                  [ring/ring-defaults "0.1.5"]
@@ -55,8 +55,6 @@
     {:source-paths ["src/cljs"]
      :compiler     {:output-to            "resources/public/js/out/app.js"
                     :output-dir           "resources/public/js/out"
-                    :source-map           "resources/public/js/out/out.js.map"
-                    :source-map-timestamp true
                     :optimizations        :none
                     :cache-analysis       true
                     :recompile-dependents false
@@ -108,7 +106,9 @@
 
                        :cljsbuild    {:builds
                                       {:app
-                                       {:figwheel {:on-jsload "cglossa.core/main"}}}}}
+                                       {:figwheel {:on-jsload "cglossa.core/main"}
+                                        :compiler {:source-map           true
+                                                   :source-map-timestamp true}}}}}
 
              :uberjar {:hooks       [leiningen.cljsbuild]
                        :env         {:production true}
@@ -117,4 +117,5 @@
                        :cljsbuild   {:builds {:app
                                               {:compiler
                                                {:optimizations :advanced
+                                                :source-map    "resources/public/js/out/out.js.map"
                                                 :pretty-print  false}}}}}})
