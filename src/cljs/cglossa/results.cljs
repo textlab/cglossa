@@ -62,9 +62,9 @@
   already been fetched or that are currently being fetched in another request (note that such
   pages can only be located at the edges of the window, and not as 'holes' within the window,
   since they must have been fetched as part of an earlier window)."
-  [{{:keys [results sort-by]} :results-view}
-   {:keys [corpus] :as m}
-   search-id centre-page-no last-page-no]
+  [{{:keys [results]} :results-view}
+   {:keys [corpus search] :as m}
+   centre-page-no last-page-no]
   ;; Enclose the whole procedure in a go block. This way, the function will return the channel
   ;; returned by the go block, which will receive the value of the body of the go block when
   ;; it is done parking on channels. Hence, by reading from that channel we know when the
@@ -93,7 +93,7 @@
               first-result (* page-size (dec (first page-nos)))
               last-result  (dec (* page-size (last page-nos)))
               results-ch   (http/get "/results" {:query-params {:corpus-id (:id @corpus)
-                                                                :search-id search-id
+                                                                :search-id (:id @search)
                                                                 :start     first-result
                                                                 :end       last-result
                                                                 :sort-by   @sort-by}})
@@ -115,8 +115,7 @@
           ::fetched-pages)))))
 
 (defn- pagination [{{:keys [results total page-no
-                            paginator-page-no paginator-text-val]} :results-view :as a}
-                   {:keys [search] :as m}]
+                            paginator-page-no paginator-text-val]} :results-view :as a} m]
   (let [last-page-no #(inc (quot (dec @total) page-size))
         set-page     (fn [e n]
                        (.preventDefault e)
@@ -136,11 +135,11 @@
                                ;; If necessary, fetch any result pages in a window centred around
                                ;; the selected page in order to speed up pagination to nearby
                                ;; pages. No need to wait for it to finish though.
-                               (fetch-result-window! a m (:id @search) new-page-no last))
+                               (fetch-result-window! a m new-page-no last))
                              (go
                                ;; Otherwise, we need to park until the results from the server
                                ;; arrive before setting the page to be shown in the result table
-                               (<! (fetch-result-window! a m (:id @search) new-page-no last))
+                               (<! (fetch-result-window! a m new-page-no last))
                                ;; Don't show the fetched page if we have already selected another
                                ;; page in the paginator while we were waiting for the request
                                ;; to finish
