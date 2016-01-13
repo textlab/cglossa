@@ -25,7 +25,7 @@
                             :user_id   1
                             :queries   (pr-str queries)}))))
 
-(defn- get-search [id]
+(defn- search-by-id [id]
   (kdb/with-db core-db
     (first (select search (where {:id id})))))
 
@@ -34,8 +34,8 @@
         search-id* (if (= step 1)
                      (:generated_key (create-search! corpus-id queries))
                      search-id)
-        s          (get-search search-id*)
         [res cnt]  (run-queries corpus s queries metadata-ids step cut sort-by)
+        s          (search-by-id search-id*)
         results    (transform-results corpus res)
         count      (if (string? cnt) (Integer/parseInt cnt) cnt)]
     {:search  s
