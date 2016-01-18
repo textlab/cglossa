@@ -98,6 +98,7 @@
         (reset! show-results? true)
         (reset! searching? true)
         (reset! total nil)
+        (reset! sort-key :position)
         (reset-results! a)
         (do-search-steps! a m url params [[1 (* 2 page-size)] [2 (* 20 page-size)] [3 nil]])))))
 
