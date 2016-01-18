@@ -71,7 +71,7 @@
                                                                 :search-id (:id @search)
                                                                 :start     first-result
                                                                 :end       last-result
-                                                                :sort-key  @sort-key}})
+                                                                :sort-key  (name @sort-key)}})
               ;; Parks until results are available on the core.async channel
               {:keys [status success] req-result :body} (<! results-ch)]
           ;; Register the pages as being fetched

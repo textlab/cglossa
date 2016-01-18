@@ -4,7 +4,8 @@
             [korma.core :as korma]
             [cglossa.search.core :refer [run-queries get-results transform-results]]
             [cglossa.search.cwb.shared :refer [cwb-query-name cwb-corpus-name run-cqp-commands
-                                               construct-query-commands position-fields]]
+                                               construct-query-commands position-fields
+                                               sort-command]]
             [clojure.string :as str]))
 
 (defmethod position-fields :default [_ positions-filename]
@@ -48,6 +49,7 @@
                      "set LD \"{{\""
                      "set RD \"}}\""
                      "show +s_id"
+                     (sort-command named-query sort-key)
                      (str "cat " named-query " " start " " end)]]
     (run-cqp-commands corpus (flatten commands))))
 
