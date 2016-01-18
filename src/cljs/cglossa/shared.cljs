@@ -64,12 +64,12 @@
                 ;; Keep searching with the remaining step specifications
                 (recur (next params))))))))))
 
-(defn search! [{{queries :queries}                   :search-view
+(defn search! [{{queries :queries}                    :search-view
                 {:keys [show-results? results total page-no
                         paginator-page-no
-                        paginator-text-val sort-by]} :results-view
-                searching?                           :searching?
-                :as                                  a}
+                        paginator-text-val sort-key]} :results-view
+                searching?                            :searching?
+                :as                                   a}
                {:keys [corpus search] :as m}]
   (let [first-query (:query (first @queries))]
     (when (and first-query
@@ -89,7 +89,7 @@
             params {:corpus-id    (:id @corpus)
                     :queries      q
                     :metadata-ids (->> (:metadata @search) (filter #(second %)) (into {}))
-                    :sort-by      @sort-by}]
+                    :sort-key     @sort-key}]
         (reset! show-results? true)
         (reset! results nil)
         (reset! searching? true)

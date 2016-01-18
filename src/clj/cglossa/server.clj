@@ -141,12 +141,12 @@
       (transit-response (show-texts selected-metadata ncats* page*)))))
 
 (defroutes search-routes
-  (POST "/search" [corpus-id search-id queries metadata-ids step cut sort-by]
+  (POST "/search" [corpus-id search-id queries metadata-ids step cut sort-key]
     (transit-response (search/search-corpus corpus-id search-id queries metadata-ids
-                                            step cut sort-by) false))
+                                            step cut sort-key) false))
 
-  (GET "/results" [corpus-id search-id start end sort-by]
-    (transit-response (search/results corpus-id search-id start end sort-by) false)))
+  (GET "/results" [corpus-id search-id start end sort-key]
+    (transit-response (search/results corpus-id search-id start end sort-key) false)))
 
 ;;;;;;;;;;;;;;
 ;; End routes

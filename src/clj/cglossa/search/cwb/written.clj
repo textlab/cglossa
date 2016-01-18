@@ -11,7 +11,7 @@
   "The database fields that contain corpus positions for texts."
   (korma/raw (str "startpos, endpos INTO OUTFILE '" positions-filename "'")))
 
-(defmethod run-queries :default [corpus search queries metadata-ids step cut sort-by]
+(defmethod run-queries :default [corpus search queries metadata-ids step cut sort-key]
   (let [search-id   (:id search)
         named-query (cwb-query-name corpus search-id)
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
@@ -40,7 +40,7 @@
         count       (if (= step 1) (count res) (first res))]
     [results count]))
 
-(defmethod get-results :default [corpus search-id start end sort-by]
+(defmethod get-results :default [corpus search-id start end sort-key]
   (let [named-query (cwb-query-name corpus search-id)
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
                      (str/upper-case (:code corpus))
