@@ -132,31 +132,31 @@
                       ;; times, generating lots of concurrent requests
                       (when-not fetching?
                         (let [new-page-no (js/parseInt n)
-                             last-page   (last-page-no @total)]
-                         (when (<= 1 new-page-no last-page)
-                           ;; Set the value of the page number shown in the paginator; it may
-                           ;; differ from the page shown in the result table until we have
-                           ;; actually fetched the data from the server
-                           (reset! paginator-page-no new-page-no)
-                           (reset! paginator-text-val new-page-no)
-                           (if (contains? @results new-page-no)
-                             (do
-                               ;; If the selected result page has already been fetched from the
-                               ;; server, it can be shown in the result table immediately
-                               (reset! page-no new-page-no)
-                               ;; If necessary, fetch any result pages in a window centred around
-                               ;; the selected page in order to speed up pagination to nearby
-                               ;; pages. No need to wait for it to finish though.
-                               (fetch-result-window! a m new-page-no))
-                             (go
-                               ;; Otherwise, we need to park until the results from the server
-                               ;; arrive before setting the page to be shown in the result table
-                               (<! (fetch-result-window! a m new-page-no))
-                               ;; Don't show the fetched page if we have already selected another
-                               ;; page in the paginator while we were waiting for the request
-                               ;; to finish
-                               (when (= new-page-no @paginator-page-no)
-                                 (reset! page-no new-page-no))))))))
+                              last-page   (last-page-no @total)]
+                          (when (<= 1 new-page-no last-page)
+                            ;; Set the value of the page number shown in the paginator; it may
+                            ;; differ from the page shown in the result table until we have
+                            ;; actually fetched the data from the server
+                            (reset! paginator-page-no new-page-no)
+                            (reset! paginator-text-val new-page-no)
+                            (if (contains? @results new-page-no)
+                              (do
+                                ;; If the selected result page has already been fetched from the
+                                ;; server, it can be shown in the result table immediately
+                                (reset! page-no new-page-no)
+                                ;; If necessary, fetch any result pages in a window centred around
+                                ;; the selected page in order to speed up pagination to nearby
+                                ;; pages. No need to wait for it to finish though.
+                                (fetch-result-window! a m new-page-no))
+                              (go
+                                ;; Otherwise, we need to park until the results from the server
+                                ;; arrive before setting the page to be shown in the result table
+                                (<! (fetch-result-window! a m new-page-no))
+                                ;; Don't show the fetched page if we have already selected another
+                                ;; page in the paginator while we were waiting for the request
+                                ;; to finish
+                                (when (= new-page-no @paginator-page-no)
+                                  (reset! page-no new-page-no))))))))
         on-key-down (fn [e]
                       (when (= "Enter" (.-key e))
                         (if (str/blank? @paginator-text-val)
