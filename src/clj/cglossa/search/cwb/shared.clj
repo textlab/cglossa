@@ -4,6 +4,7 @@
             [clojure.string :as str]
             [me.raynes.fs :as fs]
             [me.raynes.conch.low-level :as sh]
+            [clojure.tools.logging :as logging]
             [cglossa.db.metadata :refer [metadata-value-text]])
   (:import [java.sql SQLException]))
 
@@ -116,6 +117,8 @@
                      (sh/feed-from-string cqp commands*)
                      (sh/done cqp)
                      (sh/stream-to-string cqp :out :encoding encoding))
+          err      (sh/stream-to-string cqp :err)
+          _        (assert (str/blank? err) (logging/error err))
           ;; Split into lines and throw away the first line, which contains the CQP version
           results  (rest (str/split-lines out))]
       (if (and (pos? (count results))
