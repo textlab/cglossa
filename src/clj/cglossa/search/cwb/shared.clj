@@ -92,6 +92,17 @@
       (when-not (.contains (.toString e) "ResultSet is from UPDATE")
         (println e)))))
 
+(defn sort-command [named-query sort-key]
+  (when-let [context (case sort-key
+                       "position" nil
+                       "match" ""
+                       "left-immediate" " on match[-1]"
+                       "left-wide" " on match[-1] .. match[-10]"
+                       "right-immediate" " on matchend[1]"
+                       "right-wide" " on matchend[1] .. matchend[10]")]
+    ["set ExternalSort on"
+     (str "sort " named-query " by word %c" context)]))
+
 (defn construct-query-commands [corpus queries metadata-ids named-query search-id cut step
                                 & {:keys [s-tag] :or {s-tag "s"}}]
   (let [query-str (if (:multilingual? corpus)
@@ -110,8 +121,8 @@
   (let [commands* (->> commands
                        (map #(str % \;))
                        (str/join \newline))]
-    (let [cqp      (sh/proc "cqp" "-c")
-          encoding (:encoding corpus "UTF-8")
+    (let [encoding (:encoding corpus "UTF-8")
+          cqp      (sh/proc "cqp" "-c" :env {"LC_ALL" encoding})
           ;; Run the CQP commands and capture the output
           out      (do
                      (sh/feed-from-string cqp commands*)

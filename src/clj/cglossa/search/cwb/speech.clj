@@ -5,7 +5,8 @@
             [korma.core :as korma]
             [cglossa.search.core :refer [run-queries get-results transform-results]]
             [cglossa.search.cwb.shared :refer [cwb-query-name cwb-corpus-name run-cqp-commands
-                                               construct-query-commands position-fields]]))
+                                               construct-query-commands position-fields
+                                               sort-command]]))
 
 ;; TODO: Fetch these from the definition of the tag set for the tagger that is being used
 (def ^:private display-attrs [:lemma :phon :pos :gender :num :type :defn
@@ -50,6 +51,7 @@
                      "set LD \"{{\""
                      "set RD \"}}\""
                      "show +sync_time +sync_end +who_name +who_line_key"
+                     (sort-command named-query sort-key)
                      (str "cat " named-query " " start " " end)]]
     (run-cqp-commands corpus (flatten commands))))
 
