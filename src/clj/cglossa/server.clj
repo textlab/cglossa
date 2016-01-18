@@ -27,7 +27,7 @@
   (:import [java.io ByteArrayOutputStream])
   (:gen-class))
 
-(def corpus-connections (atom {}))
+(defonce corpus-connections (atom {}))
 
 (defn- init-corpus-connections! []
   (reset! corpus-connections
