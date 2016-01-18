@@ -165,11 +165,11 @@
   (set-default-exception-handler!)
   (init-corpus-connections!)
   (defonce ^:private server
-           (do
-             (let [port (Integer. (or port (env :port) 10555))]
-               (print "Starting web server on port" port ".\n")
-               (run-server http-handler {:port  port
-                                         :join? false}))))
+    (do
+      (let [port (Integer. (or port (env :port) 10555))]
+        (print "Starting web server on port" port ".\n")
+        (run-server http-handler {:port  port
+                                  :join? false}))))
   server)
 
 (defn -main [& [port]]
