@@ -64,12 +64,17 @@
                 ;; Keep searching with the remaining step specifications
                 (recur (next params))))))))))
 
-(defn search! [{{queries :queries}                    :search-view
-                {:keys [show-results? results total page-no
-                        paginator-page-no
-                        paginator-text-val sort-key]} :results-view
-                searching?                            :searching?
-                :as                                   a}
+(defn reset-results!
+  [{{:keys [results page-no paginator-page-no paginator-text-val]} :results-view}]
+  (reset! results nil)
+  (reset! page-no 1)
+  (reset! paginator-page-no 1)
+  (reset! paginator-text-val 1))
+
+(defn search! [{{queries :queries}                     :search-view
+                {:keys [show-results? total sort-key]} :results-view
+                searching?                             :searching?
+                :as                                    a}
                {:keys [corpus search] :as m}]
   (let [first-query (:query (first @queries))]
     (when (and first-query
@@ -91,12 +96,9 @@
                     :metadata-ids (->> (:metadata @search) (filter #(second %)) (into {}))
                     :sort-key     @sort-key}]
         (reset! show-results? true)
-        (reset! results nil)
         (reset! searching? true)
         (reset! total nil)
-        (reset! page-no 1)
-        (reset! paginator-page-no 1)
-        (reset! paginator-text-val 1)
+        (reset-results! a)
         (do-search-steps! a m url params [[1 (* 2 page-size)] [2 (* 20 page-size)] [3 nil]])))))
 
 (defn showing-metadata? [{:keys                   [show-metadata? narrow-view?]

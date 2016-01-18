@@ -4,7 +4,7 @@
             [reagent.core :as r]
             [cljs-http.client :as http]
             [cljs.core.async :refer [<!]]
-            [cglossa.shared :refer [page-size search! top-toolbar cleanup-result]]
+            [cglossa.shared :refer [page-size search! top-toolbar cleanup-result reset-results!]]
             [cglossa.search-views.shared :refer [search-inputs]]
             [cglossa.react-adapters.bootstrap :as b]))
 
@@ -89,16 +89,12 @@
           ;; and hence the function
           ::fetched-pages)))))
 
-(defn- sort-button [{{:keys [results total page-no paginator-page-no paginator-text-val sort-key]}
-                           :results-view
-                     :keys [searching?] :as a} m]
+(defn- sort-button [{{:keys [total sort-key]} :results-view
+                     :keys                    [searching?] :as a} m]
   (let [sk        @sort-key
         on-select (fn [_ event-key]
                     (reset! sort-key (keyword event-key))
-                    (reset! results nil)
-                    (reset! page-no 1)
-                    (reset! paginator-page-no 1)
-                    (reset! paginator-text-val 1)
+                    (reset-results! a)
                     (fetch-result-window! a m 1))]
     [b/dropdownbutton {:title    "Sort"
                        :bs-size  "small"
