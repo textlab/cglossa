@@ -24,11 +24,15 @@
      :else
      (when @searching? "Searching..."))])
 
-(defn- sort-button [{{sb :sort-by total :total} :results-view searching? :searching? :as a} m]
-  (let [sort-by   @sb
+(defn- sort-button [{{:keys [total page-no paginator-page-no paginator-text-val] sk :sort-key}
+                           :results-view
+                     :keys [searching?] :as a}]
+  (let [sort-key   @sk
         on-select (fn [_ event-key]
-                    (reset! sb (keyword event-key))
-                    (search! a m))]
+                    (reset! sk (keyword event-key))
+                    (reset! page-no 1)
+                    (reset! paginator-page-no 1)
+                    (reset! paginator-text-val 1))]
     [b/dropdownbutton {:title    "Sort"
                        :bs-size  "small"
                        :disabled (or @searching?
@@ -36,17 +40,17 @@
                                      (zero? @total))
                        :style    {:margin-bottom 10}}
      [b/menuitem {:event-key :position, :on-select on-select}
-      (when (= sort-by :position) [b/glyphicon {:glyph "ok"}]) "  By corpus position"]
+      (when (= sort-key :position) [b/glyphicon {:glyph "ok"}]) "  By corpus position"]
      [b/menuitem {:event-key :match, :on-select on-select}
-      (when (= sort-by :match) [b/glyphicon {:glyph "ok"}]) "  By match"]
+      (when (= sort-key :match) [b/glyphicon {:glyph "ok"}]) "  By match"]
      [b/menuitem {:event-key :left-immediate, :on-select on-select}
-      (when (= sort-by :left-immediate) [b/glyphicon {:glyph "ok"}]) "  By immediate left context"]
+      (when (= sort-key :left-immediate) [b/glyphicon {:glyph "ok"}]) "  By immediate left context"]
      [b/menuitem {:event-key :left-wide, :on-select on-select}
-      (when (= sort-by :left-wide) [b/glyphicon {:glyph "ok"}]) "  By wider left context (10 tokens)"]
+      (when (= sort-key :left-wide) [b/glyphicon {:glyph "ok"}]) "  By wider left context (10 tokens)"]
      [b/menuitem {:event-key :right-immediate, :on-select on-select}
-      (when (= sort-by :right-immediate) [b/glyphicon {:glyph "ok"}]) "  By immediate right context"]
+      (when (= sort-key :right-immediate) [b/glyphicon {:glyph "ok"}]) "  By immediate right context"]
      [b/menuitem {:event-key :right-wide, :on-select on-select}
-      (when (= sort-by :right-wide) [b/glyphicon {:glyph "ok"}]) "  By wider right context (10 tokens)"]]))
+      (when (= sort-key :right-wide) [b/glyphicon {:glyph "ok"}]) "  By wider right context (10 tokens)"]]))
 
 
 (defn- statistics-button [{{freq-attr :freq-attr} :results-view} m]
@@ -101,7 +105,7 @@
                                                                 :search-id (:id @search)
                                                                 :start     first-result
                                                                 :end       last-result
-                                                                :sort-by   @sort-by}})
+                                                                :sort-key  @sort-key}})
               ;; Parks until results are available on the core.async channel
               {:keys [status success] req-result :body} (<! results-ch)]
           ;; Register the pages as being fetched

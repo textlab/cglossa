@@ -29,20 +29,20 @@
   (kdb/with-db core-db
     (first (select search (where {:id id})))))
 
-(defn search-corpus [corpus-id search-id queries metadata-ids step cut sort-by]
+(defn search-corpus [corpus-id search-id queries metadata-ids step cut sort-key]
   (let [corpus     (corpus-by-id corpus-id)
         search-id* (if (= step 1)
                      (:generated_key (create-search! corpus-id queries))
                      search-id)
         s          (search-by-id search-id*)
-        [res cnt]  (run-queries corpus s queries metadata-ids step cut sort-by)
+        [res cnt]  (run-queries corpus s queries metadata-ids step cut sort-key)
         results    (transform-results corpus res)
         count      (if (string? cnt) (Integer/parseInt cnt) cnt)]
     {:search  s
      :results results
      :count   count}))
 
-(defn results [corpus-id search-id start end sort-by]
+(defn results [corpus-id search-id start end sort-key]
   (let [corpus  (corpus-by-id corpus-id)
-        results (get-results corpus search-id start end sort-by)]
+        results (get-results corpus search-id start end sort-key)]
     (transform-results corpus results)))

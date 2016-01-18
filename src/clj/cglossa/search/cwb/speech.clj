@@ -16,7 +16,7 @@
   (korma/raw (str "replace(replace(`bounds`, '-', '\t'), ':', '\n') INTO OUTFILE '"
                   positions-filename "' FIELDS ESCAPED BY ''")))
 
-(defmethod run-queries "cwb_speech" [corpus search queries metadata-ids step cut sort-by]
+(defmethod run-queries "cwb_speech" [corpus search queries metadata-ids step cut sort-key]
   (let [search-id   (:id search)
         named-query (cwb-query-name corpus search-id)
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
@@ -42,7 +42,7 @@
         count       (if (= step 1) (count res) (first res))]
     [results count]))
 
-(defmethod get-results "cwb_speech" [corpus search-id start end sort-by]
+(defmethod get-results "cwb_speech" [corpus search-id start end sort-key]
   (let [named-query (cwb-query-name corpus search-id)
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
                      (str/upper-case (:code corpus))

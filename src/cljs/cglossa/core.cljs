@@ -31,7 +31,7 @@
                                         ;; to paginator-page-no when we hit Enter after editing
                                         ;; or we select a different page using the paging buttons.
                                         :paginator-text-val (r/atom 1)
-                                        :sort-by            (r/atom :position)
+                                        :sort-key           (r/atom :position)
                                         :freq-attr          (r/atom nil)
                                         :media              {:player-row-index    (r/atom nil)
                                                              :current-player-type (r/atom nil)
