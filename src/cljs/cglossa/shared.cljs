@@ -145,7 +145,7 @@
 
 (defn top-toolbar [{:keys                   [num-resets show-metadata?]
                     {:keys [queries]}       :search-view
-                    {:keys [show-results?]} :results-view
+                    {:keys [show-results? sort-key]} :results-view
                     :as                     a}
                    {:keys [search metadata-categories] :as m}]
   [:div.col-sm-5
@@ -171,5 +171,6 @@
                            (reset! queries [{:query ""}])
                            (reset! search {})
                            (reset! show-results? false)
+                           (reset! sort-key :position)
                            (swap! num-resets inc))}         ; see comments in the start component
      "Reset form"]]])
