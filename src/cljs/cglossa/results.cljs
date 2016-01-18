@@ -26,7 +26,7 @@
 
 (defn- sort-button [{{sb :sort-by total :total} :results-view searching? :searching? :as a} m]
   (let [sort-by   @sb
-        on-select (fn [event-key _ _]
+        on-select (fn [_ event-key]
                     (reset! sb (keyword event-key))
                     (search! a m))]
     [b/dropdownbutton {:title    "Sort"
@@ -39,10 +39,15 @@
       (when (= sort-by :position) [b/glyphicon {:glyph "ok"}]) "  By corpus position"]
      [b/menuitem {:event-key :match, :on-select on-select}
       (when (= sort-by :match) [b/glyphicon {:glyph "ok"}]) "  By match"]
-     [b/menuitem {:event-key :left, :on-select on-select}
-      (when (= sort-by :left) [b/glyphicon {:glyph "ok"}]) "  By left context"]
-     [b/menuitem {:event-key :right, :on-select on-select}
-      (when (= sort-by :right) [b/glyphicon {:glyph "ok"}]) "  By right context"]]))
+     [b/menuitem {:event-key :left-immediate, :on-select on-select}
+      (when (= sort-by :left-immediate) [b/glyphicon {:glyph "ok"}]) "  By immediate left context"]
+     [b/menuitem {:event-key :left-wide, :on-select on-select}
+      (when (= sort-by :left-wide) [b/glyphicon {:glyph "ok"}]) "  By wider left context (10 tokens)"]
+     [b/menuitem {:event-key :right-immediate, :on-select on-select}
+      (when (= sort-by :right-immediate) [b/glyphicon {:glyph "ok"}]) "  By immediate right context"]
+     [b/menuitem {:event-key :right-wide, :on-select on-select}
+      (when (= sort-by :right-wide) [b/glyphicon {:glyph "ok"}]) "  By wider right context (10 tokens)"]]))
+
 
 (defn- statistics-button [{{freq-attr :freq-attr} :results-view} m]
   (let [on-select #(reset! freq-attr (keyword %1))]
