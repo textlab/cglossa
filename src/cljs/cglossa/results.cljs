@@ -27,9 +27,6 @@
 (defn- last-page-no [total]
   (-> (/ total page-size) Math/ceil int))
 
-;; Set of result pages currently being fetched. This is temporary application state that we
-;; don't want as part of the top-level app-state ratom
-(def ^:private fetching-pages (atom #{}))
 (def ^:private result-window-halfsize 1)
 
 (defn- fetch-result-window!
@@ -37,7 +34,7 @@
   already been fetched or that are currently being fetched in another request (note that such
   pages can only be located at the edges of the window, and not as 'holes' within the window,
   since they must have been fetched as part of an earlier window)."
-  [{{:keys [results total sort-key]} :results-view}
+  [{{:keys [results total fetching-pages sort-key]} :results-view}
    {:keys [corpus search] :as m}
    centre-page-no]
   ;; Enclose the whole procedure in a go block. This way, the function will return the channel
@@ -64,7 +61,9 @@
         ;; channel returned by the go block and hence the function
         ::no-pages-to-fetch
 
-        (let [;; Calculate the first and last result index (zero-based) to request from the server
+        (let [;; Register the pages as being fetched
+              _            (swap! fetching-pages #(apply conj % page-nos))
+              ;; Calculate the first and last result index (zero-based) to request from the server
               first-result (* page-size (dec (first page-nos)))
               last-result  (dec (* page-size (last page-nos)))
               results-ch   (http/get "/results" {:query-params {:corpus-id (:id @corpus)
@@ -72,10 +71,8 @@
                                                                 :start     first-result
                                                                 :end       last-result
                                                                 :sort-key  (name @sort-key)}})
-              ;; Parks until results are available on the core.async channel
+              ;; Park until results are available on the core.async channel
               {:keys [status success] req-result :body} (<! results-ch)]
-          ;; Register the pages as being fetched
-          (swap! fetching-pages #(apply conj % page-nos))
           ;; Remove the pages from the set of pages currently being fetched
           (swap! fetching-pages #(apply disj % page-nos))
           (if-not success
@@ -125,36 +122,41 @@
      [b/menuitem {:event-key :pos, :on-select on-select} "Parts-of-speech"]]))
 
 
-(defn- pagination [{{:keys [results total page-no
-                            paginator-page-no paginator-text-val]} :results-view :as a} m]
-  (let [set-page    (fn [e n]
+(defn- pagination [{{:keys [results total page-no paginator-page-no
+                            paginator-text-val fetching-pages]} :results-view :as a} m]
+  (let [fetching?   (seq @fetching-pages)
+        set-page    (fn [e n]
                       (.preventDefault e)
-                      (let [new-page-no (js/parseInt n)
-                            last-page   (last-page-no @total)]
-                        (when (<= 1 new-page-no last-page)
-                          ;; Set the value of the page number shown in the paginator; it may
-                          ;; differ from the page shown in the result table until we have
-                          ;; actually fetched the data from the server
-                          (reset! paginator-page-no new-page-no)
-                          (reset! paginator-text-val new-page-no)
-                          (if (contains? @results new-page-no)
-                            (do
-                              ;; If the selected result page has already been fetched from the
-                              ;; server, it can be shown in the result table immediately
-                              (reset! page-no new-page-no)
-                              ;; If necessary, fetch any result pages in a window centred around
-                              ;; the selected page in order to speed up pagination to nearby
-                              ;; pages. No need to wait for it to finish though.
-                              (fetch-result-window! a m new-page-no))
-                            (go
-                              ;; Otherwise, we need to park until the results from the server
-                              ;; arrive before setting the page to be shown in the result table
-                              (<! (fetch-result-window! a m new-page-no))
-                              ;; Don't show the fetched page if we have already selected another
-                              ;; page in the paginator while we were waiting for the request
-                              ;; to finish
-                              (when (= new-page-no @paginator-page-no)
-                                (reset! page-no new-page-no)))))))
+                      ;; Don't allow switching to a new page while we are in the processing of
+                      ;; fetching one or more pages, since the user may start clicking lots of
+                      ;; times, generating lots of concurrent requests
+                      (when-not fetching?
+                        (let [new-page-no (js/parseInt n)
+                             last-page   (last-page-no @total)]
+                         (when (<= 1 new-page-no last-page)
+                           ;; Set the value of the page number shown in the paginator; it may
+                           ;; differ from the page shown in the result table until we have
+                           ;; actually fetched the data from the server
+                           (reset! paginator-page-no new-page-no)
+                           (reset! paginator-text-val new-page-no)
+                           (if (contains? @results new-page-no)
+                             (do
+                               ;; If the selected result page has already been fetched from the
+                               ;; server, it can be shown in the result table immediately
+                               (reset! page-no new-page-no)
+                               ;; If necessary, fetch any result pages in a window centred around
+                               ;; the selected page in order to speed up pagination to nearby
+                               ;; pages. No need to wait for it to finish though.
+                               (fetch-result-window! a m new-page-no))
+                             (go
+                               ;; Otherwise, we need to park until the results from the server
+                               ;; arrive before setting the page to be shown in the result table
+                               (<! (fetch-result-window! a m new-page-no))
+                               ;; Don't show the fetched page if we have already selected another
+                               ;; page in the paginator while we were waiting for the request
+                               ;; to finish
+                               (when (= new-page-no @paginator-page-no)
+                                 (reset! page-no new-page-no))))))))
         on-key-down (fn [e]
                       (when (= "Enter" (.-key e))
                         (if (str/blank? @paginator-text-val)
@@ -173,14 +175,14 @@
       [:div.pull-right
        [:nav
         [:ul.pagination.pagination-sm
-         [:li {:class-name (when (= @paginator-page-no 1)
+         [:li {:class-name (when (or (= @paginator-page-no 1) fetching?)
                              "disabled")}
           [:a {:href       "#"
                :aria-label "First"
                :title      "First"
                :on-click   #(set-page % 1)}
            [:span {:aria-hidden "true"} "«"]]]
-         [:li {:class-name (when (= @paginator-page-no 1)
+         [:li {:class-name (when (or (= @paginator-page-no 1) fetching?)
                              "disabled")}
           [:a {:href       "#"
                :aria-label "Previous"
@@ -203,14 +205,14 @@
                              (when (or (integer? (js/parseInt v)) (str/blank? v))
                                (reset! paginator-text-val v))))
             :on-key-down on-key-down}]]
-         [:li {:class-name (when (= @paginator-page-no (last-page-no @total))
+         [:li {:class-name (when (or (= @paginator-page-no (last-page-no @total)) fetching?)
                              "disabled")}
           [:a {:href       "#"
                :aria-label "Next"
                :title      "Next"
                :on-click   #(set-page % (inc @paginator-page-no))}
            [:span {:aria-hidden "true"} "›"]]]
-         [:li {:class-name (when (= @paginator-page-no (last-page-no @total))
+         [:li {:class-name (when (or (= @paginator-page-no (last-page-no @total)) fetching?)
                              "disabled")}
           [:a {:href       "#"
                :aria-label "Last"

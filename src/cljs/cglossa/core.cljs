@@ -31,6 +31,8 @@
                                         ;; to paginator-page-no when we hit Enter after editing
                                         ;; or we select a different page using the paging buttons.
                                         :paginator-text-val (r/atom 1)
+                                        ;; Set of result pages currently being fetched
+                                        :fetching-pages     (r/atom #{})
                                         :sort-key           (r/atom :position)
                                         :freq-attr          (r/atom nil)
                                         :media              {:player-row-index    (r/atom nil)
