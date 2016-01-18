@@ -71,7 +71,7 @@
   already been fetched or that are currently being fetched in another request (note that such
   pages can only be located at the edges of the window, and not as 'holes' within the window,
   since they must have been fetched as part of an earlier window)."
-  [{{:keys [results]} :results-view}
+  [{{:keys [results sort-key]} :results-view}
    {:keys [corpus search] :as m}
    centre-page-no last-page-no]
   ;; Enclose the whole procedure in a go block. This way, the function will return the channel
