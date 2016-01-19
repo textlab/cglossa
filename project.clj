@@ -74,6 +74,8 @@
                                             :provides ["react-jplayer"]
                                             :requires ["js-jplayer" "cljsjs.react"
                                                        "cljsjs.jquery-ui"]}
+                                           {:file     "resources/public/js/react-spinner.js"
+                                            :provides ["react-spinner"]}
                                            {:file     "resources/public/js/underscore-min.js"
                                             :provides ["underscore"]}
                                            {:file     "resources/public/js/griddle_0.2.15.js"
