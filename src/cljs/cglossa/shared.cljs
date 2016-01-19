@@ -3,7 +3,9 @@
   (:require [clojure.string :as str]
             [cljs.core.async :as async :refer [<!]]
             [cljs-http.client :as http]
-            [cglossa.react-adapters.bootstrap :as b]))
+            react-spinner
+            [cglossa.react-adapters.bootstrap :as b]
+            [reagent.core :as r :include-macros true]))
 
 ;; TODO: Make this configurable?
 (def page-size 50)
@@ -12,6 +14,36 @@
 ;; However, since CQP may actually return fewer results than we asked for (even though more can
 ;; actually be found), we subtract this margin to be on the safe side.
 (def result-margin 200)
+
+(defn spinner-overlay
+  "Container component that covers its child components with a semi-transparent overlay
+  that also shows a spinner.
+
+  Supported options are :spin?, which shows the overlay and spinner when true, and CSS
+  styles that will override the default styles for the spinner.
+
+  Note: Although it would seem more natural to have :spin? and the various
+  styles as separate arguments, it seems that Reagent only supports a single
+  argument when child components are provided as well; hence we need to put
+  everything into the 'options' argument."
+  [options]
+  ;; Wrap everything in a relatively positioned div (whose width and height will be
+  ;; determined by the child components of c) and insert an absolutely positioned div
+  ;; with a high z-index that will fill the same space, thus overlaying the child
+  ;; components.
+  (r/with-let [spinner (r/adapt-react-class js/Spinner)]
+    [:div {:style {:position "relative"}}
+     (when (:spin? options)
+       [:div {:style {:position         "absolute"
+                      :top              0
+                      :right            0
+                      :bottom           0
+                      :left             0
+                      :background-color "white"
+                      :opacity          0.7
+                      :z-index          1000}}
+        [spinner {:style (dissoc options :spin?)}]])
+     (map r/as-element (r/children (r/current-component)))]))
 
 (def ^:private cancel-search-ch
   "Core.async channel used to cancel any already ongoing search when we start a new one."
