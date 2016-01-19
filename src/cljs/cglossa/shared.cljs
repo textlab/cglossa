@@ -176,10 +176,10 @@
             :id        "headword_search"
             :name      "headword_search"} " Headword search"])
 
-(defn top-toolbar [{:keys                   [num-resets show-metadata?]
-                    {:keys [queries]}       :search-view
+(defn top-toolbar [{:keys                            [num-resets show-metadata?]
+                    {:keys [queries]}                :search-view
                     {:keys [show-results? sort-key]} :results-view
-                    :as                     a}
+                    :as                              a}
                    {:keys [search metadata-categories] :as m}]
   [:div.col-sm-5
    [b/buttontoolbar {:style {:margin-bottom 20}}
