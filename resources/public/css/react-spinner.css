@@ -1,4 +1,4 @@
-// Modified version of https://github.com/chenglou/react-spinner/blob/master/react-spinner.css
+/* Modified version of https://github.com/chenglou/react-spinner/blob/master/react-spinner.css */
 
 .react-spinner {
   position: relative;
@@ -13,8 +13,8 @@
   -moz-animation: react-spinner_spin 1.2s linear infinite;
   animation: react-spinner_spin 1.2s linear infinite;
   border-radius: 5px;
-  // NOTE: We have changed background-color from white to black to make
-  // the spinner visible against light backgrounds
+  /* NOTE: We have changed background-color from white to black to make
+  the spinner visible against light backgrounds */
   background-color: black;
   position: absolute;
   width: 20%;
