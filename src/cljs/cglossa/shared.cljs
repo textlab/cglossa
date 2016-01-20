@@ -45,7 +45,9 @@
                     :opacity          0.7
                     :z-index          1000}}
       [spinner {:style (dissoc options :spin?)}]])
-   (map r/as-element (r/children (r/current-component)))])
+   (map-indexed (fn [i child]
+                  (r/as-element (with-meta child {:key i})))
+                (r/children (r/current-component)))])
 
 (def ^:private cancel-search-ch
   "Core.async channel used to cancel any already ongoing search when we start a new one."
