@@ -4,7 +4,8 @@
             [reagent.core :as r]
             [cljs-http.client :as http]
             [cljs.core.async :refer [<!]]
-            [cglossa.shared :refer [page-size search! top-toolbar cleanup-result reset-results!]]
+            [cglossa.shared :refer [page-size spinner-overlay search! top-toolbar
+                                    cleanup-result reset-results!]]
             [cglossa.search-views.shared :refer [search-inputs]]
             [cglossa.react-adapters.bootstrap :as b]))
 
@@ -242,15 +243,16 @@
     [:div.col-sm-12
      [pagination a m]]]])
 
-(defn results [{:keys [num-resets] :as a} m]
+(defn results [{:keys [num-resets] {:keys [results]} :results-view :as a} m]
   [:div
    [:div.row
     [top-toolbar a m]
     [results-info a]]
    ^{:key @num-resets} [search-inputs a m]                  ; See comments in cglossa.start
-   [b/tabs {:style              {:margin-top 15}
-            :animation          false
-            :default-active-key :concordance}
-    [b/tab {:title "Concordance" :event-key :concordance}
-     [concordances a m]]
-    [b/tab {:title "Statistics" :event-key :statistics :disabled true}]]])
+   [spinner-overlay {:spin? (not @results) :width 45 :height 45 :top 75}
+    [b/tabs {:style              {:margin-top 15}
+             :animation          false
+             :default-active-key :concordance}
+     [b/tab {:title "Concordance" :event-key :concordance}
+      [concordances a m]]
+     [b/tab {:title "Statistics" :event-key :statistics :disabled true}]]]])
