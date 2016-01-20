@@ -15,6 +15,9 @@
 ;; actually be found), we subtract this margin to be on the safe side.
 (def result-margin 200)
 
+;; Adapt https://github.com/chenglou/react-spinner to Reagent
+(def spinner (r/adapt-react-class js/Spinner))
+
 (defn spinner-overlay
   "Container component that covers its child components with a semi-transparent overlay
   that also shows a spinner.
@@ -31,19 +34,18 @@
   ;; determined by the child components of c) and insert an absolutely positioned div
   ;; with a high z-index that will fill the same space, thus overlaying the child
   ;; components.
-  (r/with-let [spinner (r/adapt-react-class js/Spinner)]
-    [:div {:style {:position "relative"}}
-     (when (:spin? options)
-       [:div {:style {:position         "absolute"
-                      :top              0
-                      :right            0
-                      :bottom           0
-                      :left             0
-                      :background-color "white"
-                      :opacity          0.7
-                      :z-index          1000}}
-        [spinner {:style (dissoc options :spin?)}]])
-     (map r/as-element (r/children (r/current-component)))]))
+  [:div {:style {:position "relative"}}
+   (when (:spin? options)
+     [:div {:style {:position         "absolute"
+                    :top              0
+                    :right            0
+                    :bottom           0
+                    :left             0
+                    :background-color "white"
+                    :opacity          0.7
+                    :z-index          1000}}
+      [spinner {:style (dissoc options :spin?)}]])
+   (map r/as-element (r/children (r/current-component)))])
 
 (def ^:private cancel-search-ch
   "Core.async channel used to cancel any already ongoing search when we start a new one."
