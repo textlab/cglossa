@@ -154,7 +154,7 @@
                     wrapped-term index]
   (list
     ^{:key "btn"}
-    [b/dropdown
+    [b/dropdown {:id (str "search-term-pos-dropdown-" index)}
      [b/button {:bs-size  "small"
                 :on-click #(reset! show-attr-popup-for index)}
       [b/glyphicon {:glyph "list"}]]
