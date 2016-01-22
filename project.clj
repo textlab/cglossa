@@ -21,7 +21,7 @@
                  [cljsjs/jquery "1.9.0-0"]
                  [cljsjs/jquery-ui "1.11.3-1"]
                  [environ "1.0.0"]
-                 [http-kit "2.1.19"]
+                 [http-kit "2.1.21-alpha2"]
                  [cljs-http "0.1.35"]
                  [prone "0.8.2"]
                  [korma "0.4.2"]
@@ -32,7 +32,7 @@
                  [me.raynes/fs "1.4.6"]
                  [cheshire "5.5.0"]
                  [org.clojure/tools.logging "0.3.1"]
-                 [binaryage/devtools "0.3.0"]]
+                 [binaryage/devtools "0.5.0"]]
 
   :plugins [[lein-cljsbuild "1.1.1"]
             [lein-environ "1.0.0"]
@@ -94,11 +94,18 @@
 
   :profiles {:dev     {:dependencies [[figwheel "0.5.0-SNAPSHOT"]
                                       [com.cemerick/piggieback "0.2.1"]
-                                      [org.clojure/tools.nrepl "0.2.10"]
-                                      [leiningen "2.5.1"]]
+                                      [org.clojure/tools.nrepl "0.2.12"]
+                                      [leiningen "2.5.1"]
+                                      ;; Extra stuff for Dirac
+                                      [clj-logging-config "1.9.12"]
+                                      [binaryage/dirac "0.1.0"]]
 
                        :repl-options {:init-ns          cglossa.server
-                                      :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
+                                      :port             8230
+                                      :nrepl-middleware [dirac.nrepl.middleware/dirac-repl]
+                                      :init             (do
+                                                          (require 'dirac.agent)
+                                                          (dirac.agent/boot!))}
 
                        :plugins      [[lein-figwheel "0.5.0-SNAPSHOT"]]
 
