@@ -81,8 +81,10 @@
                                            {:file     "resources/public/js/griddle_0.2.15.js"
                                             :provides ["griddle"]
                                             :requires ["cljsjs.react" "underscore"]}]
-                    :externs              ["resources/public/js/externs/react-bootstrap_0.28.1.ext.js"
+                    :externs              ["resources/public/js/externs/extra.ext.js"
+                                           "resources/public/js/externs/react-bootstrap_0.28.1.ext.js"
                                            "resources/public/js/externs/select2.ext.js"
+                                           "resources/public/js/externs/react-spinner.ext.js"
                                            "resources/public/js/externs/griddle_0.2.15.ext.js"]
                     :pretty-print         true}}}}
 
