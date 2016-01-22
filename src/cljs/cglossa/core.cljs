@@ -9,6 +9,8 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:import [goog Throttle]))
 
+(devtools/enable-feature! :dirac)
+(devtools/set-pref! :install-sanity-hints true)
 (devtools/install!)
 
 (defn narrow-view? []
