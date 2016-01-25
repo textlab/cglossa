@@ -23,7 +23,7 @@
             [cglossa.db.corpus :refer [corpus corpus-by-code]]
             [cglossa.db.metadata :refer [get-metadata-categories get-metadata-values show-texts]]
             [cglossa.search.core :as search]
-            [cglossa.search_engines])
+            [cglossa.search-engines])
   (:import [java.io ByteArrayOutputStream])
   (:gen-class))
 
