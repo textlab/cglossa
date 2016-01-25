@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS `corpus` (
 `name` varchar(255),
 `encoding` varchar(255) DEFAULT 'utf-8',
 `logo` varchar(255),
-`search_engine` varchar(255) DEFAULT 'cwb'
+`search_engine` varchar(255) DEFAULT 'cwb',
+`languages` text
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `search` (
