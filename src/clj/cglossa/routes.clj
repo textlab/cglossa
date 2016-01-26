@@ -2,6 +2,7 @@
   (:require [clojure.string :as str]
             [clojure.java.io :as io]
             [clojure.walk :as walk]
+            [clojure.edn :as edn]
             [environ.core :refer [env]]
             [compojure.core :refer [GET POST defroutes routes context]]
             [compojure.route :refer [resources]]
@@ -62,12 +63,14 @@
 (defroutes db-routes
   (GET "/corpus" [code]
     (if-let [c (corpus-by-code code)]
-      (let [cats    (kdb/with-db (get @corpus-connections (:id c)) (get-metadata-categories))
-            tagfile (case (:code c)
-                      "gigaword_fre_3" "treetagger_fr"
-                      "obt_bm_lbk")
-            [gram-titles & menu-data] (read-string (slurp (str "resources/taggers/"
-                                                               tagfile ".edn")))]
+      (let [cats        (kdb/with-db (get @corpus-connections (:id c)) (get-metadata-categories))
+            taggers     (->> c :languages (map :tagger))
+            tags        (map (fn [tagger]
+                               (when tagger
+                                 (edn/read-string (slurp (str "resources/taggers/" tagger ".edn")))))
+                             taggers)
+            gram-titles (map first tags)
+            menu-data   (map next tags)]
         (transit-response {:corpus              c
                            :metadata-categories cats
                            :gram-titles         gram-titles

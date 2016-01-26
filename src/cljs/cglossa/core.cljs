@@ -69,7 +69,15 @@
              (.error js/console (str "Error: " body))))))))
 
 (if-let [corpus (second (re-find #"corpus=(\w+)" (.-location.search js/window)))]
-  (get-models "/corpus" {:code corpus})
+  (go
+    (<! (get-models "/corpus" {:code corpus}))
+    (let [corpus         @(:corpus model-state)
+          languages      (:languages corpus)
+          language-codes (for [{{:keys [code]} :lang} languages] code)
+          gram-titles    (zipmap language-codes @(:gram-titles model-state))
+          menu-data      (zipmap language-codes @(:menu-data model-state))]
+      (reset! (:gram-titles model-state) gram-titles)
+      (reset! (:menu-data model-state) menu-data)))
   (js/alert "Please provide a corpus in the query string (on the form corpus=mycorpus)"))
 
 (defn ^:export main []

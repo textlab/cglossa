@@ -7,6 +7,7 @@
             [cglossa.shared :refer [search! on-key-down remove-row-btn headword-search-checkbox]]
             [cglossa.search-views.shared :refer [search-inputs]]
             [cglossa.search-views.cwb.extended :refer [extended]]))
+(enable-console-print!)
 
 (def ^:private headword-query-prefix "<headword>")
 (def ^:private headword-query-suffix-more-words "[]{0,}")
@@ -79,14 +80,15 @@
                               (subvec % (inc index))))
       (swap! queries #(into (subvec % 0 index)
                             (subvec % (inc index)))))
-    (let [query* (as-> (:query query) $
-                       (if (:headword-search query)
-                         (->headword-query $)
-                         (->non-headword-query $))
-                       ;; Simplify the query (".*" is used in the simple search instead of [])
-                       (str/replace $ #"\[\(?word=\"\.\*\"(?:\s+%c)?\)?\]" "[]")
-                       (str/replace $ #"^\s*\[\]\s*$" ""))]
-      (swap! queries assoc-in [index :query] query*))))
+    (let [query-expr (as-> (:query query) $
+                           (if (:headword-search query)
+                             (->headword-query $)
+                             (->non-headword-query $))
+                           ;; Simplify the query (".*" is used in the simple search instead of [])
+                           (str/replace $ #"\[\(?word=\"\.\*\"(?:\s+%c)?\)?\]" "[]")
+                           (str/replace $ #"^\s*\[\]\s*$" ""))
+          query*     (assoc query :query query-expr)]
+      (swap! queries assoc index query*))))
 
 ;;;;;;;;;;;;;;;;;
 ; Event handlers
@@ -130,10 +132,14 @@
                          (.preventDefault e))}
    "Show texts"])
 
-(defn- language-select [languages selected-language]
-  [:select {:value selected-language}
-   (for [language languages]
-     [:option {:key (:value language) :value (:value language)} (:text language)])])
+(defn- language-select [wrapped-query languages selected-language]
+  [b/input {:type          "select"
+            :bs-size       "small"
+            :style         {:width 150}
+            :default-value (-> languages first :lang :code)
+            :on-change     #(swap! wrapped-query assoc :lang (keyword (.-target.value %)))}
+   (for [{{:keys [code name]} :lang} languages]
+     [:option {:key code :value code} name])])
 
 (defn- single-input-view
   "HTML that is shared by the search views that only show a single text input,
@@ -221,7 +227,7 @@
                              :extended extended
                              :cqp cqp
                              simple)
-             languages     (:langs @corpus)
+             languages     (:languages @corpus)
              multilingual? (> (count languages) 1)
              set-view      (fn [view e] (reset! view-type view) (.preventDefault e))]
          [:span
@@ -287,7 +293,7 @@
                        [:div.row
                         [:div.col-sm-12
                          (when multilingual?
-                           [language-select languages selected-language])
+                           [language-select wrapped-query languages selected-language])
                          [view a m wrapped-query show-remove-row-btn?]]]))))
           (when-not multilingual? [add-phrase-button a view])
           [show-texts-button a view]]))}))
