@@ -1,4 +1,11 @@
-[["adj" "adjective"
+[{:type           "Type"
+  :person_type2   "Type"
+  :grad_dia       "Degree/Voice"
+  :kjonn          "Gender"
+  :modus_kasus    "Mood/Case"
+  :tall           "Number"
+  :tid_bestemthet "Tense/Definiteness"}
+ ["adj" "adjective"
   ["Type" [[:type "ord" "ordinal"]
            [:person_type2 "pcp1" "present participle"]
            [:person_type2 "pcp2" "perfect participle"]]
