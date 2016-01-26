@@ -96,6 +96,7 @@
                                       [com.cemerick/piggieback "0.2.1"]
                                       [org.clojure/tools.nrepl "0.2.12"]
                                       [leiningen "2.5.1"]
+                                      [ring/ring-mock "0.3.0"]
                                       ;; Extra stuff for Dirac
                                       [clj-logging-config "1.9.12"]
                                       [binaryage/dirac "0.1.0"]]
