@@ -131,7 +131,7 @@
                          (.preventDefault e))}
    "Show texts"])
 
-(defn- language-select [wrapped-query languages selected-language]
+(defn- language-select [wrapped-query languages]
   [b/input {:type          "select"
             :bs-size       "small"
             :style         {:width 166}
