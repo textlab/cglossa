@@ -76,27 +76,6 @@ h5.category-header {
   color: #777;
 }
 
-.spinner-searching-large {
-  background-image: url(spinner-large.gif);
-  width: 66px;
-  height: 66px;
-  margin-left: 250px;
-  margin-top: 70px;
-}
-
-.spinner-searching-small {
-  background-image: url(spinner-small.gif);
-  width: 16px;
-  height: 16px;
-  margin: 2px 8px 0px 0;
-  float: left;
-}
-
-.spinner-counting-matches {
-  @extend .spinner-searching-small;
-  margin-top: 14px;
-}
-
 .minmax-field {
   width: 20px;
 }
