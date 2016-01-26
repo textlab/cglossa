@@ -7,7 +7,6 @@
             [cglossa.shared :refer [search! on-key-down remove-row-btn headword-search-checkbox]]
             [cglossa.search-views.shared :refer [search-inputs]]
             [cglossa.search-views.cwb.extended :refer [extended]]))
-(enable-console-print!)
 
 (def ^:private headword-query-prefix "<headword>")
 (def ^:private headword-query-suffix-more-words "[]{0,}")
