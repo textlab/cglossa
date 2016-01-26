@@ -134,7 +134,7 @@
 (defn- language-select [wrapped-query languages selected-language]
   [b/input {:type          "select"
             :bs-size       "small"
-            :style         {:width 150}
+            :style         {:width 166}
             :default-value (-> languages first :lang :code)
             :on-change     #(swap! wrapped-query assoc :lang (keyword (.-target.value %)))}
    (for [{{:keys [code name]} :lang} languages]
