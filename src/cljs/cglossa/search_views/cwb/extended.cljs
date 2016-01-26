@@ -6,8 +6,6 @@
             [cglossa.shared :refer [on-key-down remove-row-btn headword-search-checkbox search!]]
             [cglossa.react-adapters.bootstrap :as b]))
 
-(enable-console-print!)
-
 (defn- combine-regexes [regexes]
   "Since there is no way to concatenate regexes directly, we convert
   them to strings, remove the initial and final slash from each one,
