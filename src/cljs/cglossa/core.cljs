@@ -75,7 +75,7 @@
     (reset-queries! app-state model-state)
     (let [corpus         @(:corpus model-state)
           languages      (:languages corpus)
-          language-codes (for [{{:keys [code]} :lang} languages] code)
+          language-codes (map #(-> % :lang :code) languages)
           gram-titles    (zipmap language-codes @(:gram-titles model-state))
           menu-data      (zipmap language-codes @(:menu-data model-state))]
       (reset! (:gram-titles model-state) gram-titles)
