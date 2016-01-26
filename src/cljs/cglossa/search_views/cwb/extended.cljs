@@ -249,11 +249,12 @@
              :on-change     #(swap! wrapped-term assoc :form (.-target.value %))
              :on-key-down   #(on-key-down % a m)}]])
 
-(defn- add-term-btn [wrapped-query query-term-ids]
+(defn- add-term-btn [wrapped-query wrapped-term query-term-ids]
   [:div.table-cell {:style {:vertical-align "bottom" :padding-left 14 :padding-bottom 5}}
    [b/button {:bs-style "info"
               :bs-size  "xsmall"
               :title    "Add search word"
+              :disabled (and (str/blank? (:form @wrapped-term)) (nil? (:features @wrapped-term)))
               :on-click (fn []
                           ; Append greatest-current-id-plus-one to the
                           ; query-term-ids vector
@@ -324,7 +325,7 @@
       [remove-row-btn show-remove-row-btn? wrapped-query])
     [text-input a m wrapped-query wrapped-term index show-remove-term-btn?]
     (when last?
-      [add-term-btn wrapped-query query-term-ids])]
+      [add-term-btn wrapped-query wrapped-term query-term-ids])]
 
    [:div.table-row
     (when first?
