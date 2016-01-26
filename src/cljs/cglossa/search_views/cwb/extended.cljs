@@ -151,89 +151,93 @@
   (reset! show-attr-popup-for nil))
 
 (defn- menu-button [{{:keys [show-attr-popup-for]} :search-view :as a} {:keys [menu-data] :as m}
-                    wrapped-term index]
-  (list
-    ^{:key "btn"}
-    [b/dropdown {:id (str "search-term-pos-dropdown-" index)}
-     [b/button {:bs-size  "small"
-                :on-click #(reset! show-attr-popup-for index)}
-      [b/glyphicon {:glyph "list"}]]
-     [b/dropdown-toggle {:bs-size "small"}]
-     [b/dropdown-menu
-      (for [[pos title] @menu-data
-            :let [selected? (contains? (:features @wrapped-term) pos)]]
-        ^{:key pos}
-        [b/menuitem {:active   selected?
-                     ;; In the menu, the most intuitive behaviour is probably to deselect any
-                     ;; previously selected part-of-speech whenever we select another one
-                     ;; (the popup, on the other hand, allows multiple selection).
-                     :on-click (fn [_] (swap! wrapped-term assoc :features
-                                              (if selected? {} {pos {}})))}
-         title])]]
-    ^{:key "modal"}
-    [b/modal {:class-name "attr-modal"
-              :bs-size    "large"
-              :keyboard   true
-              :show       (= @show-attr-popup-for index)
-              :on-hide    #(hide-attr-popup show-attr-popup-for)}
-     [b/modalbody
-      [b/panel {:header "Parts-of-speech"}
-       (doall (for [[pos title] @menu-data
-                    :let [selected? (contains? (:features @wrapped-term) pos)]]
-                ^{:key pos}
-                [b/button
-                 {:style    {:margin-left 3 :margin-top 2 :margin-bottom 3}
-                  :bs-size  "xsmall"
-                  :bs-style (if selected? "info" "default")
-                  :on-click (fn [_] (swap! wrapped-term update :features
-                                           #(if selected? (dissoc % pos) (assoc % pos {}))))}
-                 title]))]
-      (for [[pos title morphsyn] @menu-data
-            :when (and (contains? (:features @wrapped-term) pos)
-                       (seq morphsyn))]
-        ^{:key pos}
-        [b/panel {:header (str "Morphosyntactic features for " title)}
-         [:div.table-display
-          (for [[header attrs] (partition 2 morphsyn)]
-            ^{:key header}
-            [:div.table-row
-             [:div.table-cell header ": "]
-             [:div.table-cell {:style {:padding-bottom 5}}
-              (doall (for [[attr value title] attrs
-                           :let [attr*     (name attr)
-                                 selected? (contains? (get-in @wrapped-term [:features pos attr*])
-                                                      value)]]
-                       ^{:key value}
-                       [b/button {:style    {:margin-left 3 :margin-bottom 5}
-                                  :bs-size  "xsmall"
-                                  :bs-style (if selected? "info" "default")
-                                  :on-click (fn [_]
-                                              (swap! wrapped-term update-in [:features pos attr*]
-                                                     (fn [a] (if selected?
-                                                               (disj a value)
-                                                               (set (conj a value)))))
-                                              (if (empty? (get-in @wrapped-term
-                                                                  [:features pos attr*]))
-                                                (swap! wrapped-term update-in [:features pos]
-                                                       dissoc attr*)))}
-                        title]))]])]])]
-     [b/modalfooter
-      [b/button {:bs-style "danger"
-                 :on-click #(swap! wrapped-term assoc :features nil)} "Clear"]
-      [b/button {:bs-style "success"
-                 :on-click (fn [_] (hide-attr-popup show-attr-popup-for) (search! a m))} "Search"]
-      [b/button {:bs-style "info"
-                 :on-click #(hide-attr-popup show-attr-popup-for)} "Close"]]]))
+                    wrapped-query wrapped-term index]
+  (let [selected-language (:lang @wrapped-query)
+        menu-data* (get @menu-data selected-language)]
+    (list
+      ^{:key "btn"}
+      [b/dropdown {:id (str "search-term-pos-dropdown-" index)
+                   :style {:width 59}}
+       [b/button {:bs-size  "small"
+                  :on-click #(reset! show-attr-popup-for index)}
+        [b/glyphicon {:glyph "list"}]]
+       [b/dropdown-toggle {:bs-size "small"}]
+       [b/dropdown-menu
+        (for [[pos title] menu-data*
+              :let [selected? (contains? (:features @wrapped-term) pos)]]
+          ^{:key pos}
+          [b/menuitem {:active   selected?
+                       ;; In the menu, the most intuitive behaviour is probably to deselect any
+                       ;; previously selected part-of-speech whenever we select another one
+                       ;; (the popup, on the other hand, allows multiple selection).
+                       :on-click (fn [_] (swap! wrapped-term assoc :features
+                                                (if selected? {} {pos {}})))}
+           title])]]
+      ^{:key "modal"}
+      [b/modal {:class-name "attr-modal"
+                :bs-size    "large"
+                :keyboard   true
+                :show       (= @show-attr-popup-for index)
+                :on-hide    #(hide-attr-popup show-attr-popup-for)}
+       [b/modalbody
+        [b/panel {:header "Parts-of-speech"}
+         (doall (for [[pos title] menu-data*
+                      :let [selected? (contains? (:features @wrapped-term) pos)]]
+                  ^{:key pos}
+                  [b/button
+                   {:style    {:margin-left 3 :margin-top 2 :margin-bottom 3}
+                    :bs-size  "xsmall"
+                    :bs-style (if selected? "info" "default")
+                    :on-click (fn [_] (swap! wrapped-term update :features
+                                             #(if selected? (dissoc % pos) (assoc % pos {}))))}
+                   title]))]
+        (for [[pos title morphsyn] menu-data*
+              :when (and (contains? (:features @wrapped-term) pos)
+                         (seq morphsyn))]
+          ^{:key pos}
+          [b/panel {:header (str "Morphosyntactic features for " title)}
+           [:div.table-display
+            (for [[header attrs] (partition 2 morphsyn)]
+              ^{:key header}
+              [:div.table-row
+               [:div.table-cell header ": "]
+               [:div.table-cell {:style {:padding-bottom 5}}
+                (doall (for [[attr value title] attrs
+                             :let [attr*     (name attr)
+                                   selected? (contains? (get-in @wrapped-term [:features pos attr*])
+                                                        value)]]
+                         ^{:key value}
+                         [b/button {:style    {:margin-left 3 :margin-bottom 5}
+                                    :bs-size  "xsmall"
+                                    :bs-style (if selected? "info" "default")
+                                    :on-click (fn [_]
+                                                (swap! wrapped-term update-in [:features pos attr*]
+                                                       (fn [a] (if selected?
+                                                                 (disj a value)
+                                                                 (set (conj a value)))))
+                                                (if (empty? (get-in @wrapped-term
+                                                                    [:features pos attr*]))
+                                                  (swap! wrapped-term update-in [:features pos]
+                                                         dissoc attr*)))}
+                          title]))]])]])]
+       [b/modalfooter
+        [b/button {:bs-style "danger"
+                   :on-click #(swap! wrapped-term assoc :features nil)} "Clear"]
+        [b/button {:bs-style "success"
+                   :on-click (fn [_] (hide-attr-popup show-attr-popup-for) (search! a m))} "Search"]
+        [b/button {:bs-style "info"
+                   :on-click #(hide-attr-popup show-attr-popup-for)} "Close"]]])))
 
-(defn- text-input [a m wrapped-term index show-remove-term-btn?]
+(defn- text-input [a m wrapped-query wrapped-term index show-remove-term-btn?]
   [:div.table-cell
    [b/input {:type          "text"
              :bs-size       "small"
              :style         {:font-size 14
-                             :width     (if show-remove-term-btn? 108 140)}
-             :button-before (r/as-element (menu-button a m wrapped-term index))
+                             :width     108}
+             :button-before (r/as-element (menu-button a m wrapped-query wrapped-term index))
              :button-after  (when show-remove-term-btn?
-                              (r/as-element [b/button {:on-click #(reset! wrapped-term nil)}
+                              (r/as-element [b/button {:title "Remove search word"
+                                                       :on-click #(reset! wrapped-term nil)}
                                              [b/glyphicon {:glyph "minus"}]]))
              :default-value (if (:form @wrapped-term)
                               (str/replace (:form @wrapped-term) #"^\.\*$" "")
@@ -314,7 +318,7 @@
    [:div.table-row
     (when first?
       [remove-row-btn show-remove-row-btn? wrapped-query])
-    [text-input a m wrapped-term index show-remove-term-btn?]
+    [text-input a m wrapped-query wrapped-term index show-remove-term-btn?]
     (when last?
       [add-term-btn wrapped-query query-term-ids])]
 
