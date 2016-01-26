@@ -1,5 +1,10 @@
-[{:type "Type" :person_type2 "Type" :grad_dia "Degree/Voice" :kjonn "Gender"
-  :modus_kasus "Mood/Case" :tall "Number" :tid_bestemthet "Tense/Definiteness"}
+[{:type           "Type"
+  :person_type2   "Type"
+  :grad_dia       "Degree/Voice"
+  :kjonn          "Gender"
+  :modus_kasus    "Mood/Case"
+  :tall           "Number"
+  :tid_bestemthet "Tense/Definiteness"}
  ["adj" "adjective"
   ["Type" [[:type "<ordenstall>" "ordinal"]
            [:person_type2 "pcp1" "present participle"]
