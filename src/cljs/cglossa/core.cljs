@@ -5,6 +5,7 @@
             [cljs.core.async :refer [<!]]
             [devtools.core :as devtools]
             [cglossa.search-engines]                        ; just to pull in implementations
+            [cglossa.shared :refer [reset-queries!]]
             [cglossa.app :refer [app]])
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:import [goog Throttle]))
@@ -71,6 +72,7 @@
 (if-let [corpus (second (re-find #"corpus=(\w+)" (.-location.search js/window)))]
   (go
     (<! (get-models "/corpus" {:code corpus}))
+    (reset-queries! app-state model-state)
     (let [corpus         @(:corpus model-state)
           languages      (:languages corpus)
           language-codes (for [{{:keys [code]} :lang} languages] code)

@@ -49,6 +49,10 @@
                   (r/as-element (with-meta child {:key i})))
                 (r/children (r/current-component)))])
 
+(defn reset-queries! [{{:keys [queries]} :search-view} {:keys [corpus]}]
+  (let [language-code (-> @corpus :languages first :lang :code)]
+    (reset! queries [{:query "" :lang language-code}])))
+
 (def ^:private cancel-search-ch
   "Core.async channel used to cancel any already ongoing search when we start a new one."
   (async/chan))
@@ -205,7 +209,7 @@
                :bs-size  "small"
                :title    "Reset form"
                :on-click (fn []
-                           (reset! queries [{:query ""}])
+                           (reset-queries! a m)
                            (reset! search {})
                            (reset! show-results? false)
                            (reset! sort-key :position)
