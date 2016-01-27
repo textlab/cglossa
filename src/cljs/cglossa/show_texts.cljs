@@ -25,7 +25,7 @@
             (reset! cur-page page))
           (.error js/console (str "Error: " body))))))
 
-(defn loading []
+(defn- loading []
   [:div "Loading"])
 (def loading-comp (r/reactify-component loading))
 

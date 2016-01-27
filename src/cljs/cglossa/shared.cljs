@@ -50,7 +50,7 @@
                 (r/children (r/current-component)))])
 
 (defn reset-queries! [{{:keys [queries]} :search-view} {:keys [corpus]}]
-  (let [language-code (-> @corpus :languages first :lang :code)]
+  (let [language-code (-> @corpus :languages first :code)]
     (reset! queries [{:query "" :lang language-code}])))
 
 (def ^:private cancel-search-ch
@@ -122,7 +122,7 @@
                (not= first-query "\"\""))
       ;; Start by cancelling any already ongoing search.
       (async/offer! cancel-search-ch true)
-      (let [q      (if (= (:lang @corpus) "zh")
+      (let [q      (if (= (-> @corpus :languages first :code) "zh")
                      ;; For Chinese: If the tone number is missing, add a pattern
                      ;; that matches all tones
                      (for [query @queries]

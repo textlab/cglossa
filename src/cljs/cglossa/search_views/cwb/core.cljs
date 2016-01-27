@@ -135,9 +135,9 @@
   [b/input {:type          "select"
             :bs-size       "small"
             :style         {:width 166}
-            :default-value (-> languages first :lang :code)
+            :default-value (-> languages first :code)
             :on-change     #(swap! wrapped-query assoc :lang (keyword (.-target.value %)))}
-   (for [{{:keys [code name]} :lang} languages]
+   (for [{:keys [code name]} languages]
      [:option {:key code :value code} name])])
 
 (defn- single-input-view
@@ -287,7 +287,7 @@
                                                (nth @queries index)
                                                wrapped-query-changed queries
                                                index query-ids)
-                           selected-language (-> @wrapped-query :query :lang)]
+                           selected-language (get-in @wrapped-query [:query :lang])]
                        ^{:key query-id}
                        [:div.row
                         [:div.col-sm-12
