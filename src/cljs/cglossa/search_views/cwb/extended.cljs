@@ -115,7 +115,8 @@
 
 (defn- construct-cqp-query [terms query-term-ids]
   (let [;; Remove ids whose corresponding terms have been set to nil
-        _      (swap! query-term-ids #(keep-indexed (fn [index id] (when (nth terms index) id)) %))
+        _      (swap! query-term-ids #(vec (keep-indexed (fn [index id]
+                                                           (when (nth terms index) id)) %)))
         terms* (filter identity terms)                      ; nil means term should be removed
         parts  (for [{:keys [interval form lemma? phonetic? start? end? features]} terms*]
                  (let [attr   (cond
@@ -259,7 +260,7 @@
                           ; Append greatest-current-id-plus-one to the
                           ; query-term-ids vector
                           (swap! query-term-ids
-                                 #(conj % (inc (max %))))
+                                 #(conj % (inc (apply max %))))
                           ; Append [] to the CQP query expression
                           (swap! wrapped-query
                                  update :query str " []"))}
@@ -368,7 +369,7 @@
           terms           (construct-query-terms parts)
           last-term-index (dec (count terms))]
       (when (nil? @query-term-ids)
-        (reset! query-term-ids (range (count terms))))
+        (reset! query-term-ids (vec (range (count terms)))))
       [:div.multiword-container
        [:form.form-inline.multiword-search-form {:style {:margin-left -35}}
         [:div.table-display
