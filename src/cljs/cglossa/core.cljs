@@ -69,7 +69,8 @@
              (reset! (get model-state model-name) data)
              (.error js/console (str "Error: " body))))))))
 
-(if-let [corpus (second (re-find #"corpus=(\w+)" (.-location.search js/window)))]
+(defn- init []
+  (if-let [corpus (second (re-find #"corpus=(\w+)" (.-location.search js/window)))]
   (go
     (<! (get-models "/corpus" {:code corpus}))
     (reset-queries! app-state model-state)
@@ -79,7 +80,10 @@
           menu-data      (zipmap language-codes @(:menu-data model-state))]
       (reset! (:gram-titles model-state) gram-titles)
       (reset! (:menu-data model-state) menu-data)))
-  (js/alert "Please provide a corpus in the query string (on the form corpus=mycorpus)"))
+  (js/alert "Please provide a corpus in the query string (on the form corpus=mycorpus)")))
+
+;; Don't re-init model state on hot reload
+(defonce ^:private __init (init))
 
 (defn ^:export main []
   (rdom/render
