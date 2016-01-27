@@ -117,15 +117,15 @@
 
 (defn- add-phrase-button [{{:keys [queries query-ids]} :search-view} view]
   [b/button {:bs-size  "small"
-             :style    {:margin-top (if (= view extended) -15 0)}
+             :style    {:margin-right 10
+                        :margin-top (if (= view extended) -15 0)}
              :on-click (fn [_]
                          (swap! queries conj {:query ""})
                          (swap! query-ids #(conj % (count %))))} "Or..."])
 
 (defn- show-texts-button [{:keys [show-texts?]} view]
   [b/button {:bs-size  "small"
-             :style    {:margin-top  (if (= view extended) -15 0)
-                        :margin-left 10}
+             :style    {:margin-top  (if (= view extended) -15 0)}
              :on-click (fn [e]
                          (reset! show-texts? true)
                          (.preventDefault e))}
