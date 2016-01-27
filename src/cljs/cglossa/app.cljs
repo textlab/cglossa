@@ -29,7 +29,7 @@
      (when @show-texts?
        [show-texts-modal a m])
      (when @corpus
-       [:div.table-display
+       [:div.table-display {:style {:margin-bottom 10}}
         [:div.table-row
          ^{:key "metadata-list"}
          [:div.table-cell.metadata {:style {:max-width width :width width}}
