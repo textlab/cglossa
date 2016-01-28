@@ -9,16 +9,20 @@
             [cglossa.search.core :refer [run-queries get-results transform-results]]
             [clojure.string :as str]))
 
-(defmethod run-queries "ud" [corpus search queries metadata-ids step cut sort-by]
-  (let [q (first queries)
-        lang (or (:lang q) "English")]
-    (condp = step
-      2 ["1"]
-      3 ["1"]
-      1 [(-> (str "http://bionlp-www.utu.fi/dep_search/?db=" lang
-                  "&search=" (ring.util.codec/form-encode (:query q)))
-             slurp
-             (str/replace "src=\"js" "src=\"http://bionlp-www.utu.fi/dep_search/js")
-             (str/replace "var root = ''" "var root = 'http://bionlp-www.utu.fi/dep_search/'")
-             (str/replace "<form class=\"query-form\"" "<form class=\"query-form\" style=\"display:none\"")
-             (str/replace "nav class=\"navbar" "nav style=\"display:none\" class=\"navbar"))])))
+(defmethod run-queries "ud" [corpus search queries metadata-ids step cut sort-key]
+  (let [q       (first queries)
+        lang    (or (:lang q) "English")
+        text    (-> (str "http://bionlp-www.utu.fi/dep_search/?db=" lang
+                         "&search=" (ring.util.codec/form-encode (:query q)))
+                    slurp)
+        results [(-> text
+                     (str/replace "src=\"js"
+                                  "src=\"http://bionlp-www.utu.fi/dep_search/js")
+                     (str/replace "var root = ''"
+                                  "var root = 'http://bionlp-www.utu.fi/dep_search/'")
+                     (str/replace "<form class=\"query-form\""
+                                  "<form class=\"query-form\" style=\"display:none\"")
+                     (str/replace "nav class=\"navbar"
+                                  "nav style=\"display:none\" class=\"navbar"))]
+        cnt     (count (re-seq #"<code class=\"conllu\"" text))]
+    [results cnt]))
