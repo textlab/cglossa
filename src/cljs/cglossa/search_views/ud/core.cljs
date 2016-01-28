@@ -57,7 +57,7 @@
     [:div.col-sm-9
      [b/button {:bs-style "success"
                 :style    {:margin-left 233}
-                :on-click #(search! a m)} "Search"]]]
+                :on-click #(search! a m [[1 nil]])} "Search"]]]
    [:div.row
     [:div.col-sm-12
      [:form.table-display {:style {:margin "10px 0px 15px 0px"}}
@@ -68,4 +68,4 @@
                  :type             "textarea"
                  :default-value    (:query (first @queries))
                  :on-change        #(swap! queries assoc-in [0 :query] (.-target.value %))
-                 :on-key-down      #(on-key-down % a m)}]]]]]])
+                 :on-key-down      #(on-key-down % a m [[1 nil]])}]]]]]])
