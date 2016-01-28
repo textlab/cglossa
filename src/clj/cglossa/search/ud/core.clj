@@ -2,10 +2,7 @@
   "Support for searching the Universal Dependency treebanks
   (http://universaldependencies.github.io/docs/) using the SETS system
   at the University of Turku (http://bionlp-www.utu.fi/dep_search)."
-  (:require [me.raynes.fs :as fs]
-            [korma.core :as korma]
-            [net.cgrand.enlive-html :as html]
-            [cemerick.url :as url]
+  (:require [ring.util.codec :as codec]
             [cglossa.search.core :refer [run-queries get-results transform-results]]
             [clojure.string :as str]))
 
@@ -13,7 +10,7 @@
   (let [q       (first queries)
         lang    (or (:lang q) "English")
         text    (-> (str "http://bionlp-www.utu.fi/dep_search/?db=" lang
-                         "&search=" (ring.util.codec/form-encode (:query q)))
+                         "&search=" (codec/form-encode (:query q)))
                     slurp)
         results [(-> text
                      (str/replace "src=\"js"
