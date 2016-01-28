@@ -3,4 +3,5 @@
   here in order to register any multimethod implementations found in those
   namespaces."
   (:require cglossa.search.cwb.written
-            cglossa.search.cwb.speech))
+            cglossa.search.cwb.speech
+            cglossa.search.ud.core))
