@@ -94,7 +94,7 @@
                                                    (map (partial cleanup-result m) res)])
                                                 (range)
                                                 (partition-all page-size resp-results))))
-                  (reset! total (count resp-results)))
+                  (reset! total (or resp-count (count resp-results))))
                 (reset! total resp-count))
               (if (or (nil? (next params))
                       (< resp-count (- cut result-margin)))
@@ -111,36 +111,40 @@
   (reset! paginator-page-no 1)
   (reset! paginator-text-val 1))
 
-(defn search! [{{queries :queries}                     :search-view
-                {:keys [show-results? total sort-key]} :results-view
-                searching?                             :searching?
-                :as                                    a}
-               {:keys [corpus search] :as m}]
-  (let [first-query (:query (first @queries))]
-    (when (and first-query
-               (not (str/blank? first-query))
-               (not= first-query "\"\""))
-      ;; Start by cancelling any already ongoing search.
-      (async/offer! cancel-search-ch true)
-      (let [q      (if (= (-> @corpus :languages first :code) "zh")
-                     ;; For Chinese: If the tone number is missing, add a pattern
-                     ;; that matches all tones
-                     (for [query @queries]
-                       (update query :query
-                               str/replace #"\bphon=\"([^0-9\"]+)\"" "phon=\"$1[1-4]?\""))
-                     ;; For other languages, leave the queries unmodified
-                     @queries)
-            url    "/search"
-            params {:corpus-id    (:id @corpus)
-                    :queries      q
-                    :metadata-ids (->> (:metadata @search) (filter #(second %)) (into {}))
-                    :sort-key     @sort-key}]
-        (reset! show-results? true)
-        (reset! searching? true)
-        (reset! total nil)
-        (reset! sort-key :position)
-        (reset-results! a)
-        (do-search-steps! a m url params [[1 (* 2 page-size)] [2 (* 20 page-size)] [3 nil]])))))
+(defn search!
+  ([a m]
+    (search! a m [[1 (* 2 page-size)] [2 (* 20 page-size)] [3 nil]]))
+  ([{{queries :queries}                     :search-view
+     {:keys [show-results? total sort-key]} :results-view
+     searching?                             :searching?
+     :as                                    a}
+    {:keys [corpus search] :as m}
+    step-specs]
+   (let [first-query (:query (first @queries))]
+     (when (and first-query
+                (not (str/blank? first-query))
+                (not= first-query "\"\""))
+       ;; Start by cancelling any already ongoing search.
+       (async/offer! cancel-search-ch true)
+       (let [q      (if (= (-> @corpus :languages first :code) "zh")
+                      ;; For Chinese: If the tone number is missing, add a pattern
+                      ;; that matches all tones
+                      (for [query @queries]
+                        (update query :query
+                                str/replace #"\bphon=\"([^0-9\"]+)\"" "phon=\"$1[1-4]?\""))
+                      ;; For other languages, leave the queries unmodified
+                      @queries)
+             url    "/search"
+             params {:corpus-id    (:id @corpus)
+                     :queries      q
+                     :metadata-ids (->> (:metadata @search) (filter #(second %)) (into {}))
+                     :sort-key     @sort-key}]
+         (reset! show-results? true)
+         (reset! searching? true)
+         (reset! total nil)
+         (reset! sort-key :position)
+         (reset-results! a)
+         (do-search-steps! a m url params step-specs))))))
 
 (defn showing-metadata? [{:keys                   [show-metadata? narrow-view?]
                           {:keys [show-results?]} :results-view}
@@ -158,10 +162,10 @@
     @show-results? (not @narrow-view?)
     :else true))
 
-(defn on-key-down [event a m]
+(defn on-key-down [event a m & params]
   (when (= "Enter" (.-key event))
     (.preventDefault event)
-    (search! a m)))
+    (apply search! a m params)))
 
 (defn remove-row-btn [show? wrapped-query]
   [:div.table-cell.remove-row-btn-container
