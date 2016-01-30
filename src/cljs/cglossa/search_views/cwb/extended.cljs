@@ -151,7 +151,7 @@
 
 (defn- menu-button [{{:keys [show-attr-popup-for]} :search-view :as a} {:keys [menu-data] :as m}
                     wrapped-query wrapped-term index]
-  (r/with-let [option-clicked (atom false)]
+  (r/with-let [options-clicked (atom false)]
     (let [selected-language (:lang @wrapped-query)
           menu-data*        (get @menu-data selected-language)]
       (list
@@ -171,16 +171,19 @@
                          ;; previously selected part-of-speech whenever we select another one
                          ;; (the popup, on the other hand, allows multiple selection).
                          :on-click (fn [_]
-                                     (swap! wrapped-term assoc :features
-                                            ;; Deselect the part-of-speech if it was selected AND
-                                            ;; we didn't click the option icon (because then we
-                                            ;; want to specify morphosyntactic features, not
-                                            ;; deselect)
-                                            (if (and selected? (not @option-clicked))
-                                              {}
-                                              {pos {}}))
-                                     (reset! option-clicked false))}
+                                     (if selected?
+                                       ;; Deselect the part-of-speech if it was selected AND
+                                       ;; we didn't click the options icon (because in that case
+                                       ;; we want to specify morphosyntactic features, not
+                                       ;; deselect).
+                                       (when-not @options-clicked
+                                         (swap! wrapped-term update :features dissoc pos))
+                                       ;; If it was not selected, we select it regardless
+                                       ;; of whether or not the options icon was clicked.
+                                       (swap! wrapped-term assoc-in [:features pos] {}))
+                                     (reset! options-clicked false))}
              title [b/glyphicon {:glyph    "option-horizontal"
+                                 :title    "More options"
                                  :style    {:float "right" :margin-left 5}
                                  :on-click (fn [e]
                                              ;; Clicking the option icon on a menu item both selects
@@ -190,7 +193,7 @@
                                              ;; Set a flag to make sure we don't deselect this
                                              ;; part-of-speech when the event bubbles up to the
                                              ;; menu item if it was already selected
-                                             (reset! option-clicked true)
+                                             (reset! options-clicked true)
                                              (reset! show-attr-popup-for index))}]])]]
         ^{:key "modal"}
         [b/modal {:class-name "attr-modal"
