@@ -339,9 +339,50 @@
                  :on-change #(swap! wrapped-term assoc :phonetic? (.-target.checked %))
                  }] "Phonetic form"])]))
 
-(defn- taglist []
-  [:div.tag-list.table-cell {:ref "taglist"}
-   [:div.tags]])
+(defn- tag-descriptions [pos-data wrapped-term]
+  (let [;; Returns a description of the selected morphosyntactic features for a particular
+        ;; morphosyntactic category. 'attrs' is a seq of possible values for this category, with
+        ;; each value represented as a vector of [cqp-attribute short-value human-readable-value]
+        ;; (short-value is e.g. "pcp1" while human-readable-value is e.g. "present participle").
+        cat-description (fn [pos attrs]
+                          (str/join " or "
+                                    (->> attrs
+                                         (filter (fn [[attr value _]]
+                                                   (contains? (get-in @wrapped-term
+                                                                      [:features pos (name attr)])
+                                                              value)))
+                                         ;; Get human-readable value
+                                         (map last))))]
+    (for [[pos pos-title morphsyn] pos-data
+          ;; Only consider parts-of-speech that have actually been selected
+          :when (contains? (:features @wrapped-term) pos)
+          ;; Extract the seq of possible morphosyntactic features for each morphosyntacic category
+          ;; that applies to this part-of-speech
+          :let [cat-attrs (->> morphsyn (partition 2) (map second))]]
+      (str (str/capitalize pos-title) " " (str/join " " (map (partial cat-description pos)
+                                                             cat-attrs))))))
+
+(defn- taglist [{:keys [menu-data]} wrapped-term lang-code]
+  ;; Ideally, hovering? should be initialized to true if the mouse is already hovering over the
+  ;; component when it is mounted, but that seems tricky. For the time being, we accept the
+  ;; fact that we have to mouse out and then in again if we were already hovering.
+  (r/with-let [hovering? (r/atom false)]
+    (let [pos-data     (get @menu-data lang-code)
+          descriptions (tag-descriptions pos-data wrapped-term)]
+      [:div.table-cell {:style          {:max-width  200
+                                         ;; Show the descriptions in their entire length on
+                                         ;; mouseover
+                                         :overflow-x (if @hovering? "visible" "hidden")}
+                        :on-mouse-enter #(reset! hovering? true)
+                        :on-mouse-leave #(reset! hovering? false)}
+       [:div {:style {:margin-top 5}}
+        (for [description descriptions]
+          ^{:key description}
+          [b/label {:bs-style "primary" :style {:float      "left"
+                                                :margin-top 3
+                                                :cursor     "pointer"}}
+           description [:span {:style {:margin-left 8 :cursor "pointer"}} "x"]])
+        ]])))
 
 (defn multiword-term [a m wrapped-query wrapped-term query-term-ids
                       index first? last? has-phonetic? show-remove-row-btn?
@@ -361,10 +402,10 @@
     (when last?
       [:div.table-cell])]
 
-   [:div.table-row
+   [:div.table-row {:style {:margin-top 5}}
     (when first?
       [:div.table-cell])
-    [taglist]
+    [taglist m wrapped-term (:lang @wrapped-query)]
     (when last?
       [:div.table-cell])]])
 
