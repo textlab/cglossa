@@ -245,8 +245,8 @@
                                                              (fn [a] (if selected?
                                                                        (disj a value)
                                                                        (set (conj a value)))))
-                                                      (if (empty? (get-in @wrapped-term
-                                                                          [:features pos attr*]))
+                                                      (when (empty? (get-in @wrapped-term
+                                                                            [:features pos attr*]))
                                                         (swap! wrapped-term
                                                                update-in [:features pos]
                                                                dissoc attr*)))}
