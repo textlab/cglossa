@@ -43,8 +43,7 @@
                                                              :current-media-type  (r/atom nil)}}
                     :search-view       {:view-type           (r/atom :simple)
                                         :queries             (r/atom [{:query ""}])
-                                        :query-ids           (r/atom nil)
-                                        :show-attr-popup-for (r/atom nil)}
+                                        :query-ids           (r/atom nil)}
                     :searching?        (r/atom false)
                     :open-metadata-cat (r/atom nil)
                     :num-resets        (r/atom 0)})

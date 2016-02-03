@@ -146,12 +146,10 @@
 ;;;; Components
 ;;;;;;;;;;;;;;;;
 
-(defn hide-attr-popup [show-attr-popup-for]
-  (reset! show-attr-popup-for nil))
-
-(defn- menu-button [{{:keys [show-attr-popup-for]} :search-view :as a} {:keys [menu-data] :as m}
+(defn- menu-button [a {:keys [menu-data] :as m}
                     wrapped-query wrapped-term index]
-  (r/with-let [options-clicked (atom false)]
+  (r/with-let [options-clicked (atom false)
+               show-attr-popup? (r/atom false)]
     (let [selected-language (:lang @wrapped-query)
           menu-data*        (get @menu-data selected-language)]
       (list
@@ -159,7 +157,7 @@
         [b/dropdown {:id    (str "search-term-pos-dropdown-" index)
                      :style {:width 59}}
          [b/button {:bs-size  "small"
-                    :on-click #(reset! show-attr-popup-for index)}
+                    :on-click #(reset! show-attr-popup? true)}
           [b/glyphicon {:glyph "list"}]]
          [b/dropdown-toggle {:bs-size "small" :disabled (nil? menu-data*)}]
          [b/dropdown-menu {:style {:min-width 180}}
@@ -194,13 +192,13 @@
                                              ;; part-of-speech when the event bubbles up to the
                                              ;; menu item if it was already selected
                                              (reset! options-clicked true)
-                                             (reset! show-attr-popup-for index))}]])]]
+                                             (reset! show-attr-popup? true))}]])]]
         ^{:key "modal"}
         [b/modal {:class-name "attr-modal"
                   :bs-size    "large"
                   :keyboard   true
-                  :show       (= @show-attr-popup-for index)
-                  :on-hide    #(hide-attr-popup show-attr-popup-for)}
+                  :show       @show-attr-popup?
+                  :on-hide    #(reset! show-attr-popup? false)}
          [b/modalbody
           (when menu-data*
             (list
@@ -255,9 +253,9 @@
           [b/button {:bs-style "danger"
                      :on-click #(swap! wrapped-term assoc :features nil)} "Clear"]
           [b/button {:bs-style "success"
-                     :on-click (fn [_] (hide-attr-popup show-attr-popup-for) (search! a m))} "Search"]
+                     :on-click (fn [_] (reset! show-attr-popup? false) (search! a m))} "Search"]
           [b/button {:bs-style "info"
-                     :on-click #(hide-attr-popup show-attr-popup-for)} "Close"]]]))))
+                     :on-click #(reset! show-attr-popup? false)} "Close"]]]))))
 
 (defn- text-input [a m wrapped-query wrapped-term index show-remove-term-btn?]
   [:div.table-cell
