@@ -118,7 +118,7 @@
 (defn- add-phrase-button [{{:keys [queries query-ids]} :search-view} {:keys [corpus]} view]
   [b/button {:bs-size  "small"
              :style    {:margin-right 10
-                        :margin-top (if (= view extended) -15 0)}
+                        :margin-top   (if (= view extended) -15 0)}
              :on-click (fn [_]
                          (let [language-code (-> @corpus :languages first :code)]
                            (swap! queries conj {:query "" :lang language-code})
@@ -126,7 +126,7 @@
 
 (defn- show-texts-button [{:keys [show-texts?]} view]
   [b/button {:bs-size  "small"
-             :style    {:margin-top  (if (= view extended) -15 0)}
+             :style    {:margin-top (if (= view extended) -15 0)}
              :on-click (fn [e]
                          (reset! show-texts? true)
                          (.preventDefault e))}
