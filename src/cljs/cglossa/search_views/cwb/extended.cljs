@@ -40,12 +40,12 @@
 
 (defn- process-form [term name val]
   (cond-> (assoc term :form (-> val
-                                (str/replace #"^(?:\.\+)?(.+?)" "$1")
-                                (str/replace #"(.+?)(?:\.\+)?$" "$1")))
+                                (str/replace #"^(?:\.\*)?(.+?)" "$1")
+                                (str/replace #"(.+?)(?:\.\*)?$" "$1")))
           (= name "lemma") (assoc :lemma? true)
           (= name "phon") (assoc :phonetic? true)
-          (re-find #"\.\+$" val) (assoc :start? true)
-          (re-find #"^\.\+" val) (assoc :end? true)))
+          (re-find #"\.\*$" val) (assoc :start? true)
+          (re-find #"^\.\*" val) (assoc :end? true)))
 
 
 (defn construct-query-terms [parts]
@@ -94,10 +94,10 @@
                              "")
                       term (cond-> {:form     form
                                     :interval @interval}
-                                   (re-find #"\.\+$" form)
+                                   (re-find #"\.\*$" form)
                                    (assoc :start? true)
 
-                                   (re-find #"^\.\+" form)
+                                   (re-find #"^\.\*" form)
                                    (assoc :end? true))]
                   (reset! interval [nil nil])
                   (conj terms term))))
@@ -126,8 +126,8 @@
                        form*  (if (empty? form)
                                 (when (empty? features) ".*")
                                 (cond-> form
-                                        start? (str ".+")
-                                        end? (#(str ".+" %))))
+                                        start? (str ".*")
+                                        end? (#(str ".*" %))))
                        main   (when form*
                                 (str attr "=\"" form* "\" %c"))
                        feats  (when (seq features)
