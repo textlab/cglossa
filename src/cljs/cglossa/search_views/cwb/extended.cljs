@@ -182,7 +182,7 @@
                                      (reset! options-clicked false))}
              title [b/glyphicon {:glyph    "option-horizontal"
                                  :title    "More options"
-                                 :style    {:float "right" :margin-left 5}
+                                 :style    {:float "right" :margin-left 5 :margin-top 3}
                                  :on-click (fn [e]
                                              ;; Clicking the option icon on a menu item both selects
                                              ;; the part-of-speech and opens the popup for advanced
@@ -379,8 +379,9 @@
           [b/label {:bs-style "primary" :style {:float      "left"
                                                 :margin-top 3
                                                 :cursor     "pointer"}}
-           description [:span {:style {:margin-left 8 :cursor "pointer"}} "x"]])
         ]])))
+                                                :margin-right 3
+           description [:span {:style {:margin-left 6 :cursor "pointer"}} "x"]])]])))
 
 (defn multiword-term [a m wrapped-query wrapped-term query-term-ids
                       index first? last? has-phonetic? show-remove-row-btn?
