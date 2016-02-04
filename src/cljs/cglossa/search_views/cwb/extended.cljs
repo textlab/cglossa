@@ -357,8 +357,9 @@
           ;; Extract the seq of possible morphosyntactic features for each morphosyntacic category
           ;; that applies to this part-of-speech
           :let [cat-attrs (->> morphsyn (partition 2) (map second))]]
-      (str (str/capitalize pos-title) " " (str/join " " (map (partial cat-description pos)
-                                                             cat-attrs))))))
+      {:pos         pos
+       :description (str (str/capitalize pos-title) " "
+                         (str/join " " (map (partial cat-description pos) cat-attrs)))})))
 
 (defn- taglist [{:keys [menu-data]} wrapped-term lang-code show-attr-popup?]
   ;; Ideally, hovering? should be initialized to true if the mouse is already hovering over the
@@ -374,14 +375,18 @@
                         :on-mouse-enter #(reset! hovering? true)
                         :on-mouse-leave #(reset! hovering? false)}
        [:div {:style {:margin-top 5}}
-        (for [description descriptions]
+        (for [{:keys [pos description]} descriptions]
           ^{:key description}
           [b/label {:bs-style "primary" :style {:float      "left"
                                                 :margin-top 3
                                                 :margin-right 3
                                                 :cursor     "pointer"}
                     :on-click #(reset! show-attr-popup? true)}
-           description [:span {:style {:margin-left 6 :cursor "pointer"}} "x"]])]])))
+           description [:span {:style    {:margin-left 6 :cursor "pointer"}
+                               :on-click (fn [e]
+                                           (.stopPropagation e)
+                                           (swap! wrapped-term update :features dissoc pos))}
+                        "x"]])]])))
 
 (defn multiword-term [a m wrapped-query wrapped-term query-term-ids
                       index first? last? has-phonetic? show-remove-row-btn?
