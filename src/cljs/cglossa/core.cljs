@@ -41,9 +41,9 @@
                                         :media              {:player-row-index    (r/atom nil)
                                                              :current-player-type (r/atom nil)
                                                              :current-media-type  (r/atom nil)}}
-                    :search-view       {:view-type           (r/atom :simple)
-                                        :queries             (r/atom nil)
-                                        :query-ids           (r/atom nil)}
+                    :search-view       {:view-type (r/atom :simple)
+                                        :queries   (r/atom nil)
+                                        :query-ids (r/atom nil)}
                     :searching?        (r/atom false)
                     :open-metadata-cat (r/atom nil)
                     :num-resets        (r/atom 0)})
@@ -70,16 +70,16 @@
 
 (defn- init []
   (if-let [corpus (second (re-find #"corpus=(\w+)" (.-location.search js/window)))]
-  (go
-    (<! (get-models "/corpus" {:code corpus}))
-    (reset-queries! app-state model-state)
-    (let [corpus         @(:corpus model-state)
-          language-codes (->> corpus :languages (map :code))
-          gram-titles    (zipmap language-codes @(:gram-titles model-state))
-          menu-data      (zipmap language-codes @(:menu-data model-state))]
-      (reset! (:gram-titles model-state) gram-titles)
-      (reset! (:menu-data model-state) menu-data)))
-  (js/alert "Please provide a corpus in the query string (on the form corpus=mycorpus)")))
+    (go
+      (<! (get-models "/corpus" {:code corpus}))
+      (reset-queries! app-state model-state)
+      (let [corpus         @(:corpus model-state)
+            language-codes (->> corpus :languages (map :code))
+            gram-titles    (zipmap language-codes @(:gram-titles model-state))
+            menu-data      (zipmap language-codes @(:menu-data model-state))]
+        (reset! (:gram-titles model-state) gram-titles)
+        (reset! (:menu-data model-state) menu-data)))
+    (js/alert "Please provide a corpus in the query string (on the form corpus=mycorpus)")))
 
 ;; Don't re-init model state on hot reload
 (defonce ^:private __init (init))
