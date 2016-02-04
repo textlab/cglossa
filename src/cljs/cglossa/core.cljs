@@ -42,7 +42,7 @@
                                                              :current-player-type (r/atom nil)
                                                              :current-media-type  (r/atom nil)}}
                     :search-view       {:view-type           (r/atom :simple)
-                                        :queries             (r/atom [{:query ""}])
+                                        :queries             (r/atom nil)
                                         :query-ids           (r/atom nil)}
                     :searching?        (r/atom false)
                     :open-metadata-cat (r/atom nil)

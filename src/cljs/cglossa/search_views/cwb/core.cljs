@@ -115,13 +115,14 @@
 (defn- add-language-button []
   [b/button {:style {:marginLeft 20} :on-click #()} "Add language"])
 
-(defn- add-phrase-button [{{:keys [queries query-ids]} :search-view} view]
+(defn- add-phrase-button [{{:keys [queries query-ids]} :search-view} {:keys [corpus]} view]
   [b/button {:bs-size  "small"
              :style    {:margin-right 10
                         :margin-top (if (= view extended) -15 0)}
              :on-click (fn [_]
-                         (swap! queries conj {:query ""})
-                         (swap! query-ids #(conj % (count %))))} "Or..."])
+                         (let [language-code (-> @corpus :languages first :code)]
+                           (swap! queries conj {:query "" :lang language-code})
+                           (swap! query-ids #(conj % (count %)))))} "Or..."])
 
 (defn- show-texts-button [{:keys [show-texts?]} view]
   [b/button {:bs-size  "small"
@@ -294,5 +295,5 @@
                          (when multilingual?
                            [language-select wrapped-query languages selected-language])
                          [view a m wrapped-query show-remove-row-btn?]]]))))
-          (when-not multilingual? [add-phrase-button a view])
+          (when-not multilingual? [add-phrase-button a m view])
           [show-texts-button a view]]))}))
