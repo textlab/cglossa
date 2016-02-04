@@ -147,9 +147,8 @@
 ;;;;;;;;;;;;;;;;
 
 (defn- menu-button [a {:keys [menu-data] :as m}
-                    wrapped-query wrapped-term index]
-  (r/with-let [options-clicked (atom false)
-               show-attr-popup? (r/atom false)]
+                    wrapped-query wrapped-term index show-attr-popup?]
+  (r/with-let [options-clicked (atom false)]
     (let [selected-language (:lang @wrapped-query)
           menu-data*        (get @menu-data selected-language)]
       (list
@@ -257,13 +256,14 @@
           [b/button {:bs-style "info"
                      :on-click #(reset! show-attr-popup? false)} "Close"]]]))))
 
-(defn- text-input [a m wrapped-query wrapped-term index show-remove-term-btn?]
+(defn- text-input [a m wrapped-query wrapped-term index show-remove-term-btn? show-attr-popup?]
   [:div.table-cell
    [b/input {:type          "text"
              :bs-size       "small"
              :style         {:font-size 14
                              :width     108}
-             :button-before (r/as-element (menu-button a m wrapped-query wrapped-term index))
+             :button-before (r/as-element (menu-button a m wrapped-query wrapped-term index
+                                                       show-attr-popup?))
              :button-after  (when show-remove-term-btn?
                               (r/as-element [b/button {:title    "Remove search word"
                                                        :on-click #(reset! wrapped-term nil)}
@@ -360,7 +360,7 @@
       (str (str/capitalize pos-title) " " (str/join " " (map (partial cat-description pos)
                                                              cat-attrs))))))
 
-(defn- taglist [{:keys [menu-data]} wrapped-term lang-code]
+(defn- taglist [{:keys [menu-data]} wrapped-term lang-code show-attr-popup?]
   ;; Ideally, hovering? should be initialized to true if the mouse is already hovering over the
   ;; component when it is mounted, but that seems tricky. For the time being, we accept the
   ;; fact that we have to mouse out and then in again if we were already hovering.
@@ -378,35 +378,36 @@
           ^{:key description}
           [b/label {:bs-style "primary" :style {:float      "left"
                                                 :margin-top 3
-                                                :cursor     "pointer"}}
-        ]])))
                                                 :margin-right 3
+                                                :cursor     "pointer"}
+                    :on-click #(reset! show-attr-popup? true)}
            description [:span {:style {:margin-left 6 :cursor "pointer"}} "x"]])]])))
 
 (defn multiword-term [a m wrapped-query wrapped-term query-term-ids
                       index first? last? has-phonetic? show-remove-row-btn?
                       show-remove-term-btn?]
-  [:div.table-cell>div.multiword-term>div.control-group
-   [:div.table-row
-    (when first?
-      [remove-row-btn show-remove-row-btn? wrapped-query])
-    [text-input a m wrapped-query wrapped-term index show-remove-term-btn?]
-    (when last?
-      [add-term-btn wrapped-query wrapped-term query-term-ids])]
+  (r/with-let [show-attr-popup? (r/atom false)]
+    [:div.table-cell>div.multiword-term>div.control-group
+     [:div.table-row
+      (when first?
+        [remove-row-btn show-remove-row-btn? wrapped-query])
+      [text-input a m wrapped-query wrapped-term index show-remove-term-btn? show-attr-popup?]
+      (when last?
+        [add-term-btn wrapped-query wrapped-term query-term-ids])]
 
-   [:div.table-row
-    (when first?
-      [:div.table-cell])
-    [checkboxes wrapped-term has-phonetic?]
-    (when last?
-      [:div.table-cell])]
+     [:div.table-row
+      (when first?
+        [:div.table-cell])
+      [checkboxes wrapped-term has-phonetic?]
+      (when last?
+        [:div.table-cell])]
 
-   [:div.table-row {:style {:margin-top 5}}
-    (when first?
-      [:div.table-cell])
-    [taglist m wrapped-term (:lang @wrapped-query)]
-    (when last?
-      [:div.table-cell])]])
+     [:div.table-row {:style {:margin-top 5}}
+      (when first?
+        [:div.table-cell])
+      [taglist m wrapped-term (:lang @wrapped-query) show-attr-popup?]
+      (when last?
+        [:div.table-cell])]]))
 
 
 (defn extended
