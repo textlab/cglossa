@@ -377,10 +377,10 @@
        [:div {:style {:margin-top 5}}
         (for [{:keys [pos description]} descriptions]
           ^{:key description}
-          [b/label {:bs-style "primary" :style {:float      "left"
-                                                :margin-top 3
+          [b/label {:bs-style "primary" :style {:float        "left"
+                                                :margin-top   3
                                                 :margin-right 3
-                                                :cursor     "pointer"}
+                                                :cursor       "pointer"}
                     :on-click #(reset! show-attr-popup? true)}
            description [:span {:style    {:margin-left 6 :cursor "pointer"}
                                :on-click (fn [e]
