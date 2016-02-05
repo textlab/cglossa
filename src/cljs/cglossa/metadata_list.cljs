@@ -55,7 +55,8 @@
                                    (reset! open-metadata-cat nil)
                                    (swap! search update :metadata dissoc cat-id)
                                    (when (empty? (:metadata @search))
-                                     (swap! search dissoc :metadata)))]
+                                     (swap! search dissoc :metadata))
+                                   (search! a m))]
     [:span
      (doall
        (for [cat @metadata-categories
