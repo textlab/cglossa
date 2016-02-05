@@ -26,7 +26,7 @@
                      "set RD \"}}\""
                      "show +s_id"
                      (if (= step 1)
-                       ;; When we do the first search, which has been cut to a single page of
+                       ;; When we do the first search, which has been cut to the first two pages of
                        ;; search results, we return all those results
                        "cat Last"
                        ;; When we are retrieving more results, we just tell the browser how

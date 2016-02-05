@@ -69,11 +69,15 @@
                                (when tagger
                                  (edn/read-string (slurp (str "resources/taggers/" tagger ".edn")))))
                              taggers)
-            gram-titles (map first tags)
-            menu-data   (map next tags)]
+            ;; If the first element in the seq read from the tagger file is a hash map, it should
+            ;; be a config map (e.g. specifying the name of the part-of-speech attribute if it
+            ;; deviates from the default 'pos'). The rest should be seqs containing descriptions
+            ;; of parts-of-speech and their morphosyntactic features.
+            gram-config (map #(if (map? (first %)) (first %) {}) tags)
+            menu-data   (map #(if (map? (first %)) (next %) %) tags)]
         (transit-response {:corpus              c
                            :metadata-categories cats
-                           :gram-titles         gram-titles
+                           :gram-config         gram-config
                            :menu-data           menu-data}))
       {:status 500
        :body   (str "No corpus named " code " exists!")}))

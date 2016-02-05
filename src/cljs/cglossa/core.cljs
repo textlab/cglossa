@@ -50,7 +50,7 @@
 
 (defonce model-state {:corpus              (r/atom nil)
                       :metadata-categories (r/atom nil)
-                      :gram-titles         (r/atom nil)
+                      :gram-config         (r/atom nil)
                       :menu-data           (r/atom nil)
                       :search              (r/atom {})})
 
@@ -75,9 +75,9 @@
       (reset-queries! app-state model-state)
       (let [corpus         @(:corpus model-state)
             language-codes (->> corpus :languages (map :code))
-            gram-titles    (zipmap language-codes @(:gram-titles model-state))
+            gram-config    (zipmap language-codes @(:gram-config model-state))
             menu-data      (zipmap language-codes @(:menu-data model-state))]
-        (reset! (:gram-titles model-state) gram-titles)
+        (reset! (:gram-config model-state) gram-config)
         (reset! (:menu-data model-state) menu-data)))
     (js/alert "Please provide a corpus in the query string (on the form corpus=mycorpus)")))
 
