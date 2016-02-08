@@ -113,7 +113,7 @@
                        (str " & " (str/join " & " attr-strings)))]
     (str "(pos=\"" pos "\"" attr-str ")")))
 
-(defn- construct-cqp-query [terms query-term-ids]
+(defn- construct-cqp-query [terms query-term-ids lang-config]
   (let [;; Remove ids whose corresponding terms have been set to nil
         _      (swap! query-term-ids #(vec (keep-indexed (fn [index id]
                                                            (when (nth terms index) id)) %)))
@@ -136,14 +136,25 @@
                        interv (if (or min max)
                                 (str "[]{" (or min 0) "," (or max "") "} ")
                                 "")]
-                   (str interv "[" (str/join " & " (filter identity [main feats])) "]")))]
-    (str/join \space parts)))
+                   (str interv "[" (str/join " & " (filter identity [main feats])) "]")))
+        query* (str/join \space parts)
+        query  (if-let [pos-attr (:pos-attr lang-config)]
+                 (str/replace query* #"\bpos(?=\s*=)" pos-attr)
+                 query*)]
+    query))
 
-(defn- menu-data-for-language [corpus lang-code]
-  (->> (:languages @corpus) (filter #(= (:code %) lang-code)) first :menu-data))
+(defn- language-data [corpus lang-code]
+  (->> (:languages @corpus) (filter #(= (:code %) lang-code)) first))
 
-(defn wrapped-term-changed [wrapped-query terms index query-term-ids term]
-  (swap! wrapped-query assoc :query (construct-cqp-query (assoc terms index term) query-term-ids)))
+(defn- language-menu-data [corpus lang-code]
+  (:menu-data (language-data corpus lang-code)))
+
+(defn- language-config [corpus lang-code]
+  (:config (language-data corpus lang-code)))
+
+(defn wrapped-term-changed [wrapped-query terms index query-term-ids lang-config term]
+  (swap! wrapped-query assoc :query (construct-cqp-query (assoc terms index term)
+                                                         query-term-ids lang-config)))
 
 ;;;;;;;;;;;;;;;;
 ;;;; Components
@@ -153,7 +164,7 @@
                     wrapped-query wrapped-term index show-attr-popup?]
   (r/with-let [options-clicked (atom false)]
     (let [selected-language (:lang @wrapped-query)
-          menu-data         (menu-data-for-language corpus selected-language)]
+          menu-data         (language-menu-data corpus selected-language)]
       (list
         ^{:key "btn"}
         [b/dropdown {:id    (str "search-term-pos-dropdown-" index)
@@ -369,7 +380,7 @@
   ;; component when it is mounted, but that seems tricky. For the time being, we accept the
   ;; fact that we have to mouse out and then in again if we were already hovering.
   (r/with-let [hovering? (r/atom false)]
-    (let [menu-data    (menu-data-for-language corpus lang-code)
+    (let [menu-data    (language-menu-data corpus lang-code)
           descriptions (tag-descriptions menu-data wrapped-term)]
       [:div.table-cell {:style          {:max-width  200
                                          ;; Show the descriptions in their entire length on
@@ -440,7 +451,14 @@
                ;; removed. This is the kind of ugly state manipulation that React normally saves
                ;; us from, but in cases like this it seems unavoidable...
                query-term-ids (atom nil)]
-    (let [parts           (split-query (:query @wrapped-query))
+    (let [lang-config     (language-config corpus (:lang @wrapped-query))
+          query*          (:query @wrapped-query)
+          query           (if-let [pos-attr (:pos-attr lang-config)]
+                            (str/replace query*
+                                         (re-pattern (str "\\b" pos-attr "(?=\\s*=)"))
+                                         "pos")
+                            query*)
+          parts           (split-query query)
           terms           (construct-query-terms parts)
           last-term-index (dec (count terms))]
       (when (nil? @query-term-ids)
@@ -454,7 +472,7 @@
                            (let [wrapped-term          (r/wrap term
                                                                wrapped-term-changed
                                                                wrapped-query terms index
-                                                               query-term-ids)
+                                                               query-term-ids lang-config)
                                  term-id               (nth @query-term-ids index)
                                  first?                (zero? index)
                                  last?                 (= index last-term-index)

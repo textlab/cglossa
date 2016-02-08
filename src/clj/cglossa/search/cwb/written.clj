@@ -32,10 +32,7 @@
                        ;; When we are retrieving more results, we just tell the browser how
                        ;; many results we have found (so far)
                        "size Last")]
-        ;;;; TEMPORARY HACK! Change to configure pos attribute based on tagger/corpus
-        commands    (if (= "bokmal" (:code corpus))
-                      (map #(str/replace % "pos=" "ordkl=") (filter identity (flatten commands)))
-                      commands)
+        commands    (filter identity (flatten commands))
         res         (run-cqp-commands corpus (filter identity (flatten commands)))
         results     (when (= step 1) res)
         count       (if (= step 1) (count res) (first res))]
