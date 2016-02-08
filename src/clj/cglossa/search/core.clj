@@ -2,7 +2,7 @@
   (:require [korma.db :as kdb]
             [korma.core :refer [defentity table select where insert values]]
             [cglossa.shared :refer [core-db]]
-            [cglossa.db.corpus :refer [corpus-by-id]]))
+            [cglossa.db.corpus :refer [get-corpus]]))
 
 (defentity search)
 
@@ -30,7 +30,7 @@
     (first (select search (where {:id id})))))
 
 (defn search-corpus [corpus-id search-id queries metadata-ids step cut sort-key]
-  (let [corpus     (corpus-by-id corpus-id)
+  (let [corpus     (get-corpus {:id corpus-id})
         search-id* (if (= step 1)
                      (:generated_key (create-search! corpus-id queries))
                      search-id)
@@ -43,6 +43,6 @@
      :count   count}))
 
 (defn results [corpus-id search-id start end sort-key]
-  (let [corpus  (corpus-by-id corpus-id)
         results (get-results corpus search-id start end sort-key)]
+  (let [corpus  (get-corpus {:id corpus-id})
     (transform-results corpus results)))
