@@ -139,6 +139,9 @@
                    (str interv "[" (str/join " & " (filter identity [main feats])) "]")))]
     (str/join \space parts)))
 
+(defn- menu-data-for-language [corpus lang-code]
+  (->> (:languages @corpus) (filter #(= (:code %) lang-code)) first :menu-data))
+
 (defn wrapped-term-changed [wrapped-query terms index query-term-ids term]
   (swap! wrapped-query assoc :query (construct-cqp-query (assoc terms index term) query-term-ids)))
 
@@ -146,11 +149,11 @@
 ;;;; Components
 ;;;;;;;;;;;;;;;;
 
-(defn- menu-button [a {:keys [menu-data] :as m}
+(defn- menu-button [a {:keys [corpus] :as m}
                     wrapped-query wrapped-term index show-attr-popup?]
   (r/with-let [options-clicked (atom false)]
     (let [selected-language (:lang @wrapped-query)
-          menu-data*        (get @menu-data selected-language)]
+          menu-data         (menu-data-for-language corpus selected-language)]
       (list
         ^{:key "btn"}
         [b/dropdown {:id    (str "search-term-pos-dropdown-" index)
@@ -158,9 +161,9 @@
          [b/button {:bs-size  "small"
                     :on-click #(reset! show-attr-popup? true)}
           [b/glyphicon {:glyph "list"}]]
-         [b/dropdown-toggle {:bs-size "small" :disabled (nil? menu-data*)}]
+         [b/dropdown-toggle {:bs-size "small" :disabled (nil? menu-data)}]
          [b/dropdown-menu {:style {:min-width 180}}
-          (for [[pos title] menu-data*
+          (for [[pos title] menu-data
                 :let [selected? (contains? (:features @wrapped-term) pos)]]
             ^{:key pos}
             [b/menuitem {:active   selected?
@@ -199,11 +202,11 @@
                   :show       @show-attr-popup?
                   :on-hide    #(reset! show-attr-popup? false)}
          [b/modalbody
-          (when menu-data*
+          (when menu-data
             (list
               ^{:key "pos-panel"}
               [b/panel {:header "Parts-of-speech"}
-               (doall (for [[pos title] menu-data*
+               (doall (for [[pos title] menu-data
                             :let [selected? (contains? (:features @wrapped-term) pos)]]
                         ^{:key pos}
                         [b/button
@@ -216,7 +219,7 @@
                                                      (assoc % pos {}))))}
                          title]))]
               ^{:key "pos"}
-              (for [[pos title morphsyn] menu-data*
+              (for [[pos title morphsyn] menu-data
                     :when (and (contains? (:features @wrapped-term) pos)
                                (seq morphsyn))]
                 ^{:key pos}
@@ -361,13 +364,13 @@
        :description (str (str/capitalize pos-title) " "
                          (str/join " " (map (partial cat-description pos) cat-attrs)))})))
 
-(defn- taglist [{:keys [menu-data]} wrapped-term lang-code show-attr-popup?]
+(defn- taglist [{:keys [corpus]} wrapped-term lang-code show-attr-popup?]
   ;; Ideally, hovering? should be initialized to true if the mouse is already hovering over the
   ;; component when it is mounted, but that seems tricky. For the time being, we accept the
   ;; fact that we have to mouse out and then in again if we were already hovering.
   (r/with-let [hovering? (r/atom false)]
-    (let [pos-data     (get @menu-data lang-code)
-          descriptions (tag-descriptions pos-data wrapped-term)]
+    (let [menu-data    (menu-data-for-language corpus lang-code)
+          descriptions (tag-descriptions menu-data wrapped-term)]
       [:div.table-cell {:style          {:max-width  200
                                          ;; Show the descriptions in their entire length on
                                          ;; mouseover
