@@ -9,10 +9,23 @@
   (transform (fn [{:keys [languages] :as c}]
                (assoc c :languages (edn/read-string languages)))))
 
-(defn corpus-by-code [code]
-  (kdb/with-db core-db
-    (first (select corpus (where {:code code})))))
+(defn- merge-language-info [c]
+  (let [taggers   (->> c :languages (map :tagger))
+        tags      (map (fn [tagger]
+                         (when tagger
+                           (edn/read-string (slurp (str "resources/taggers/" tagger ".edn")))))
+                       taggers)
+        ;; If the first element in the seq read from the tagger file is a hash map, it should
+        ;; be a config map (e.g. specifying the name of the part-of-speech attribute if it
+        ;; deviates from the default 'pos'). The rest should be seqs containing descriptions
+        ;; of parts-of-speech and their morphosyntactic features.
+        config    (map #(if (map? (first %)) (first %) {}) tags)
+        menu-data (map #(if (map? (first %)) (next %) %) tags)
+        languages (map #(assoc %1 :config %2 :menu-data %3) (:languages c) config menu-data)]
+    (assoc c :languages languages)))
 
-(defn corpus-by-id [id]
+(defn get-corpus [conditions]
   (kdb/with-db core-db
-    (first (select corpus (where {:id id})))))
+    (-> (select corpus (where conditions))
+        first
+        merge-language-info)))
