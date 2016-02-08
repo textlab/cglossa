@@ -4,6 +4,7 @@
             [clojure.string :as str]
             [me.raynes.fs :as fs]
             [me.raynes.conch.low-level :as sh]
+            [environ.core :refer [env]]
             [clojure.tools.logging :as logging]
             [cglossa.db.metadata :refer [metadata-value-text]])
   (:import [java.sql SQLException]))
@@ -92,6 +93,20 @@
       (when-not (.contains (.toString e) "ResultSet is from UPDATE")
         (println e)))))
 
+(defn displayed-attrs-command [corpus queries]
+  ;; NOTE: CWB doesn't seem to allow different attributes to be specified for each aligned
+  ;; query(?), so for now at least we just ask for the attributes of the tagger used for
+  ;; the first query
+  (let [first-query-lang (-> queries first :lang)
+        displayed-attrs  (->> corpus
+                              :languages
+                              (filter #(= (:code %) (keyword first-query-lang)))
+                              first
+                              :config
+                              :displayed-attrs)]
+    (str "show " (str/join " " (map #(str "+" (name %))
+                                    (conj (or displayed-attrs []) "s_id"))))))
+
 (defn sort-command [named-query sort-key]
   (when-let [context (case sort-key
                        "position" nil
@@ -129,7 +144,7 @@
                      (sh/done cqp)
                      (sh/stream-to-string cqp :out :encoding encoding))
           err      (sh/stream-to-string cqp :err)
-          _        (assert (str/blank? err) (logging/error err))
+          _        (assert (str/blank? err) (if (:id-dev env) (println err) (logging/error err)))
           ;; Split into lines and throw away the first line, which contains the CQP version
           results  (rest (str/split-lines out))]
       (if (and (pos? (count results))

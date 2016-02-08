@@ -1,4 +1,6 @@
-[{:pos-attr "ordkl"}
+[{:displayed-attrs [:lemma :ordkl :type :grad_dia :tid_bestemthet
+                    :modus_kasus :person_type2 :tall :kjonn]
+  :pos-attr "ordkl"}
  ["adj" "adjective"
   ["Type" [[:type "<ordenstall>" "ordinal"]
            [:person_type2 "pcp1" "present participle"]

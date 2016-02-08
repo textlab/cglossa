@@ -43,8 +43,8 @@
         count       (if (= step 1) (count res) (first res))]
     [results count]))
 
-(defmethod get-results "cwb_speech" [corpus search-id start end sort-key]
-  (let [named-query (cwb-query-name corpus search-id)
+(defmethod get-results "cwb_speech" [corpus search start end sort-key]
+  (let [named-query (cwb-query-name corpus (:id search))
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
                      (str/upper-case (:code corpus))
                      (str "set Context 7 sync_time")

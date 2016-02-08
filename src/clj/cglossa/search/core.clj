@@ -43,6 +43,7 @@
      :count   count}))
 
 (defn results [corpus-id search-id start end sort-key]
-        results (get-results corpus search-id start end sort-key)]
   (let [corpus  (get-corpus {:id corpus-id})
+        s       (search-by-id search-id)
+        results (get-results corpus s start end sort-key)]
     (transform-results corpus results)))
