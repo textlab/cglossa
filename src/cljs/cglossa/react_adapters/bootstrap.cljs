@@ -26,7 +26,9 @@
         "ModalHeader"
         "ModalTitle"
         "Navbar"
+        "OverlayTrigger"
         "Panel"
         "Tabs"
         "Tab"
-        "Table")
+        "Table"
+        "Tooltip")

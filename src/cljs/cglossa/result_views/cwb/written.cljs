@@ -2,7 +2,8 @@
   (:require [clojure.string :as str]
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.results :refer [concordance-table]]
-            [cglossa.result-views.cwb.shared :as shared]))
+            [cglossa.result-views.cwb.shared :as shared]
+            [reagent.core :as r :include-macros true]))
 
 (defn- monolingual-or-first-multilingual [res]
   (let [m (re-find #"<(\w+_(?:id|name))(.*?)>(.*)\{\{(.+?)\}\}(.*?)</\1>$" (:text res))]
@@ -35,12 +36,19 @@
    (shared/id-column result)
    (shared/text-columns result)])
 
+(defn- token-tooltip [token]
+  [b/tooltip (str/join " " (->> token rest (remove #(= % "__UNDEF__"))))])
+
+(defn- token-comp [token]
+  [b/overlaytrigger {:placement "top" :overlay (r/as-element (token-tooltip token))}
+   [:span (first token) " "]])
+
 (defn- process-field [field]
   "Processes a pre-match, match, or post-match field."
   (as-> field $
         (str/split $ #"\s+")
-        (map #(first (str/split % #"/")) $)
-        (str/join \space $)))
+        (map-indexed (fn [index token]
+                       ^{:key index} [token-comp (str/split token #"/")]) $)))
 
 (defn single-result-rows [a m res index]
   "Returns one or more rows representing a single search result."
