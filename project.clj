@@ -19,7 +19,6 @@
                  [enlive "1.1.5"]
                  [reagent "0.6.0-alpha"]
                  [cljsjs/jquery "1.9.0-0"]
-                 [cljsjs/jquery-ui "1.11.3-1"]
                  [environ "1.0.0"]
                  [http-kit "2.1.21-alpha2"]
                  [cljs-http "0.1.35"]
@@ -72,8 +71,7 @@
                                             :provides ["js-jplayer"]}
                                            {:file     "resources/public/js/jplayer.js"
                                             :provides ["react-jplayer"]
-                                            :requires ["js-jplayer" "cljsjs.react"
-                                                       "cljsjs.jquery-ui"]}
+                                            :requires ["js-jplayer" "cljsjs.react"]}
                                            {:file     "resources/public/js/react-spinner.js"
                                             :provides ["react-spinner"]}
                                            {:file     "resources/public/js/underscore-min.js"
