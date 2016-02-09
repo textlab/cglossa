@@ -48,7 +48,8 @@
   (as-> field $
         (str/split $ #"\s+")
         (map-indexed (fn [index token]
-                       ^{:key index} [token-comp (str/split token #"/")]) $)))
+                       ^{:key index} [:span (first (str/split token #"/")) " "]
+                       #_[token-comp (str/split token #"/")]) $)))
 
 (defn single-result-rows [a m res index]
   "Returns one or more rows representing a single search result."
