@@ -3,6 +3,8 @@
             [reagent.dom :as rdom]
             [cljs-http.client :as http]
             [cljs.core.async :refer [<!]]
+            cljsjs.jquery
+            tooltip
             [devtools.core :as devtools]
             [cglossa.search-engines]                        ; just to pull in implementations
             [cglossa.shared :refer [reset-queries!]]
@@ -55,6 +57,8 @@
 ;; Set :narrow-view in app-state whenever the window is resized (throttled to 200ms)
 (def on-resize-throttle (Throttle. #(reset! (:narrow-view? app-state) (narrow-view?)) 200))
 (.addEventListener js/window "resize" #(.fire on-resize-throttle))
+
+(. (js/$ "body") tooltip #js {:selector "[data-toggle= 'tooltip']"})
 
 (defn- get-models
   ([url] (get-models url {}))

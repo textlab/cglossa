@@ -1,9 +1,9 @@
 (ns cglossa.result-views.cwb.written
   (:require [clojure.string :as str]
+            [reagent.core :as r :include-macros true]
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.results :refer [concordance-table]]
-            [cglossa.result-views.cwb.shared :as shared]
-            [reagent.core :as r :include-macros true]))
+            [cglossa.result-views.cwb.shared :as shared]))
 
 (defn- monolingual-or-first-multilingual [res]
   (let [m (re-find #"<(\w+_(?:id|name))(.*?)>(.*)\{\{(.+?)\}\}(.*?)</\1>$" (:text res))]
@@ -36,20 +36,18 @@
    (shared/id-column result)
    (shared/text-columns result)])
 
-(defn- token-tooltip [token]
-  [b/tooltip (str/join " " (->> token rest (remove #(= % "__UNDEF__"))))])
-
-(defn- token-comp [token]
-  [b/overlaytrigger {:placement "top" :overlay (r/as-element (token-tooltip token))}
-   [:span (first token) " "]])
-
 (defn- process-field [field]
   "Processes a pre-match, match, or post-match field."
   (as-> field $
         (str/split $ #"\s+")
         (map-indexed (fn [index token]
-                       ^{:key index} [:span (first (str/split token #"/")) " "]
-                       #_[token-comp (str/split token #"/")]) $)))
+                       (let [attrs    (str/split token #"/")
+                             tip-text (str/join " " (->> attrs rest (remove #(= % "__UNDEF__"))))]
+                         ^{:key index}
+                         [:span {:data-toggle "tooltip"
+                                 :title       tip-text}
+                          (first attrs) " "]))
+                     $)))
 
 (defn single-result-rows [a m res index]
   "Returns one or more rows representing a single search result."
