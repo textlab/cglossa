@@ -99,17 +99,10 @@
                                       [com.cemerick/piggieback "0.2.1"]
                                       [org.clojure/tools.nrepl "0.2.12"]
                                       [leiningen "2.5.1"]
-                                      [ring/ring-mock "0.3.0"]
-                                      ;; Extra stuff for Dirac
-                                      [clj-logging-config "1.9.12"]
-                                      [binaryage/dirac "0.1.0"]]
+                                      [ring/ring-mock "0.3.0"]]
 
                        :repl-options {:init-ns          cglossa.server
-                                      :port             8230
-                                      :nrepl-middleware [dirac.nrepl.middleware/dirac-repl]
-                                      :init             (do
-                                                          (require 'dirac.agent)
-                                                          (dirac.agent/boot!))}
+                                      :port             8230}
 
                        :plugins      [[lein-figwheel "0.5.0-SNAPSHOT"]]
 
