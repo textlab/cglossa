@@ -110,8 +110,8 @@
                               first
                               :config
                               :displayed-attrs)]
-    (str "show " (str/join " " (map #(str "+" (name %))
-                                    (conj (or displayed-attrs []) "s_id"))))))
+    (when (seq displayed-attrs)
+      (str "show " (str/join " " (map #(str "+" (name %)) displayed-attrs))))))
 
 (defn sort-command [named-query sort-key]
   (when-let [context (case sort-key
