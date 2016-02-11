@@ -26,7 +26,7 @@
     [nil [text]]))
 
 (defn- extract-fields [res]
-  (let [m (re-find #"<s_id\s+(.*?)>(.*)\{\{(.+?)\}\}(.*?)</s_id>$" (:text res))]
+  (let [m (re-find #"^<s_id\s+(.*?)>:\s+(.*)\{\{(.+?)\}\}(.*?)$" (:text res))]
     (let [[_ s-id pre match post] m]
       [(str/trim s-id) [pre match post]])))
 

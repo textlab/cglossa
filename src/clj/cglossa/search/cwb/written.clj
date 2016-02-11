@@ -22,7 +22,8 @@
                                                    search-id cut step)
                          (when (> step 1)
                            (str "save " named-query))
-                         (str "set Context 1 s")
+                         (str "set Context 7 word")
+                         "set PrintStructures \"s_id\""
                          "set LD \"{{\""
                          "set RD \"}}\""
                          (displayed-attrs-command corpus queries)
@@ -43,7 +44,8 @@
   (let [named-query (cwb-query-name corpus (:id search))
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
                      (str/upper-case (:code corpus))
-                     (str "set Context 1 s")
+                     (str "set Context 7 word")
+                     "set PrintStructures \"s_id\""
                      "set LD \"{{\""
                      "set RD \"}}\""
                      (displayed-attrs-command corpus (edn/read-string (:queries search)))
