@@ -1,5 +1,6 @@
 (ns cglossa.search-views.cwb.core
   (:require [clojure.string :as str]
+            [clojure.set :as set]
             [reagent.core :as r]
             [reagent.dom :as rdom]
             [goog.dom :as dom]
@@ -89,6 +90,11 @@
           query*     (assoc query :query query-expr)]
       (swap! queries assoc index query*))))
 
+(defn- add-row [queries query-ids query]
+  (swap! queries conj query)
+  ; Append greatest-current-id-plus-one to the query-ids vector
+  (swap! query-ids #(conj % (inc (apply max %)))))
+
 ;;;;;;;;;;;;;;;;;
 ; Event handlers
 ;;;;;;;;;;;;;;;;;
@@ -112,17 +118,23 @@
              :style    {:margin-left margin-left}
              :on-click #(search! a m)} "Search"])
 
-(defn- add-language-button []
-  [b/button {:style {:marginLeft 20} :on-click #()} "Add language"])
+(defn- add-language-button [{{:keys [queries query-ids]} :search-view} {:keys [corpus]}]
+  (let [all-langs  (->> @corpus :languages (map :code) set)
+        used-langs (->> @queries (map :lang) set)
+        ;; The default language for the new row will be the first available language
+        ;; that has not been used so far
+        new-lang   (first (set/difference all-langs used-langs))]
+    [b/button {:style    {:marginLeft 20}
+               :disabled (-> @queries last :query str/blank?)
+               :on-click #(add-row queries query-ids {:query "" :lang new-lang})} "Add language"]))
 
 (defn- add-phrase-button [{{:keys [queries query-ids]} :search-view} {:keys [corpus]} view]
   [b/button {:bs-size  "small"
              :style    {:margin-right 10
                         :margin-top   (if (= view extended) -15 0)}
              :on-click (fn [_]
-                         (let [language-code (-> @corpus :languages first :code)]
-                           (swap! queries conj {:query "" :lang language-code})
-                           (swap! query-ids #(conj % (count %)))))} "Or..."])
+                         (let [lang (-> @corpus :languages first :code)]
+                           (add-row queries query-ids {:query "" :lang lang})))} "Or..."])
 
 (defn- show-texts-button [{:keys [show-texts?]} view]
   [b/button {:bs-size  "small"
@@ -136,7 +148,7 @@
   [b/input {:type          "select"
             :bs-size       "small"
             :style         {:width 166}
-            :default-value (-> languages first :code)
+            :default-value (or (:lang @wrapped-query) (-> languages first :code))
             :on-change     #(swap! wrapped-query assoc :lang (keyword (.-target.value %)))}
    (for [{:keys [code name]} languages]
      [:option {:key code :value code} name])])
@@ -253,7 +265,7 @@
                   :on-click #(set-view :cqp %)}
               "CQP query"])
            [search-button a m (if (= @view-type :extended) 81 233)]
-           (when multilingual? [add-language-button])]
+           (when multilingual? [add-language-button a m])]
 
           ; Now create a cursor into the queries ratom for each search expression
           ; and display a row of search inputs for each of them. The doall call is needed
