@@ -6,6 +6,7 @@
             [me.raynes.conch.low-level :as sh]
             [environ.core :refer [env]]
             [clojure.tools.logging :as logging]
+            [cglossa.db.corpus :refer [multilingual?]]
             [cglossa.db.metadata :refer [metadata-value-text]])
   (:import [java.sql SQLException]))
 
@@ -13,7 +14,7 @@
 
 (defn cwb-corpus-name [corpus queries]
   (let [uc-code (str/upper-case (:code corpus))]
-    (if (:multilingual? corpus)
+    (if (multilingual? corpus)
       ;; The CWB corpus we select before running our query will be the one named by the
       ;; code attribute of the corpus plus the name of the language of the first
       ;; submitted query row (e.g. RUN_EN).
@@ -32,9 +33,14 @@
                     (first queries*))]
     (str query-str " within " s-tag)))
 
-(defn- build-multilingual-query [queries s-tag]
-  ;; TODO
-  )
+(defn- build-multilingual-query [corpus queries s-tag]
+  (let [corpus-code     (-> corpus :code str/upper-case)
+        main-query      (str (-> queries first :query) " within " s-tag)
+        aligned-queries (for [query (rest queries)
+                              ;; TODO: In case of mandatory alignment, include even empty queries
+                              :when (not (str/blank? (:query query)))]
+                          (str corpus-code "_" (-> query :lang str/upper-case) " " (:query query)))]
+    (str/join " :" (cons main-query aligned-queries))))
 
 (defmulti position-fields
   "The database fields that contain corpus positions for texts."
@@ -120,8 +126,8 @@
 
 (defn construct-query-commands [corpus queries metadata-ids named-query search-id cut step
                                 & {:keys [s-tag] :or {s-tag "s"}}]
-  (let [query-str (if (:multilingual? corpus)
-                    (build-multilingual-query queries s-tag)
+  (let [query-str (if (multilingual? corpus)
+                    (build-multilingual-query corpus queries s-tag)
                     (build-monolingual-query queries s-tag))
         init-cmds (if (seq metadata-ids)
                     (let [positions-filename (str (fs/tmpdir) "/positions_" search-id)]
@@ -129,7 +135,12 @@
                         (print-positions-matching-metadata corpus metadata-ids positions-filename))
                       [(str "undump " named-query " < '" positions-filename \') named-query])
                     [])
-        cut-str   (when cut (str " cut " cut))]
+        ;; Note: We cannot cut multilingual queries, since CQP actually applies the cut to the
+        ;; search in the first language and only then tries to find aligned regions. As a
+        ;; consequence there may be no results returned at all, since the results found in the
+        ;; first language may not be aligned to the other languages at all, or they may not match
+        ;; the queries provided for the other languages.
+        cut-str   (when (and cut (not (multilingual? corpus))) (str " cut " cut))]
     (conj init-cmds (str named-query " = " query-str cut-str))))
 
 (defn run-cqp-commands [corpus commands]
@@ -144,7 +155,7 @@
                      (sh/done cqp)
                      (sh/stream-to-string cqp :out :encoding encoding))
           err      (sh/stream-to-string cqp :err)
-          _        (assert (str/blank? err) (if (:id-dev env) (println err) (logging/error err)))
+          _        (assert (str/blank? err) (if (:is-dev env) (println err) (logging/error err)))
           ;; Split into lines and throw away the first line, which contains the CQP version
           results  (rest (str/split-lines out))]
       (if (and (pos? (count results))

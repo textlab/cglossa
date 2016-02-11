@@ -1,6 +1,7 @@
 (ns cglossa.shared
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [clojure.string :as str]
+            [clojure.set :as set]
             [cljs.core.async :as async :refer [<!]]
             [cljs-http.client :as http]
             react-spinner
@@ -64,11 +65,18 @@
   map. The :default case implements CWB support."
   (fn [{corpus :corpus} _] (:search-engine @corpus)))
 
-(defn- do-search-steps! [{:keys [searching?] {:keys [results total]} :results-view}
+(defn- do-search-steps! [{:keys [searching?]
+                          {:keys [queries]} :search-view
+                          {:keys [results total]} :results-view}
                          {:keys [search] :as m}
                          url search-params step-params]
   (go-loop [params step-params]
     (let [[step cut] (first params)
+          ;; Don't cut searches that involve more than one language, because it simply doesn't
+          ;; work the way you would expect in CWB: It first cuts the number of results from the
+          ;; first language and only then tries to find aligned regions, which may yield an
+          ;; empty or too small result set.
+          cut (when (= 1 (->> @queries (map :lang) set count)) cut)
           json-params (cond-> search-params
                               true (assoc :step step :cut cut)
                               (:id @search) (assoc :search-id (:id @search)))
@@ -97,9 +105,11 @@
                   (reset! total (or resp-count (count resp-results))))
                 (reset! total resp-count))
               (if (or (nil? (next params))
+                      (nil? cut)
                       (< resp-count (- cut result-margin)))
-                ;; Either we haven't specified any more steps, or we found less results than we
-                ;; asked for (minus the safety margin). In either case, don't do any more searches.
+                ;; Either we haven't specified any more steps, or we didn't restrict the latest
+                ;; search we did, or we found less results than we asked for (minus the safety
+                ;; margin). In either case, don't do any more searches.
                 (reset! searching? false)
                 ;; Keep searching with the remaining step specifications
                 (recur (next params))))))))))

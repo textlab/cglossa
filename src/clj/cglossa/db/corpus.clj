@@ -29,3 +29,6 @@
     (-> (select corpus (where conditions))
         first
         merge-language-info)))
+
+(defn multilingual? [corpus]
+  (> (-> corpus :languages count) 1))
