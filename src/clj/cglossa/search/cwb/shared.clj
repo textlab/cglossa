@@ -149,10 +149,11 @@
         ;; consequence there may be no results returned at all, since the results found in the
         ;; first language may not be aligned to the other languages at all, or they may not match
         ;; the queries provided for the other languages.
-        cut-str   (when (and cut (not (multilingual? corpus))) (str " cut " cut))]
+        monolingual-query? (= (->> queries (map :lang) set count) 1)
+        cut-str   (when (and cut monolingual-query?) (str " cut " cut))]
     (conj init-cmds (str named-query " = " query-str cut-str))))
 
-(defn run-cqp-commands [corpus commands]
+(defn run-cqp-commands [corpus commands counting?]
   (let [commands* (->> commands
                        (map #(str % \;))
                        (str/join \newline))]
@@ -165,9 +166,14 @@
                      (sh/stream-to-string cqp :out :encoding encoding))
           err      (sh/stream-to-string cqp :err)
           _        (assert (str/blank? err) (if (:is-dev env) (println err) (logging/error err)))
-          ;; Split into lines and throw away the first line, which contains the CQP version
-          results  (rest (str/split-lines out))]
+          ;; Split into lines and throw away the first line, which contains the CQP version.
+          ;; If counting? is true (which it is when we are searching, but not when retrieving
+          ;; results), the first line after that contains the number of results (either total or
+          ;; cut). Any following lines contain actual search results (only in the first step).
+          res      (rest (str/split-lines out))
+          cnt      (when counting? (first res))
+          results  (if counting? (rest res) res)]
       (if (and (pos? (count results))
                (re-find #"PARSE ERROR|CQP Error" (first results)))
         (throw (str "CQP error: " results))
-        results))))
+        [results cnt]))))

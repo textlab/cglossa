@@ -21,32 +21,27 @@
                          (cwb-corpus-name corpus queries)
                          (construct-query-commands corpus queries metadata-ids named-query
                                                    search-id cut step)
-                         (when (> step 1)
-                           (str "save " named-query))
+                         (str "save " named-query)
                          (str "set Context 7 word")
                          "set PrintStructures \"s_id\""
                          "set LD \"{{\""
                          "set RD \"}}\""
                          (displayed-attrs-command corpus queries)
                          (aligned-languages-command corpus queries)
-                         (if (= step 1)
-                           ;; When we do the first search, which has been cut to the first two
-                           ;; pages of search results, we return all those results
-                           "cat Last"
-                           ;; When we are retrieving more results, we just tell the browser how
-                           ;; many results we have found (so far)
-                           "size Last")]
-        commands        (filter identity (flatten commands))
-        res             (run-cqp-commands corpus (filter identity (flatten commands)))
-        results         (when (= step 1) res)
-        count           (if (= step 1) (count res) (first res))]
-    [results count]))
+                         ;; Always return the number of results, which may be either total or
+                         ;; cut size depending on whether we asked for a cut
+                         "size Last"
+                         (when (= step 1)
+                           ;; When we do the first search, also return the first 100 results,
+                           ;; which amounts to two search result pages.
+                           "cat Last 0 99")]
+        commands        (filter identity (flatten commands))]
+    (run-cqp-commands corpus (filter identity (flatten commands)) true)))
 
-(defmethod get-results :default [corpus search start end sort-key]
+(defmethod get-results :default [corpus search queries start end sort-key]
   (let [named-query (cwb-query-name corpus (:id search))
-        queries     (edn/read-string (:queries search))
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
-                     (str/upper-case (:code corpus))
+                     (cwb-corpus-name corpus queries)
                      (str "set Context 7 word")
                      "set PrintStructures \"s_id\""
                      "set LD \"{{\""
@@ -55,9 +50,10 @@
                      (aligned-languages-command corpus queries)
                      (sort-command named-query sort-key)
                      (str "cat " named-query " " start " " end)]]
-    (run-cqp-commands corpus (flatten commands))))
+    (run-cqp-commands corpus (flatten commands) false)))
 
 (defmethod transform-results :default [_ queries results]
   (when results
     (let [num-langs (->> queries (map :lang) set count)]
+      (println (class queries))
       (map (fn [lines] {:text lines}) (partition num-langs results)))))

@@ -2,7 +2,8 @@
   (:require [korma.db :as kdb]
             [korma.core :refer [defentity table select where insert values]]
             [cglossa.shared :refer [core-db]]
-            [cglossa.db.corpus :refer [get-corpus]]))
+            [cglossa.db.corpus :refer [get-corpus]]
+            [clojure.edn :as edn]))
 
 (defentity search)
 
@@ -12,7 +13,7 @@
   (fn [corpus _ _ _ _ _ _] (:search_engine corpus)))
 
 (defmulti get-results
-  (fn [corpus _ _ _ _] (:search_engine corpus)))
+  (fn [corpus _ _ _ _ _] (:search_engine corpus)))
 
 (defmulti transform-results
   "Multimethod for transforming search results in a way that is
@@ -43,7 +44,8 @@
      :count   count}))
 
 (defn results [corpus-id search-id start end sort-key]
-  (let [corpus  (get-corpus {:id corpus-id})
-        s       (search-by-id search-id)
-        results (get-results corpus s start end sort-key)]
-    (transform-results corpus (:queries s) results)))
+  (let [corpus      (get-corpus {:id corpus-id})
+        s           (search-by-id search-id)
+        queries     (edn/read-string (:queries s))
+        [results _] (get-results corpus s queries start end sort-key)]
+    (transform-results corpus queries results)))

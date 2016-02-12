@@ -25,35 +25,33 @@
                      (construct-query-commands corpus queries metadata-ids named-query
                                                search-id cut step
                                                :s-tag "sync_time")
-                     (when (> step 1)
-                       (str "save " named-query))
+                     (str "save " named-query)
                      (str "set Context 7 sync_time")
                      "set LD \"{{\""
                      "set RD \"}}\""
                      "show +sync_time +sync_end +who_name +who_line_key"
-                     (if (= step 1)
-                       ;; When we do the first search, which has been cut to a single page of
-                       ;; search results, we return all those results
-                       "cat Last"
-                       ;; When we are retrieving more results, we just tell the browser how
-                       ;; many results we have found (so far)
-                       "size Last")]
-        res         (run-cqp-commands corpus (filter identity (flatten commands)))
-        results     (when (= step 1) res)
-        count       (if (= step 1) (count res) (first res))]
-    [results count]))
+                     ;; Always return the number of results, which may be either total or
+                     ;; cut size depending on whether we asked for a cut
+                     "size Last"
+                     (when (= step 1)
+                       ;; When we do the first search, also return the first 100 results,
+                       ;; which amounts to two search result pages.
+                       "cat Last 0 99")]
+        res         (run-cqp-commands corpus (filter identity (flatten commands)) true)]
+    (println res)
+    res))
 
-(defmethod get-results "cwb_speech" [corpus search start end sort-key]
+(defmethod get-results "cwb_speech" [corpus search queries start end sort-key]
   (let [named-query (cwb-query-name corpus (:id search))
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
-                     (str/upper-case (:code corpus))
+                     (cwb-corpus-name corpus queries)
                      (str "set Context 7 sync_time")
                      "set LD \"{{\""
                      "set RD \"}}\""
                      "show +sync_time +sync_end +who_name +who_line_key"
                      (sort-command named-query sort-key)
                      (str "cat " named-query " " start " " end)]]
-    (run-cqp-commands corpus (flatten commands))))
+    (run-cqp-commands corpus (flatten commands) false)))
 
 (defn- fix-brace-positions [result]
   ;; If the matching word/phrase is at the beginning of the segment, CQP puts the braces
@@ -111,7 +109,7 @@
      :min_start         0
      :max_end           last-line-index}))
 
-(defmethod transform-results "cwb_speech" [corpus queries results]
+(defmethod transform-results "cwb_speech" [corpus queries [results _]]
   (when results
     (for [result results
           :let [result*           (fix-brace-positions result)
