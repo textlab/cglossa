@@ -118,23 +118,29 @@
              :style    {:margin-left margin-left}
              :on-click #(search! a m)} "Search"])
 
-(defn- add-language-button [{{:keys [queries query-ids]} :search-view} {:keys [corpus]}]
-  (let [all-langs  (->> @corpus :languages (map :code) set)
-        used-langs (->> @queries (map :lang) set)
-        ;; The default language for the new row will be the first available language
-        ;; that has not been used so far
-        new-lang   (first (set/difference all-langs used-langs))]
-    [b/button {:style    {:marginLeft 20}
-               :disabled (-> @queries first :query str/blank?)
-               :on-click #(add-row queries query-ids {:query "" :lang new-lang})} "Add language"]))
-
-(defn- add-phrase-button [{{:keys [queries query-ids]} :search-view} {:keys [corpus]} view]
+(defn- add-row-button [queries view text on-click]
   [b/button {:bs-size  "small"
              :style    {:margin-right 10
                         :margin-top   (if (= view extended) -15 0)}
-             :on-click (fn [_]
-                         (let [lang (-> @corpus :languages first :code)]
-                           (add-row queries query-ids {:query "" :lang lang})))} "Or..."])
+             :disabled (-> @queries first :query str/blank?)
+             :on-click on-click}
+   text])
+
+(defn- add-language-button [{{:keys [queries query-ids]} :search-view} {:keys [corpus]} view]
+  [add-row-button queries view "Add language"
+   (fn [_]
+     (let [all-langs  (->> @corpus :languages (map :code) set)
+           used-langs (->> @queries (map :lang) set)
+           ;; The default language for the new row will be the first available
+           ;; language that has not been used so far
+           lang       (first (set/difference all-langs used-langs))]
+       (add-row queries query-ids {:query "" :lang lang})))])
+
+(defn- add-phrase-button [{{:keys [queries query-ids]} :search-view} {:keys [corpus]} view]
+  [add-row-button queries view "Or..."
+   (fn [_]
+     (let [lang (-> @corpus :languages first :code)]
+       (add-row queries query-ids {:query "" :lang lang})))])
 
 (defn- show-texts-button [{:keys [show-texts?]} view]
   [b/button {:bs-size  "small"
@@ -264,8 +270,7 @@
                   :title    "CQP expressions"
                   :on-click #(set-view :cqp %)}
               "CQP query"])
-           [search-button a m (if (= @view-type :extended) 81 233)]
-           (when multilingual? [add-language-button a m])]
+           [search-button a m (if (= @view-type :extended) 81 233)]]
 
           ; Now create a cursor into the queries ratom for each search expression
           ; and display a row of search inputs for each of them. The doall call is needed
@@ -307,5 +312,7 @@
                          (when multilingual?
                            [language-select wrapped-query languages selected-language])
                          [view a m wrapped-query show-remove-row-btn?]]]))))
-          (when-not multilingual? [add-phrase-button a m view])
+          (if multilingual?
+            [add-language-button a m view]
+            [add-phrase-button a m view])
           [show-texts-button a view]]))}))
