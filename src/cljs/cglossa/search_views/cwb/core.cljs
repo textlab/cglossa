@@ -125,7 +125,7 @@
         ;; that has not been used so far
         new-lang   (first (set/difference all-langs used-langs))]
     [b/button {:style    {:marginLeft 20}
-               :disabled (-> @queries last :query str/blank?)
+               :disabled (-> @queries first :query str/blank?)
                :on-click #(add-row queries query-ids {:query "" :lang new-lang})} "Add language"]))
 
 (defn- add-phrase-button [{{:keys [queries query-ids]} :search-view} {:keys [corpus]} view]
