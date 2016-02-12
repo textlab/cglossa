@@ -111,7 +111,7 @@
      :min_start         0
      :max_end           last-line-index}))
 
-(defmethod transform-results "cwb_speech" [corpus results]
+(defmethod transform-results "cwb_speech" [corpus queries results]
   (when results
     (for [result results
           :let [result*           (fix-brace-positions result)

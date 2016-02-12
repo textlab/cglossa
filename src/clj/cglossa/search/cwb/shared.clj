@@ -1,7 +1,8 @@
 (ns cglossa.search.cwb.shared
   "Shared code for all types of corpora encoded with the IMS Open Corpus Workbench."
-  (:require [korma.core :refer [defentity select select* modifier fields join where raw]]
-            [clojure.string :as str]
+  (:require [clojure.string :as str]
+            [clojure.set :as set]
+            [korma.core :refer [defentity select select* modifier fields join where raw]]
             [me.raynes.fs :as fs]
             [me.raynes.conch.low-level :as sh]
             [environ.core :refer [env]]
@@ -112,6 +113,14 @@
                               :displayed-attrs)]
     (when (seq displayed-attrs)
       (str "show " (str/join " " (map #(str "+" (name %)) displayed-attrs))))))
+
+(defn aligned-languages-command [corpus queries]
+  (let [lang-codes           (map :lang queries)
+        first-lang-code      (first lang-codes)
+        non-first-lang-codes (-> lang-codes set (disj first-lang-code))]
+    ;; Only show alignment attributes if we have actually asked for aligned languages
+    (when (> (count lang-codes) 1)
+      (str "show " (str/join " " (map #(str "+" (:code corpus) "_" %) non-first-lang-codes))))))
 
 (defn sort-command [named-query sort-key]
   (when-let [context (case sort-key

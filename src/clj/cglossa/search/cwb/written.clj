@@ -7,7 +7,8 @@
             [cglossa.search.core :refer [run-queries get-results transform-results]]
             [cglossa.search.cwb.shared :refer [cwb-query-name cwb-corpus-name run-cqp-commands
                                                construct-query-commands position-fields
-                                               displayed-attrs-command sort-command]]))
+                                               displayed-attrs-command aligned-languages-command
+                                               sort-command]]))
 
 (defmethod position-fields :default [_ positions-filename]
   "The database fields that contain corpus positions for texts."
@@ -27,6 +28,7 @@
                          "set LD \"{{\""
                          "set RD \"}}\""
                          (displayed-attrs-command corpus queries)
+                         (aligned-languages-command corpus queries)
                          (if (= step 1)
                            ;; When we do the first search, which has been cut to the first two
                            ;; pages of search results, we return all those results
@@ -42,17 +44,20 @@
 
 (defmethod get-results :default [corpus search start end sort-key]
   (let [named-query (cwb-query-name corpus (:id search))
+        queries     (edn/read-string (:queries search))
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
                      (str/upper-case (:code corpus))
                      (str "set Context 7 word")
                      "set PrintStructures \"s_id\""
                      "set LD \"{{\""
                      "set RD \"}}\""
-                     (displayed-attrs-command corpus (edn/read-string (:queries search)))
+                     (displayed-attrs-command corpus queries)
+                     (aligned-languages-command corpus queries)
                      (sort-command named-query sort-key)
                      (str "cat " named-query " " start " " end)]]
     (run-cqp-commands corpus (flatten commands))))
 
-(defmethod transform-results :default [_ results]
+(defmethod transform-results :default [_ queries results]
   (when results
-    (map (fn [r] {:text r}) results)))
+    (let [num-langs (->> queries (map :lang) set count)]
+      (map (fn [lines] {:text lines}) (partition num-langs results)))))

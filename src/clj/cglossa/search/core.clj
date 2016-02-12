@@ -17,7 +17,7 @@
 (defmulti transform-results
   "Multimethod for transforming search results in a way that is
   appropriate for the search engine of the corpus in question."
-  (fn [corpus _] (:search_engine corpus)))
+  (fn [corpus _ _] (:search_engine corpus)))
 
 (defn- create-search! [corpus-id queries]
   (kdb/with-db core-db
@@ -36,7 +36,7 @@
                      search-id)
         s          (search-by-id search-id*)
         [res cnt]  (run-queries corpus s queries metadata-ids step cut sort-key)
-        results    (transform-results corpus res)
+        results    (transform-results corpus queries res)
         count      (if (string? cnt) (Integer/parseInt cnt) cnt)]
     {:search  s
      :results results
@@ -46,4 +46,4 @@
   (let [corpus  (get-corpus {:id corpus-id})
         s       (search-by-id search-id)
         results (get-results corpus s start end sort-key)]
-    (transform-results corpus results)))
+    (transform-results corpus (:queries s) results)))
