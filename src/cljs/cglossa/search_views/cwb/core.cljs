@@ -150,14 +150,17 @@
                          (.preventDefault e))}
    "Show texts"])
 
-(defn- language-select [wrapped-query languages]
-  [b/input {:type          "select"
-            :bs-size       "small"
-            :style         {:width 166}
-            :default-value (or (:lang @wrapped-query) (-> languages first :code))
-            :on-change     #(swap! wrapped-query assoc :lang (keyword (.-target.value %)))}
-   (for [{:keys [code name]} languages]
-     [:option {:key code :value code} name])])
+(defn- language-select [wrapped-query languages queries]
+  (let [selected-language     (or (:lang @wrapped-query) (-> languages first :code))
+        previously-used-langs (disj (->> @queries (map :lang) set) selected-language)]
+    [b/input {:type          "select"
+              :bs-size       "small"
+              :style         {:width 166}
+              :default-value selected-language
+              :on-change     #(swap! wrapped-query assoc :lang (keyword (.-target.value %)))}
+     (for [{:keys [code name]} languages
+           :when (not (get previously-used-langs code))]
+       [:option {:key code :value code} name])]))
 
 (defn- single-input-view
   "HTML that is shared by the search views that only show a single text input,
@@ -301,16 +304,15 @@
                      ;; (which only re-renders the view that derefs it) and explicitly call the
                      ;; query processing function before updating the cursor, but then we would
                      ;; have to make sure to do that every time we change a query...
-                     (let [wrapped-query     (r/wrap
-                                               (nth @queries index)
-                                               wrapped-query-changed queries
-                                               index query-ids)
-                           selected-language (get-in @wrapped-query [:query :lang])]
+                     (let [wrapped-query (r/wrap
+                                           (nth @queries index)
+                                           wrapped-query-changed queries
+                                           index query-ids)]
                        ^{:key query-id}
                        [:div.row
                         [:div.col-sm-12
                          (when multilingual?
-                           [language-select wrapped-query languages selected-language])
+                           [language-select wrapped-query languages queries])
                          [view a m wrapped-query show-remove-row-btn?]]]))))
           (if multilingual?
             [add-language-button a m view]
