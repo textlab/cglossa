@@ -94,8 +94,11 @@
             (do
               (swap! search merge resp-search)
               ;; Only the first request actually returns results; the others just save the results
-              ;; on the server to be fetched on demand
-              (if resp-results
+              ;; on the server to be fetched on demand and return an empty result list (but a
+              ;; non-zero resp-count). Thus, we set the results if we either receive a non-empty
+              ;; list of results or a resp-count of zero (meaning that there were actually no
+              ;; matches).
+              (if (or (seq resp-results) (zero? resp-count))
                 (do
                   (reset! results (into {} (map (fn [page-index res]
                                                   [(inc page-index)
