@@ -11,7 +11,8 @@
         (str/split $ #"\s+")
         (map-indexed (fn [index token]
                        (let [attrs    (str/split token #"/")
-                             tip-text (str/join " " (->> attrs rest (remove #(= % "__UNDEF__"))))]
+                             tip-text (str/join " " (->> attrs rest
+                                                         (remove #(get #{"__UNDEF__" "-"} %))))]
                          ^{:key index}
                          [:span {:data-toggle "tooltip"
                                  :title       tip-text}
