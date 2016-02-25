@@ -1,5 +1,4 @@
-[{:displayed-attrs [:ordkl :type :grad_dia :tid_bestemthet
-                    :modus_kasus :person_type2 :tall :kjonn]}
+[{:displayed-attrs [:pos]}
  ["ACRNM" nil "acronym (ISO, CEI)" []]
  ["ADJ" nil "Adjectives (mayores, mayor)" []]
  ["ADV" nil "Adverbs (muy, demasiado, cómo)" []]
