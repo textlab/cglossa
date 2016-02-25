@@ -22,7 +22,7 @@
                          (construct-query-commands corpus queries metadata-ids named-query
                                                    search-id cut step)
                          (str "save " named-query)
-                         (str "set Context 7 word")
+                         (str "set Context 15 word")
                          "set PrintStructures \"s_id\""
                          "set LD \"{{\""
                          "set RD \"}}\""
@@ -42,7 +42,7 @@
   (let [named-query (cwb-query-name corpus (:id search))
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
                      (cwb-corpus-name corpus queries)
-                     (str "set Context 7 word")
+                     (str "set Context 15 word")
                      "set PrintStructures \"s_id\""
                      "set LD \"{{\""
                      "set RD \"}}\""
