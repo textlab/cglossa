@@ -193,19 +193,20 @@
                                        ;; of whether or not the options icon was clicked.
                                        (swap! wrapped-term assoc-in [:features pos] {}))
                                      (reset! options-clicked false))}
-             title [b/glyphicon {:glyph    "option-horizontal"
-                                 :title    "More options"
-                                 :style    {:float "right" :margin-left 5 :margin-top 3}
-                                 :on-click (fn [e]
-                                             ;; Clicking the option icon on a menu item both selects
-                                             ;; the part-of-speech and opens the popup for advanced
-                                             ;; attributes
-                                             (.preventDefault e)
-                                             ;; Set a flag to make sure we don't deselect this
-                                             ;; part-of-speech when the event bubbles up to the
-                                             ;; menu item if it was already selected
-                                             (reset! options-clicked true)
-                                             (reset! show-attr-popup? true))}]])]]
+             (or title pos) [b/glyphicon
+                             {:glyph    "option-horizontal"
+                              :title    "More options"
+                              :style    {:float "right" :margin-left 5 :margin-top 3}
+                              :on-click (fn [e]
+                                          ;; Clicking the option icon on a menu item both selects
+                                          ;; the part-of-speech and opens the popup for advanced
+                                          ;; attributes
+                                          (.preventDefault e)
+                                          ;; Set a flag to make sure we don't deselect this
+                                          ;; part-of-speech when the event bubbles up to the
+                                          ;; menu item if it was already selected
+                                          (reset! options-clicked true)
+                                          (reset! show-attr-popup? true))}]])]]
         ^{:key "modal"}
         [b/modal {:class-name "attr-modal"
                   :bs-size    "large"
@@ -228,13 +229,13 @@
                                                    #(if selected?
                                                      (dissoc % pos)
                                                      (assoc % pos {}))))}
-                         title]))]
+                         (or title pos)]))]
               ^{:key "pos"}
               (for [[pos title _ morphsyn] menu-data
                     :when (and (contains? (:features @wrapped-term) pos)
                                (seq morphsyn))]
                 ^{:key pos}
-                [b/panel {:header (str "Morphosyntactic features for " title)}
+                [b/panel {:header (str "Morphosyntactic features for " (or title pos))}
                  [:div.table-display
                   (for [[header attrs] (partition 2 morphsyn)]
                     ^{:key header}
@@ -261,7 +262,7 @@
                                                         (swap! wrapped-term
                                                                update-in [:features pos]
                                                                dissoc attr*)))}
-                                title]))]])]])))]
+                                (or title value)]))]])]])))]
          [b/modalfooter
           [b/button {:bs-style "danger"
                      :on-click #(swap! wrapped-term assoc :features nil)} "Clear"]
@@ -372,7 +373,7 @@
           ;; that applies to this part-of-speech
           :let [cat-attrs (->> morphsyn (partition 2) (map second))]]
       {:pos         pos
-       :description (str (str/capitalize pos-title) " "
+       :description (str (if pos-title (str/capitalize pos-title) pos) " "
                          (str/join " " (map (partial cat-description pos) cat-attrs)))})))
 
 (defn- taglist [{:keys [corpus]} wrapped-term lang-code show-attr-popup?]
