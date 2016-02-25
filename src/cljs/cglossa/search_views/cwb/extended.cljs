@@ -218,17 +218,19 @@
             (list
               ^{:key "pos-panel"}
               [b/panel {:header "Parts-of-speech"}
-               (doall (for [[pos title] menu-data
+               (doall (for [[pos title tooltip] menu-data
                             :let [selected? (contains? (:features @wrapped-term) pos)]]
                         ^{:key pos}
                         [b/button
-                         {:style    {:margin-left 3 :margin-top 2 :margin-bottom 3}
-                          :bs-size  "xsmall"
-                          :bs-style (if selected? "info" "default")
-                          :on-click (fn [_] (swap! wrapped-term update :features
-                                                   #(if selected?
-                                                     (dissoc % pos)
-                                                     (assoc % pos {}))))}
+                         {:style       {:margin-left 3 :margin-top 2 :margin-bottom 3}
+                          :bs-size     "xsmall"
+                          :bs-style    (if selected? "info" "default")
+                          :data-toggle (when tooltip "tooltip")
+                          :title       tooltip
+                          :on-click    (fn [_] (swap! wrapped-term update :features
+                                                      #(if selected?
+                                                        (dissoc % pos)
+                                                        (assoc % pos {}))))}
                          (or title pos)]))]
               ^{:key "pos"}
               (for [[pos title _ morphsyn] menu-data
