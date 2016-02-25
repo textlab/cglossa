@@ -1,6 +1,6 @@
 [{:displayed-attrs [:pos :type :degr_dia :tense_defin
                     :mood_case :person_type2 :number :gender]}
- ["adj" "adjective"
+ ["adj" "adjective" nil
   ["Type" [[:type "ord" "ordinal"]
            [:person_type2 "pcp1" "present participle"]
            [:person_type2 "pcp2" "perfect participle"]]
@@ -11,8 +11,8 @@
              [:gender "m/f" "feminine or masculine"]
              [:gender "m" "masculine"]
              [:gender "n" "neuter"]]]]
- ["adv" "adverb" []]
- ["det" "determiner"
+ ["adv" "adverb" nil []]
+ ["det" "determiner" nil
   ["Type" [[:type "dem" "demonstrative"]
            [:type "emph" "amplifying"]
            [:type "pcp1" "present participle"]
@@ -21,11 +21,11 @@
            [:type "poss" "possessive"]
            [:type "roman" "roman number"]
            [:type "question" "interrogative"]]]]
- ["infmark" "infinitive marker" []]
- ["interj" "interjection" []]
- ["conj" "conjunction" []]
- ["prep" "preposition" []]
- ["pron" "pronoun"
+ ["infmark" "infinitive marker" nil []]
+ ["interj" "interjection" nil []]
+ ["conj" "conjunction" nil []]
+ ["prep" "preposition" nil []]
+ ["pron" "pronoun" nil
   ["Type" [[:type "hum" "human"]
            [:type "polite" "polite"]
            [:type "pers" "personal"]
@@ -44,8 +44,8 @@
    "Number" [[:number "sg" "singular"]
              [:number "sg/pl" "singular or plural"]
              [:number "pl" "plural"]]]]
- ["subj" "subjunction" []]
- ["n" "noun"
+ ["subj" "subjunction" nil []]
+ ["n" "noun" nil
   ["Type" [[:type "c" "common name"]
            [:type "p" "proper name"]
            [:type "noconj" "no inflection"]]
@@ -58,7 +58,7 @@
    "Number" [[:number "sg" "singular"]
              [:number "sg/pl" "singular or plural"]
              [:number "pl" "plural"]]]]
- ["punct" "punctuation"
+ ["punct" "punctuation" nil
   ["Type" [[:type "cit" "quotation mark"]
            [:type "ellipsis" "ellipsis"]
            [:type "colon" "colon"]
@@ -70,8 +70,8 @@
            [:type "dash" "dash"]
            [:type "excl" "exclamation mark"]
            [:type "lpar" "left parenthesis"]]]]
- ["unknown" "unknown" []]
- ["v" "verb"
+ ["unknown" "unknown" nil []]
+ ["v" "verb" nil
   ["Voice" [[:degr_dia "pass" "passive"]]
    "Mood" [[:mood_case "imp" "imperative"]]
    "Tense" [[:tense_defin "inf" "infinitive"]

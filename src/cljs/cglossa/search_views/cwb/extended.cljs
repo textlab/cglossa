@@ -230,7 +230,7 @@
                                                      (assoc % pos {}))))}
                          title]))]
               ^{:key "pos"}
-              (for [[pos title morphsyn] menu-data
+              (for [[pos title _ morphsyn] menu-data
                     :when (and (contains? (:features @wrapped-term) pos)
                                (seq morphsyn))]
                 ^{:key pos}
@@ -365,7 +365,7 @@
                                                               value)))
                                          ;; Get human-readable value
                                          (map last))))]
-    (for [[pos pos-title morphsyn] pos-data
+    (for [[pos pos-title _ morphsyn] pos-data
           ;; Only consider parts-of-speech that have actually been selected
           :when (contains? (:features @wrapped-term) pos)
           ;; Extract the seq of possible morphosyntactic features for each morphosyntacic category
