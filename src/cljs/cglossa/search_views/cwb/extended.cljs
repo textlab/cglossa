@@ -367,7 +367,7 @@
                                                               value)))
                                          ;; Get human-readable value
                                          (map last))))]
-    (for [[pos pos-title _ morphsyn] pos-data
+    (for [[pos pos-title tooltip morphsyn] pos-data
           ;; Only consider parts-of-speech that have actually been selected
           :when (contains? (:features @wrapped-term) pos)
           ;; Extract the seq of possible morphosyntactic features for each morphosyntacic category
@@ -375,7 +375,8 @@
           :let [cat-attrs (->> morphsyn (partition 2) (map second))]]
       {:pos         pos
        :description (str (if pos-title (str/capitalize pos-title) pos) " "
-                         (str/join " " (map (partial cat-description pos) cat-attrs)))})))
+                         (str/join " " (map (partial cat-description pos) cat-attrs)))
+       :tooltip     tooltip})))
 
 (defn- taglist [{:keys [corpus]} wrapped-term lang-code show-attr-popup?]
   ;; Ideally, hovering? should be initialized to true if the mouse is already hovering over the
@@ -391,16 +392,27 @@
                         :on-mouse-enter #(reset! hovering? true)
                         :on-mouse-leave #(reset! hovering? false)}
        [:div {:style {:margin-top 5}}
-        (for [{:keys [pos description]} descriptions]
+        (for [{:keys [pos description tooltip]} descriptions]
           ^{:key description}
-          [b/label {:bs-style "primary" :style {:float        "left"
-                                                :margin-top   3
-                                                :margin-right 3
-                                                :cursor       "pointer"}
-                    :on-click #(reset! show-attr-popup? true)}
+          [b/label {:bs-style    "primary"
+                    :data-toggle (when tooltip "tooltip")
+                    :title       tooltip
+                    :style       {:float        "left"
+                                  :margin-top   3
+                                  :margin-right 3
+                                  :cursor       "pointer"}
+                    :on-click    #(reset! show-attr-popup? true)}
            description [:span {:style    {:margin-left 6 :cursor "pointer"}
                                :on-click (fn [e]
                                            (.stopPropagation e)
+                                           ;; Need to manually remove the tooltip of our parent
+                                           ;; label; otherwise the tooltip may persist after
+                                           ;; the label has been removed (and then there is no way
+                                           ;; to remove it).
+                                           (-> (.-target e)
+                                               js/$
+                                               (.closest "[data-toggle]")
+                                               (.tooltip "destroy"))
                                            (swap! wrapped-term update :features dissoc pos))}
                         "x"]])]])))
 
