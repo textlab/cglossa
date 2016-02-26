@@ -55,5 +55,4 @@
 (defmethod transform-results :default [_ queries results]
   (when results
     (let [num-langs (->> queries (map :lang) set count)]
-      (println (class queries))
       (map (fn [lines] {:text lines}) (partition num-langs results)))))
