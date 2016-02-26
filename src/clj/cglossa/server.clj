@@ -17,10 +17,13 @@
   (:gen-class))
 
 (defn- init-corpus-connections! [connections]
+  (assert (contains? env :glossa-db-password)
+          (str "Please set the DB password for connecting to Glossa databases in the "
+               "GLOSSA_DB_PASSWORD environment variable before starting the application."))
   (reset! connections
           (into {} (for [c (select corpus (fields :id :code))]
                      [(:id c)
-                      (kdb/create-db (kdb/mysql {:user     (:glossa-db-user env)
+                      (kdb/create-db (kdb/mysql {:user     (:glossa-db-user env "glossa")
                                                  :password (:glossa-db-password env)
                                                  :db       (str (get env :glossa-prefix "glossa")
                                                                 "_"
