@@ -178,9 +178,6 @@
                 :let [selected? (contains? (:features @wrapped-term) pos)]]
             ^{:key pos}
             [b/menuitem {:active   selected?
-                         ;; In the menu, the most intuitive behaviour is probably to deselect any
-                         ;; previously selected part-of-speech whenever we select another one
-                         ;; (the popup, on the other hand, allows multiple selection).
                          :on-click (fn [_]
                                      (if selected?
                                        ;; Deselect the part-of-speech if it was selected AND
