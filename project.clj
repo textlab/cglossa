@@ -31,6 +31,7 @@
                  [me.raynes/fs "1.4.6"]
                  [cheshire "5.5.0"]
                  [org.clojure/tools.logging "0.3.1"]
+                 [ring-logger "0.7.5"]
                  [binaryage/devtools "0.5.0"]]
 
   :plugins [[lein-cljsbuild "1.1.1"]

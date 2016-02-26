@@ -7,6 +7,7 @@
             [environ.core :refer [env]]
             [org.httpkit.server :refer [run-server]]
             [clojure.tools.logging :as log]
+            [ring.logger :refer [wrap-with-logger]]
             [korma.db :as kdb]
             [korma.core :refer [select fields]]
             [cglossa.shared :refer [corpus-connections core-db]]
@@ -51,6 +52,7 @@
   (let [r (routes #'db-routes #'search-routes #'app-routes)
         r (if (:is-dev env) (-> r reload/wrap-reload) r)]
     (-> r
+        wrap-with-logger
         wrap-db
         wrap-keyword-params
         wrap-json-params
