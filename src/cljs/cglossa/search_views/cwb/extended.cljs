@@ -174,22 +174,24 @@
           [b/glyphicon {:glyph "list"}]]
          [b/dropdown-toggle {:bs-size "small" :disabled (nil? menu-data)}]
          [b/dropdown-menu {:style {:min-width 180}}
-          (for [[pos title] menu-data
+          (for [[pos title tooltip] menu-data
                 :let [selected? (contains? (:features @wrapped-term) pos)]]
             ^{:key pos}
-            [b/menuitem {:active   selected?
-                         :on-click (fn [_]
-                                     (if selected?
-                                       ;; Deselect the part-of-speech if it was selected AND
-                                       ;; we didn't click the options icon (because in that case
-                                       ;; we want to specify morphosyntactic features, not
-                                       ;; deselect).
-                                       (when-not @options-clicked
-                                         (swap! wrapped-term update :features dissoc pos))
-                                       ;; If it was not selected, we select it regardless
-                                       ;; of whether or not the options icon was clicked.
-                                       (swap! wrapped-term assoc-in [:features pos] {}))
-                                     (reset! options-clicked false))}
+            [b/menuitem {:active      selected?
+                         :data-toggle (when tooltip "tooltip")
+                         :title       tooltip
+                         :on-click    (fn [_]
+                                        (if selected?
+                                          ;; Deselect the part-of-speech if it was selected AND
+                                          ;; we didn't click the options icon (because in that case
+                                          ;; we want to specify morphosyntactic features, not
+                                          ;; deselect).
+                                          (when-not @options-clicked
+                                            (swap! wrapped-term update :features dissoc pos))
+                                          ;; If it was not selected, we select it regardless
+                                          ;; of whether or not the options icon was clicked.
+                                          (swap! wrapped-term assoc-in [:features pos] {}))
+                                        (reset! options-clicked false))}
              (or title pos) [b/glyphicon
                              {:glyph    "option-horizontal"
                               :title    "More options"
