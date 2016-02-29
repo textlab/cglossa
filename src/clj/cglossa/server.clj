@@ -7,6 +7,7 @@
             [environ.core :refer [env]]
             [org.httpkit.server :refer [run-server]]
             [clojure.tools.logging :as log]
+            [taoensso.timbre :as timbre]
             [ring.logger.timbre :refer [wrap-with-logger]]
             [korma.db :as kdb]
             [korma.core :refer [select fields]]
@@ -28,15 +29,6 @@
                                                  :db       (str (get env :glossa-prefix "glossa")
                                                                 "_"
                                                                 (:code c))}))]))))
-
-;; Global exception handler. From http://stuartsierra.com/2015/05/27/clojure-uncaught-exceptions
-;; Assuming require [clojure.tools.logging :as log]
-(defn- set-default-exception-handler! []
-  (Thread/setDefaultUncaughtExceptionHandler
-    (reify Thread$UncaughtExceptionHandler
-      (uncaughtException [_ thread ex]
-        (log/error ex "Uncaught exception on" (.getName thread))))))
-
 (defn wrap-db
   "Middleware that checks if the request contains a corpus-id key, and if so,
   sets the database for the given corpus as the default for the request. Otherwise
@@ -62,7 +54,7 @@
         wrap-params)))
 
 (defn run [& [port]]
-  (set-default-exception-handler!)
+  (timbre/handle-uncaught-jvm-exceptions!)
   (init-corpus-connections! corpus-connections)
   (defonce ^:private server
     (do
