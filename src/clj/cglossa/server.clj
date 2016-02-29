@@ -8,6 +8,7 @@
             [org.httpkit.server :refer [run-server]]
             [clojure.tools.logging :as log]
             [taoensso.timbre :as timbre]
+            [taoensso.timbre.appenders.3rd-party.rotor :refer [rotor-appender]]
             [ring.logger.timbre :refer [wrap-with-logger]]
             [korma.db :as kdb]
             [korma.core :refer [select fields]]
@@ -55,6 +56,10 @@
 
 (defn run [& [port]]
   (timbre/handle-uncaught-jvm-exceptions!)
+  (timbre/merge-config! {:appenders
+                         {:rotor (rotor-appender {:path (str "./log/timbre-rotor."
+                                                             (if :is-dev "dev" "prod")
+                                                             ".log")})}})
   (init-corpus-connections! corpus-connections)
   (defonce ^:private server
     (do
