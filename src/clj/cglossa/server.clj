@@ -7,7 +7,7 @@
             [environ.core :refer [env]]
             [org.httpkit.server :refer [run-server]]
             [clojure.tools.logging :as log]
-            [ring.logger :refer [wrap-with-logger]]
+            [ring.logger.timbre :refer [wrap-with-logger]]
             [korma.db :as kdb]
             [korma.core :refer [select fields]]
             [cglossa.shared :refer [corpus-connections core-db]]
