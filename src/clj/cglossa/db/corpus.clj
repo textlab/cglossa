@@ -13,7 +13,7 @@
   (let [taggers   (->> c :languages (map :tagger))
         tags      (map (fn [tagger]
                          (when tagger
-                           (edn/read-string (slurp (str "resources/taggers/" tagger ".edn")))))
+                           (edn/read-string (slurp (str "resources/attributes/" tagger ".edn")))))
                        taggers)
         ;; If the first element in the seq read from the tagger file is a hash map, it should
         ;; be a config map (e.g. specifying the name of the part-of-speech attribute if it
