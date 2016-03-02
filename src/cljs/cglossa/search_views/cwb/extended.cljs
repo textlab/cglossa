@@ -46,8 +46,8 @@
                                 (str/replace #"(.+?)(?:\.\*)?$" "$1")))
           (= name "lemma") (assoc :lemma? true)
           (= name "phon") (assoc :phonetic? true)
-          (re-find #"\.\*$" val) (assoc :start? true)
-          (re-find #"^\.\*" val) (assoc :end? true)))
+          (re-find #".+\.\*$" val) (assoc :start? true)
+          (re-find #"^\.\*.+" val) (assoc :end? true)))
 
 
 (defn construct-query-terms [parts]
@@ -96,10 +96,10 @@
                              "")
                       term (cond-> {:form     form
                                     :interval @interval}
-                                   (re-find #"\.\*$" form)
+                                   (re-find #".+\.\*$" form)
                                    (assoc :start? true)
 
-                                   (re-find #"^\.\*" form)
+                                   (re-find #"^\.\*.+" form)
                                    (assoc :end? true))]
                   (reset! interval [nil nil])
                   (conj terms term))))
