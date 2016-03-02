@@ -2,6 +2,7 @@
   (:require [korma.db :as kdb]
             [korma.core :refer [defentity transform select where]]
             [clojure.edn :as edn]
+            [me.raynes.fs :as fs]
             [cglossa.shared :refer [core-db]]
             [cglossa.db.metadata :refer [metadata-category]]))
 
@@ -9,7 +10,7 @@
   (transform (fn [{:keys [languages] :as c}]
                (assoc c :languages (edn/read-string languages)))))
 
-(defn- merge-language-info [c]
+(defn- merge-tagger-attrs [c]
   (let [taggers   (->> c :languages (map :tagger))
         tags      (map (fn [tagger]
                          (when tagger
@@ -24,11 +25,22 @@
         languages (map #(assoc %1 :config %2 :menu-data %3) (:languages c) config menu-data)]
     (assoc c :languages languages)))
 
+(defn- merge-corpus-specific-attrs [c]
+  (let [lang-codes (->> c :languages (map :code))
+        attrs      (for [lang-code lang-codes
+                         :let [path (str "resources/attributes/corpora/"
+                                         (:code c) "_" (name lang-code) ".edn")]]
+                     (when (fs/exists? path)
+                       (edn/read-string (slurp path))))
+        languages  (map #(assoc %1 :corpus-specific-attrs %2) (:languages c) attrs)]
+    (assoc c :languages languages)))
+
 (defn get-corpus [conditions]
   (kdb/with-db core-db
     (-> (select corpus (where conditions))
         first
-        merge-language-info)))
+        merge-tagger-attrs
+        merge-corpus-specific-attrs)))
 
 (defn multilingual? [corpus]
   (> (-> corpus :languages count) 1))
