@@ -30,6 +30,7 @@
 
 (def terms-rx (combine-regexes [interval-rx quoted-or-empty-term-rx attribute-value-rx]))
 
+
 (defn split-query [query]
   (let [terms (if (str/blank? query)
                 query
@@ -37,6 +38,7 @@
     (if (str/blank? terms)
       [["[]"]]
       terms)))
+
 
 (defn- process-form [term name val]
   (cond-> (assoc term :form (-> val
@@ -104,14 +106,17 @@
             []
             parts)))
 
+
 (defn- process-attr-map [[attr-name values]]
   (str attr-name "=\"" (str/join "|" values) "\""))
+
 
 (defn- process-pos-map [[pos attrs]]
   (let [attr-strings (map process-attr-map attrs)
         attr-str     (when (seq attr-strings)
                        (str " & " (str/join " & " attr-strings)))]
     (str "(pos=\"" pos "\"" attr-str ")")))
+
 
 (defn- construct-cqp-query [terms query-term-ids lang-config]
   (let [;; Remove ids whose corresponding terms have been set to nil
@@ -143,14 +148,18 @@
                  query*)]
     query))
 
+
 (defn- language-data [corpus lang-code]
   (->> (:languages @corpus) (filter #(= (:code %) lang-code)) first))
+
 
 (defn- language-menu-data [corpus lang-code]
   (:menu-data (language-data corpus lang-code)))
 
+
 (defn- language-config [corpus lang-code]
   (:config (language-data corpus lang-code)))
+
 
 (defn wrapped-term-changed [wrapped-query terms index query-term-ids lang-config term]
   (swap! wrapped-query assoc :query (construct-cqp-query (assoc terms index term)
@@ -226,6 +235,7 @@
     [b/button {:bs-style "info"
                :on-click #(reset! show-attr-popup? false)} "Close"]]])
 
+
 (defn- menu-button [a {:keys [corpus] :as m}
                     wrapped-query wrapped-term index show-attr-popup?]
   (r/with-let [options-clicked (atom false)]
@@ -275,6 +285,7 @@
         ^{:key "modal"}
         [attribute-modal a m wrapped-term menu-data show-attr-popup?]))))
 
+
 (defn- text-input [a m wrapped-query wrapped-term index show-remove-term-btn? show-attr-popup?]
   [:div.table-cell
    [b/input {:type          "text"
@@ -293,6 +304,7 @@
              :on-change     #(swap! wrapped-term assoc :form (.-target.value %))
              :on-key-down   #(on-key-down % a m)}]])
 
+
 (defn- add-term-btn [wrapped-query wrapped-term query-term-ids]
   [:div.table-cell {:style {:vertical-align "bottom" :padding-left 14 :padding-bottom 5}}
    [b/button {:bs-style "info"
@@ -309,6 +321,7 @@
                                  update :query str " []"))}
     [b/glyphicon {:glyph "plus"}]]])
 
+
 (defn- interval-input [a m wrapped-term index]
   [b/input {:type        "text"
             :bs-size     "small"
@@ -318,11 +331,13 @@
                                  assoc-in [:interval index] (.-target.value %))
             :on-key-down #(on-key-down % a m)}])
 
+
 (defn interval [a m wrapped-term]
   [:div.interval.table-cell
    [interval-input a m wrapped-term 0] "min"
    [:br]
    [interval-input a m wrapped-term 1] "max"])
+
 
 (defn- checkboxes [wrapped-term has-phonetic?]
   (let [term-val @wrapped-term]
@@ -356,6 +371,7 @@
                  :on-change #(swap! wrapped-term assoc :phonetic? (.-target.checked %))
                  }] "Phonetic form"])]))
 
+
 (defn- tag-descriptions [pos-data wrapped-term]
   (let [;; Returns a description of the selected morphosyntactic features for a particular
         ;; morphosyntactic category. 'attrs' is a seq of possible values for this category, with
@@ -380,6 +396,7 @@
        :description (str (if pos-title (str/capitalize pos-title) pos) " "
                          (str/join " " (map (partial cat-description pos) cat-attrs)))
        :tooltip     tooltip})))
+
 
 (defn- taglist [{:keys [corpus]} wrapped-term lang-code show-attr-popup?]
   ;; Ideally, hovering? should be initialized to true if the mouse is already hovering over the
@@ -418,6 +435,7 @@
                                                (.tooltip "destroy"))
                                            (swap! wrapped-term update :features dissoc pos))}
                         "x"]])]])))
+
 
 (defn multiword-term [a m wrapped-query wrapped-term query-term-ids
                       index first? last? has-phonetic? show-remove-row-btn?
