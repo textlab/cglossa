@@ -14,4 +14,4 @@ pom.xml.asc
 .sass-cache
 figwheel_server.log
 bower_components
-/log/*.log
+/log/*.log*
