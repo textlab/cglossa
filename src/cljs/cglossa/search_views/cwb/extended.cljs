@@ -160,6 +160,72 @@
 ;;;; Components
 ;;;;;;;;;;;;;;;;
 
+(defn- attribute-modal [a m wrapped-term menu-data show-attr-popup?]
+  [b/modal {:class-name "attr-modal"
+            :bs-size    "large"
+            :keyboard   true
+            :show       @show-attr-popup?
+            :on-hide    #(reset! show-attr-popup? false)}
+   [b/modalbody
+    (when menu-data
+      (list
+        ^{:key "pos-panel"}
+        [b/panel {:header "Parts-of-speech"}
+         (doall (for [[pos title tooltip] menu-data
+                      :let [selected? (contains? (:features @wrapped-term) pos)]]
+                  ^{:key pos}
+                  [b/button
+                   {:style       {:margin-left 3 :margin-top 2 :margin-bottom 3}
+                    :bs-size     "xsmall"
+                    :bs-style    (if selected? "info" "default")
+                    :data-toggle (when tooltip "tooltip")
+                    :title       tooltip
+                    :on-click    (fn [_] (swap! wrapped-term update :features
+                                                #(if selected?
+                                                  (dissoc % pos)
+                                                  (assoc % pos {}))))}
+                   (or title pos)]))]
+        ^{:key "pos"}
+        (for [[pos title _ morphsyn] menu-data
+              :when (and (contains? (:features @wrapped-term) pos)
+                         (seq morphsyn))]
+          ^{:key pos}
+          [b/panel {:header (str "Morphosyntactic features for " (or title pos))}
+           [:div.table-display
+            (for [[header attrs] (partition 2 morphsyn)]
+              ^{:key header}
+              [:div.table-row
+               [:div.table-cell header ": "]
+               [:div.table-cell {:style {:padding-bottom 5}}
+                (doall (for [[attr value title] attrs
+                             :let [attr*     (name attr)
+                                   selected? (contains? (get-in @wrapped-term
+                                                                [:features pos attr*])
+                                                        value)]]
+                         ^{:key value}
+                         [b/button {:style    {:margin-left 3 :margin-bottom 5}
+                                    :bs-size  "xsmall"
+                                    :bs-style (if selected? "info" "default")
+                                    :on-click (fn [_]
+                                                (swap! wrapped-term
+                                                       update-in [:features pos attr*]
+                                                       (fn [a] (if selected?
+                                                                 (disj a value)
+                                                                 (set (conj a value)))))
+                                                (when (empty? (get-in @wrapped-term
+                                                                      [:features pos attr*]))
+                                                  (swap! wrapped-term
+                                                         update-in [:features pos]
+                                                         dissoc attr*)))}
+                          (or title value)]))]])]])))]
+   [b/modalfooter
+    [b/button {:bs-style "danger"
+               :on-click #(swap! wrapped-term assoc :features nil)} "Clear"]
+    [b/button {:bs-style "success"
+               :on-click (fn [_] (reset! show-attr-popup? false) (search! a m))} "Search"]
+    [b/button {:bs-style "info"
+               :on-click #(reset! show-attr-popup? false)} "Close"]]])
+
 (defn- menu-button [a {:keys [corpus] :as m}
                     wrapped-query wrapped-term index show-attr-popup?]
   (r/with-let [options-clicked (atom false)]
@@ -207,70 +273,7 @@
                                           (reset! options-clicked true)
                                           (reset! show-attr-popup? true))}]])]]
         ^{:key "modal"}
-        [b/modal {:class-name "attr-modal"
-                  :bs-size    "large"
-                  :keyboard   true
-                  :show       @show-attr-popup?
-                  :on-hide    #(reset! show-attr-popup? false)}
-         [b/modalbody
-          (when menu-data
-            (list
-              ^{:key "pos-panel"}
-              [b/panel {:header "Parts-of-speech"}
-               (doall (for [[pos title tooltip] menu-data
-                            :let [selected? (contains? (:features @wrapped-term) pos)]]
-                        ^{:key pos}
-                        [b/button
-                         {:style       {:margin-left 3 :margin-top 2 :margin-bottom 3}
-                          :bs-size     "xsmall"
-                          :bs-style    (if selected? "info" "default")
-                          :data-toggle (when tooltip "tooltip")
-                          :title       tooltip
-                          :on-click    (fn [_] (swap! wrapped-term update :features
-                                                      #(if selected?
-                                                        (dissoc % pos)
-                                                        (assoc % pos {}))))}
-                         (or title pos)]))]
-              ^{:key "pos"}
-              (for [[pos title _ morphsyn] menu-data
-                    :when (and (contains? (:features @wrapped-term) pos)
-                               (seq morphsyn))]
-                ^{:key pos}
-                [b/panel {:header (str "Morphosyntactic features for " (or title pos))}
-                 [:div.table-display
-                  (for [[header attrs] (partition 2 morphsyn)]
-                    ^{:key header}
-                    [:div.table-row
-                     [:div.table-cell header ": "]
-                     [:div.table-cell {:style {:padding-bottom 5}}
-                      (doall (for [[attr value title] attrs
-                                   :let [attr*     (name attr)
-                                         selected? (contains? (get-in @wrapped-term
-                                                                      [:features pos attr*])
-                                                              value)]]
-                               ^{:key value}
-                               [b/button {:style    {:margin-left 3 :margin-bottom 5}
-                                          :bs-size  "xsmall"
-                                          :bs-style (if selected? "info" "default")
-                                          :on-click (fn [_]
-                                                      (swap! wrapped-term
-                                                             update-in [:features pos attr*]
-                                                             (fn [a] (if selected?
-                                                                       (disj a value)
-                                                                       (set (conj a value)))))
-                                                      (when (empty? (get-in @wrapped-term
-                                                                            [:features pos attr*]))
-                                                        (swap! wrapped-term
-                                                               update-in [:features pos]
-                                                               dissoc attr*)))}
-                                (or title value)]))]])]])))]
-         [b/modalfooter
-          [b/button {:bs-style "danger"
-                     :on-click #(swap! wrapped-term assoc :features nil)} "Clear"]
-          [b/button {:bs-style "success"
-                     :on-click (fn [_] (reset! show-attr-popup? false) (search! a m))} "Search"]
-          [b/button {:bs-style "info"
-                     :on-click #(reset! show-attr-popup? false)} "Close"]]]))))
+        [attribute-modal a m wrapped-term menu-data show-attr-popup?]))))
 
 (defn- text-input [a m wrapped-query wrapped-term index show-remove-term-btn? show-attr-popup?]
   [:div.table-cell
