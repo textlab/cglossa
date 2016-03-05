@@ -50,11 +50,15 @@
           (re-find #"^\.\*.+" val) (assoc :end? true)))
 
 
-(defn construct-query-terms [parts]
+(defn construct-query-terms [parts corpus-specific-attrs]
   ;; Use an atom to keep track of interval specifications so that we can set
   ;; them as the value of the :interval key in the map representing the following
   ;; query term.
-  (let [interval (atom [nil nil])]
+  (let [interval                    (atom [nil nil])
+        corpus-specific-attr-names  (when (seq corpus-specific-attrs)
+                                      (str "(" (str/join "|" corpus-specific-attrs) ")"))
+        corpus-specific-attrs-regex (when corpus-specific-attr-names
+                                      (re-pattern (str corpus-specific-attr-names "=\"(.+?)\"")))]
     (reduce (fn [terms part]
               (condp re-matches (first part)
                 interval-rx
@@ -80,10 +84,19 @@
                                                (assoc-in t [:features pos]
                                                          (into {} (map (fn [[_ name vals]]
                                                                          [name
-                                                                          (set (str/split vals #"\|"))])
+                                                                          (set (str/split vals
+                                                                                          #"\|"))])
                                                                        others)))))
                                            $
                                            pos-exprs)
+                                   $)
+                                 (if-let [exprs (when corpus-specific-attrs-regex
+                                                  (re-seq corpus-specific-attrs-regex (last part)))]
+                                   (reduce (fn [t [_ attr vals]]
+                                             (assoc-in t [:corpus-specific-attrs attr]
+                                                       (set (str/split vals #"\|"))))
+                                           $
+                                           exprs)
                                    $))]
                   (reset! interval [nil nil])
                   (conj terms term))
@@ -123,7 +136,8 @@
         _      (swap! query-term-ids #(vec (keep-indexed (fn [index id]
                                                            (when (nth terms index) id)) %)))
         terms* (filter identity terms)                      ; nil means term should be removed
-        parts  (for [{:keys [interval form lemma? phonetic? start? end? features]} terms*]
+        parts  (for [{:keys [interval form lemma? phonetic?
+                             start? end? features corpus-specific-attrs]} terms*]
                  (let [attr   (cond
                                 lemma? "lemma"
                                 phonetic? "phon"
@@ -137,11 +151,13 @@
                                 (str attr "=\"" form* "\" %c"))
                        feats  (when (seq features)
                                 (str "(" (str/join " | " (map process-pos-map features)) ")"))
+                       extra  (when (seq corpus-specific-attrs)
+                                (str (first (map process-attr-map corpus-specific-attrs))))
                        [min max] interval
                        interv (if (or min max)
                                 (str "[]{" (or min 0) "," (or max "") "} ")
                                 "")]
-                   (str interv "[" (str/join " & " (filter identity [main feats])) "]")))
+                   (str interv "[" (str/join " & " (filter identity [main feats extra])) "]")))
         query* (str/join \space parts)
         query  (if-let [pos-attr (:pos-attr lang-config)]
                  (str/replace query* #"\bpos(?=\s*=)" pos-attr)
@@ -169,7 +185,8 @@
 ;;;; Components
 ;;;;;;;;;;;;;;;;
 
-(defn- attribute-modal [a m wrapped-term menu-data show-attr-popup?]
+(defn- attribute-modal [a {:keys [corpus] :as m}
+                        wrapped-query wrapped-term menu-data show-attr-popup?]
   [b/modal {:class-name "attr-modal"
             :bs-size    "large"
             :keyboard   true
@@ -226,7 +243,36 @@
                                                   (swap! wrapped-term
                                                          update-in [:features pos]
                                                          dissoc attr*)))}
-                          (or title value)]))]])]])))]
+                          (or title value)]))]])]])
+        (when-let [selected-language (:lang @wrapped-query)]
+          (let [lang (first (filter #(= (:code %) selected-language) (:languages @corpus)))]
+            (when-let [[attr header & attr-values] (:corpus-specific-attrs lang)]
+              ^{:key "corpus-specific-attrs"}
+              [b/panel {:header header}
+               (doall (for [[attr-value title tooltip] attr-values
+                            :let [attr*     (name attr)
+                                  selected? (contains? (get-in @wrapped-term
+                                                               [:corpus-specific-attrs attr*])
+                                                       attr-value)]]
+                        ^{:key attr-value}
+                        [b/button
+                         {:style       {:margin-left 3 :margin-top 2 :margin-bottom 3}
+                          :bs-size     "xsmall"
+                          :bs-style    (if selected? "info" "default")
+                          :data-toggle (when tooltip "tooltip")
+                          :title       tooltip
+                          :on-click    (fn [_]
+                                         (swap! wrapped-term
+                                                update-in [:corpus-specific-attrs attr*]
+                                                (fn [a] (if selected?
+                                                          (disj a attr-value)
+                                                          (set (conj a attr-value)))))
+                                         (when (empty? (get-in @wrapped-term
+                                                               [:corpus-specific-attrs attr*]))
+                                           (swap! wrapped-term
+                                                  update-in [:corpus-specific-attrs attr*]
+                                                  dissoc attr-value)))}
+                         (or title attr-value)]))])))))]
    [b/modalfooter
     [b/button {:bs-style "danger"
                :on-click #(swap! wrapped-term assoc :features nil)} "Clear"]
@@ -283,7 +329,7 @@
                                           (reset! options-clicked true)
                                           (reset! show-attr-popup? true))}]])]]
         ^{:key "modal"}
-        [attribute-modal a m wrapped-term menu-data show-attr-popup?]))))
+        [attribute-modal a m wrapped-query wrapped-term menu-data show-attr-popup?]))))
 
 
 (defn- text-input [a m wrapped-query wrapped-term index show-remove-term-btn? show-attr-popup?]
@@ -486,16 +532,21 @@
                ;; removed. This is the kind of ugly state manipulation that React normally saves
                ;; us from, but in cases like this it seems unavoidable...
                query-term-ids (atom nil)]
-    (let [lang-config     (language-config corpus (:lang @wrapped-query))
-          query*          (:query @wrapped-query)
-          query           (if-let [pos-attr (:pos-attr lang-config)]
-                            (str/replace query*
-                                         (re-pattern (str "\\b" pos-attr "(?=\\s*=)"))
-                                         "pos")
-                            query*)
-          parts           (split-query query)
-          terms           (construct-query-terms parts)
-          last-term-index (dec (count terms))]
+    (let [lang-config           (language-config corpus (:lang @wrapped-query))
+          query*                (:query @wrapped-query)
+          query                 (if-let [pos-attr (:pos-attr lang-config)]
+                                  (str/replace query*
+                                               (re-pattern (str "\\b" pos-attr "(?=\\s*=)"))
+                                               "pos")
+                                  query*)
+          parts                 (split-query query)
+          corpus-specific-attrs (->> @corpus
+                                     :languages
+                                     (keep :corpus-specific-attrs)
+                                     (map first)
+                                     (map name))
+          terms                 (construct-query-terms parts corpus-specific-attrs)
+          last-term-index       (dec (count terms))]
       (when (nil? @query-term-ids)
         (reset! query-term-ids (vec (range (count terms)))))
       [:div.multiword-container
