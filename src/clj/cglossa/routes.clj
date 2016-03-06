@@ -12,7 +12,7 @@
             [ring.handler.dump :refer [handle-dump]]
             [cognitect.transit :as transit]
             [net.cgrand.enlive-html :refer [deftemplate html-content]]
-            [clojure.tools.logging :as log]
+            [taoensso.timbre :as timbre]
             [cglossa.shared :refer [corpus-connections]]
             [cglossa.db.corpus :refer [get-corpus]]
             [cglossa.db.metadata :refer [get-metadata-categories get-metadata-values show-texts]]
@@ -43,7 +43,7 @@
   `(try (let [res# ~fn-call]
           (transit-response* res# ~@args))
         (catch Exception e#
-          (log/error e#)
+          (timbre/error e#)
           {:status 500
            :body   (.toString e#)})))
 

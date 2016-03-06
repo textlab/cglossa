@@ -6,7 +6,6 @@
             [ring.middleware.json :refer [wrap-json-params]]
             [environ.core :refer [env]]
             [org.httpkit.server :refer [run-server]]
-            [clojure.tools.logging :as log]
             [taoensso.timbre :as timbre]
             [taoensso.timbre.appenders.3rd-party.rotor :refer [rotor-appender]]
             [ring.logger.timbre :refer [wrap-with-logger]]

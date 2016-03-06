@@ -6,7 +6,7 @@
             [me.raynes.fs :as fs]
             [me.raynes.conch.low-level :as sh]
             [environ.core :refer [env]]
-            [clojure.tools.logging :as logging]
+            [taoensso.timbre :as timbre]
             [cglossa.db.corpus :refer [multilingual?]]
             [cglossa.db.metadata :refer [metadata-value-text]])
   (:import [java.sql SQLException]))
@@ -165,7 +165,7 @@
                      (sh/done cqp)
                      (sh/stream-to-string cqp :out :encoding encoding))
           err      (sh/stream-to-string cqp :err)
-          _        (assert (str/blank? err) (if (:is-dev env) (println err) (logging/error err)))
+          _        (assert (str/blank? err) (if (:is-dev env) (println err) (timbre/error err)))
           ;; Split into lines and throw away the first line, which contains the CQP version.
           ;; If counting? is true (which it is when we are searching, but not when retrieving
           ;; results), the first line after that contains the number of results (either total or
