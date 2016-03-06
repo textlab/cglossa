@@ -229,6 +229,16 @@
      [sort-button a m]
      [pagination a m]]]])
 
+(defmulti result-links
+  "Multimethod for links shown to the left of each search result in a
+  concordance table. It accepts a model/domain state map and the result as
+  arguments and dispatches to the correct method based on the value of :code in
+  the corpus map found in the model/domain state map. The :default case returns
+  nil."
+  (fn [{corpus :corpus} _] (:code @corpus)))
+
+(defmethod result-links :default [_ _] nil)
+
 (defmulti concordance-table
   "Multimethod that accepts two arguments - an app state map and a
   model/domain state map - and dispatches to the correct method based

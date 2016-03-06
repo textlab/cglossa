@@ -7,6 +7,7 @@
             tooltip
             [devtools.core :as devtools]
             [cglossa.search-engines]                        ; just to pull in implementations
+            [cglossa.corpora.core]                          ; just to pull in implementations
             [cglossa.shared :refer [reset-queries!]]
             [cglossa.app :refer [app]])
   (:require-macros [cljs.core.async.macros :refer [go]])

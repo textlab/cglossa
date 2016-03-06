@@ -1,12 +1,13 @@
-(ns cglossa.result-views.cwb.shared)
+(ns cglossa.result-views.cwb.shared
+  (:require [cglossa.results :refer [result-links]]))
 
-(defn id-column [result]
+(defn id-column [m result]
   ;; If the 'match' property is defined, we know that we have a result from a monolingual
   ;; search or the first language of a multilingual one. If that is the case, and s-id is
   ;; defined, we print it in the first column (if we have a non-first language result, we
   ;; will include it in the next column instead).
   (when (and (:match result) (:s-id result))
-    [:td (:s-id result)]))
+    [:td (:s-id result) [result-links m result]]))
 
 (defn text-columns [result]
   (if (:match result)

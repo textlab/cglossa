@@ -44,7 +44,7 @@
                 [b/button {:bs-size  "xsmall" :title "Show waveform" :style {:width "100%"}
                            :on-click #(toggle-player index "wfplayer" "audio" a)}
                  [:img {:src "img/waveform.png"}]]))])
-     (shared/id-column result)
+     (shared/id-column m result)
      (shared/text-columns result)]))
 
 (defn- extra-row [result attr {:keys [corpus]}]
