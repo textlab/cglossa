@@ -74,7 +74,7 @@
     [total res]))
 
 (defn get-metadata-categories []
-  (select metadata-category (order :name)))
+  (select metadata-category))
 
 (defn get-metadata-values [category-id value-filter selected-ids page]
   (let [offs  (* (dec page) metadata-pagesize)
