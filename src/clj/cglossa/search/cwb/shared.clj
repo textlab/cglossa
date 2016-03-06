@@ -79,7 +79,12 @@
             sql
             cats)))
 
-(defn- print-positions-matching-metadata [corpus metadata-ids positions-filename]
+(defn where-language [sql corpus queries]
+  (if (multilingual? corpus)
+    (where sql {:language (-> queries first :lang)})
+    sql))
+
+(defn- print-positions-matching-metadata [corpus queries metadata-ids positions-filename]
   "Returns start and stop positions of all corpus texts that are associated
   with the metadata values that have the given database ids, with an OR
   relationship between values within the same category and an AND relationship
@@ -95,6 +100,7 @@
         (fields (position-fields corpus positions-filename))
         (join-metadata metadata-ids)
         (where-metadata metadata-ids)
+        (where-language corpus queries)
         (select))
     (catch SQLException e
       (when-not (.contains (.toString e) "ResultSet is from UPDATE")
@@ -141,7 +147,8 @@
         init-cmds (if (seq metadata-ids)
                     (let [positions-filename (str (fs/tmpdir) "/positions_" search-id)]
                       (when (= step 1)
-                        (print-positions-matching-metadata corpus metadata-ids positions-filename))
+                        (print-positions-matching-metadata corpus queries
+                                                           metadata-ids positions-filename))
                       [(str "undump " named-query " < '" positions-filename \') named-query])
                     [])
         ;; Note: We cannot cut multilingual queries, since CQP actually applies the cut to the
