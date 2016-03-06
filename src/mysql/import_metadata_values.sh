@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 
 position_cols="\`startpos\`, \`endpos\`"
-while getopts ":s" opt; do
+language_col=""
+while getopts ":s:m" opt; do
   case $opt in
     s)
       position_cols="\`bounds\`"
+      ;;
+    m)
+      language_col=", \`language\`"
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
@@ -62,7 +66,7 @@ mysql -u "${GLOSSA_DB_ADMIN:-root}" -p  \
     -e "TRUNCATE \`metadata_value\`;" \
     -e "LOAD DATA INFILE '$valfile2' INTO TABLE \`metadata_value\` (\`metadata_category_id\`, \`text_value\`);" \
     -e "TRUNCATE \`text\`;" \
-    -e "LOAD DATA INFILE '$valfile4' INTO TABLE \`text\` (${position_cols});" \
+    -e "LOAD DATA INFILE '$valfile4' INTO TABLE \`text\` (${position_cols}${language_col});" \
     -e "TRUNCATE \`metadata_value_text\`;" \
     -e "LOAD DATA INFILE '$valfile3' INTO TABLE \`metadata_value_text\`;" \
     -e "CREATE INDEX \`metadata_value_id\` ON \`metadata_value_text\` (\`metadata_value_id\`);" \

@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS `text` (
 `startpos` bigint DEFAULT NULL,
 `endpos` bigint DEFAULT NULL,
 `bounds` text
+`language` text
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `metadata_category` (

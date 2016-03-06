@@ -37,20 +37,27 @@
             value-cols unique-vals)))
 
 (defn create-texts [cols cat-codes]
-  "Creates data to import into the texts table. The returned vectors will
-  contain either a startpos and an endpos and nil for the bounds, or a bounds
-  value and nil for the other two, depending on whether the metadata defines
-  either a bounds category (typically used with speech corpora) or both
-  startpos and endpos categories (typically used with written corpora)."
+  "Creates data to import into the texts table. The returned lists will
+  contain either a startpos and an endpos or a bounds value, depending on
+  whether the metadata defines either a bounds category (typically used with
+  speech corpora) or both startpos and endpos categories (typically used with
+  written corpora). For multilingual corpora, there should also be a language
+  column that indicates which aligned language the text belongs to (can also be
+  used for other types of aligned corpus parts)."
   (let [startpos-index (.indexOf cat-codes "startpos")
         endpos-index   (.indexOf cat-codes "endpos")
-        bounds-index   (.indexOf cat-codes "bounds")]
+        bounds-index   (.indexOf cat-codes "bounds")
+        language-index (.indexOf cat-codes "language")]
     (assert (or (and (= -1 startpos-index) (= -1 endpos-index (not= -1 bounds-index)))
                 (and (not= -1 startpos-index (not= -1 endpos-index) (= -1 bounds-index))))
             "Metadata should contain either a bounds category or startpos and endpos categories")
     (if (not= -1 bounds-index)
-      (map list (nth cols bounds-index))
-      (map list (nth cols startpos-index) (nth cols endpos-index)))))
+      (if (not= -1 language-index)
+        (map list (nth cols bounds-index) (nth cols language-index))
+        (map list (nth cols bounds-index)))
+      (if (not= -1 language-index)
+        (map list (nth cols startpos-index) (nth cols endpos-index) (nth cols language-index))
+        (map list (nth cols startpos-index) (nth cols endpos-index))))))
 
 (defn- create-import-data [value-tsv-path cat-tsv-path]
   (with-open [value-tsv-file (io/reader value-tsv-path)
