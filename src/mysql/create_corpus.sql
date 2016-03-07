@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS `text` (
 `id` int unsigned NOT NULL AUTO_INCREMENT KEY,
 `startpos` bigint DEFAULT NULL,
 `endpos` bigint DEFAULT NULL,
-`bounds` text
+`bounds` text,
 `language` text
 ) ENGINE=InnoDB;
 
