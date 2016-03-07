@@ -24,7 +24,7 @@
     (let [[_ s-id pre match post] m]
       [(str/trim s-id) [pre match post]])))
 
-(defn- main-row [result index a {:keys [corpus]}]
+(defn- main-row [result index a {:keys [corpus] :as m}]
   (let [sound? (:has-sound @corpus)
         video? (:has-video @corpus)]
     ^{:key (hash result)}
