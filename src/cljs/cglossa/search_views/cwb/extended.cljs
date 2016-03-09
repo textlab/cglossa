@@ -210,10 +210,13 @@
                     :bs-style    (if selected? "info" "default")
                     :data-toggle (when tooltip "tooltip")
                     :title       tooltip
-                    :on-click    (fn [_] (swap! wrapped-term update :features
-                                                #(if selected?
-                                                  (dissoc % pos)
-                                                  (assoc % pos {}))))}
+                    :on-click    (fn [e]
+                                   ;; Blur button to prevent tooltip from sticking
+                                   (.blur (js/$ (.-target e)))
+                                   (swap! wrapped-term update :features
+                                          #(if selected?
+                                            (dissoc % pos)
+                                            (assoc % pos {}))))}
                    (or title pos)]))]
         ^{:key "pos"}
         (for [[pos title _ morphsyn] menu-data
@@ -236,7 +239,9 @@
                          [b/button {:style    {:margin-left 3 :margin-bottom 5}
                                     :bs-size  "xsmall"
                                     :bs-style (if selected? "info" "default")
-                                    :on-click (fn [_]
+                                    :on-click (fn [e]
+                                                ;; Blur button to prevent tooltip from sticking
+                                                (.blur (js/$ (.-target e)))
                                                 (swap! wrapped-term
                                                        update-in [:features pos attr*]
                                                        (fn [a] (if selected?
@@ -265,7 +270,9 @@
                           :bs-style    (if selected? "info" "default")
                           :data-toggle (when tooltip "tooltip")
                           :title       tooltip
-                          :on-click    (fn [_]
+                          :on-click    (fn [e]
+                                         ;; Blur button to prevent tooltip from sticking
+                                         (.blur (js/$ (.-target e)))
                                          (swap! wrapped-term
                                                 update-in [:corpus-specific-attrs attr*]
                                                 (fn [a] (if selected?
