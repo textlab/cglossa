@@ -152,7 +152,7 @@
                        feats  (when (seq features)
                                 (str "(" (str/join " | " (map process-pos-map features)) ")"))
                        extra  (when (seq corpus-specific-attrs)
-                                (str (first (map process-attr-map corpus-specific-attrs))))
+                                (str/join " & " (map process-attr-map corpus-specific-attrs)))
                        [min max] interval
                        interv (if (or min max)
                                 (str "[]{" (or min 0) "," (or max "") "} ")
@@ -175,6 +175,10 @@
 
 (defn- language-config [corpus lang-code]
   (:config (language-data corpus lang-code)))
+
+
+(defn- language-corpus-specific-attrs [corpus lang-code]
+  (:corpus-specific-attrs (language-data corpus lang-code)))
 
 
 (defn wrapped-term-changed [wrapped-query terms index query-term-ids lang-config term]
@@ -245,9 +249,9 @@
                                                          dissoc attr*)))}
                           (or title value)]))]])]])
         (when-let [selected-language (:lang @wrapped-query)]
-          (let [lang (first (filter #(= (:code %) selected-language) (:languages @corpus)))]
-            (when-let [[attr header & attr-values] (:corpus-specific-attrs lang)]
-              ^{:key "corpus-specific-attrs"}
+          (when-let [attr-specs (language-corpus-specific-attrs corpus selected-language)]
+            (for [[attr header & attr-values] attr-specs]
+              ^{:key (str "csa-" (name attr))}
               [b/panel {:header header}
                (doall (for [[attr-value title tooltip] attr-values
                             :let [attr*     (name attr)
@@ -532,7 +536,8 @@
                ;; removed. This is the kind of ugly state manipulation that React normally saves
                ;; us from, but in cases like this it seems unavoidable...
                query-term-ids (atom nil)]
-    (let [lang-config           (language-config corpus (:lang @wrapped-query))
+    (let [lang-code             (:lang @wrapped-query)
+          lang-config           (language-config corpus lang-code)
           query*                (:query @wrapped-query)
           query                 (if-let [pos-attr (:pos-attr lang-config)]
                                   (str/replace query*
@@ -540,9 +545,7 @@
                                                "pos")
                                   query*)
           parts                 (split-query query)
-          corpus-specific-attrs (->> @corpus
-                                     :languages
-                                     (keep :corpus-specific-attrs)
+          corpus-specific-attrs (->> (language-corpus-specific-attrs corpus lang-code)
                                      (map first)
                                      (map name))
           terms                 (construct-query-terms parts corpus-specific-attrs)
