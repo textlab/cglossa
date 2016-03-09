@@ -141,23 +141,23 @@
 
 (defn construct-query-commands [corpus queries metadata-ids named-query search-id cut step
                                 & {:keys [s-tag] :or {s-tag "s"}}]
-  (let [query-str (if (multilingual? corpus)
-                    (build-multilingual-query corpus queries s-tag)
-                    (build-monolingual-query queries s-tag))
-        init-cmds (if (seq metadata-ids)
-                    (let [positions-filename (str (fs/tmpdir) "/positions_" search-id)]
-                      (when (= step 1)
-                        (print-positions-matching-metadata corpus queries
-                                                           metadata-ids positions-filename))
-                      [(str "undump " named-query " < '" positions-filename \') named-query])
-                    [])
+  (let [query-str       (if (multilingual? corpus)
+                          (build-multilingual-query corpus queries s-tag)
+                          (build-monolingual-query queries s-tag))
+        init-cmds       (if (seq metadata-ids)
+                          (let [positions-filename (str (fs/tmpdir) "/positions_" search-id)]
+                            (when (= step 1)
+                              (print-positions-matching-metadata corpus queries
+                                                                 metadata-ids positions-filename))
+                            [(str "undump " named-query " < '" positions-filename \') named-query])
+                          [])
         ;; Note: We cannot cut multilingual queries, since CQP actually applies the cut to the
         ;; search in the first language and only then tries to find aligned regions. As a
         ;; consequence there may be no results returned at all, since the results found in the
         ;; first language may not be aligned to the other languages at all, or they may not match
         ;; the queries provided for the other languages.
-        monolingual-query? (= (->> queries (map :lang) set count) 1)
-        cut-str   (when (and cut monolingual-query?) (str " cut " cut))]
+        monoling-query? (= (->> queries (map :lang) set count) 1)
+        cut-str         (when (and cut monoling-query?) (str " cut " cut))]
     (conj init-cmds (str named-query " = " query-str cut-str))))
 
 (defn run-cqp-commands [corpus commands counting?]
