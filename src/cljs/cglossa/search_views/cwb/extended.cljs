@@ -281,8 +281,8 @@
                                          (when (empty? (get-in @wrapped-term
                                                                [:corpus-specific-attrs attr*]))
                                            (swap! wrapped-term
-                                                  update-in [:corpus-specific-attrs attr*]
-                                                  dissoc attr-value)))}
+                                                  update :corpus-specific-attrs
+                                                  dissoc attr*)))}
                          (or title attr-value)]))])))))]
    [b/modalfooter
     [b/button {:bs-style "danger"
@@ -483,7 +483,11 @@
                                    (swap! wrapped-term update-in path (fn [o]
                                                                         (if (map? o)
                                                                           (dissoc o value)
-                                                                          (disj o value)))))}
+                                                                          (disj o value))))
+                                   (when (empty? (get-in @wrapped-term path))
+                                     (let [path*     (butlast path)
+                                           attr-name (last path)]
+                                       (swap! wrapped-term update-in path* dissoc attr-name))))}
                 "x"]])
 
 
