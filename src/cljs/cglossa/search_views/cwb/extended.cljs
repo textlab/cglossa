@@ -429,7 +429,12 @@
                  }] "Phonetic form"])]))
 
 
-(defn- tag-descriptions [pos-data wrapped-term]
+(defn- tag-descriptions [data wrapped-term path]
+  ;; The comments and binding names below reflect the case where the tags to be described are
+  ;; part-of-speech tags along with values for morphosyntactic features for the POS, but this
+  ;; function is also used for constructing descriptions of corpus-specific attributes.
+  ;; In that case, the `morphsyn` binding in the for loop will be nil, and hence cat-description
+  ;; will not be called, since such attributes don't have nested data.
   (let [;; Returns a description of the selected morphosyntactic features for a particular
         ;; morphosyntactic category. 'attrs' is a seq of possible values for this category, with
         ;; each value represented as a vector of [cqp-attribute short-value human-readable-value]
@@ -439,13 +444,13 @@
                                     (->> attrs
                                          (filter (fn [[attr value _]]
                                                    (contains? (get-in @wrapped-term
-                                                                      [:features pos (name attr)])
+                                                                      (conj path pos (name attr)))
                                                               value)))
                                          ;; Get human-readable value
                                          (map last))))]
-    (for [[pos pos-title tooltip morphsyn] pos-data
+    (for [[pos pos-title tooltip morphsyn] data
           ;; Only consider parts-of-speech that have actually been selected
-          :when (contains? (:features @wrapped-term) pos)
+          :when (contains? (get-in @wrapped-term path) pos)
           ;; Extract the seq of possible morphosyntactic features for each morphosyntacic category
           ;; that applies to this part-of-speech
           :let [cat-attrs (->> morphsyn (partition 2) (map second))]]
@@ -455,13 +460,48 @@
        :tooltip     tooltip})))
 
 
+(defn- tag-description-label [value description tooltip path wrapped-term show-attr-popup?]
+  [b/label {:bs-style    "primary"
+            :data-toggle (when tooltip "tooltip")
+            :title       tooltip
+            :style       {:float        "left"
+                          :margin-top   3
+                          :margin-right 3
+                          :cursor       "pointer"}
+            :on-click    #(reset! show-attr-popup? true)}
+   description [:span {:style    {:margin-left 6 :cursor "pointer"}
+                       :on-click (fn [e]
+                                   (.stopPropagation e)
+                                   ;; Need to manually remove the tooltip of our parent
+                                   ;; label; otherwise the tooltip may persist after
+                                   ;; the label has been removed (and then there is no way
+                                   ;; to remove it).
+                                   (-> (.-target e)
+                                       js/$
+                                       (.closest "[data-toggle]")
+                                       (.tooltip "destroy"))
+                                   (swap! wrapped-term update-in path (fn [o]
+                                                                        (if (map? o)
+                                                                          (dissoc o value)
+                                                                          (disj o value)))))}
+                "x"]])
+
+
 (defn- taglist [{:keys [corpus]} wrapped-term lang-code show-attr-popup?]
   ;; Ideally, hovering? should be initialized to true if the mouse is already hovering over the
   ;; component when it is mounted, but that seems tricky. For the time being, we accept the
   ;; fact that we have to mouse out and then in again if we were already hovering.
   (r/with-let [hovering? (r/atom false)]
-    (let [menu-data    (language-menu-data corpus lang-code)
-          descriptions (tag-descriptions menu-data wrapped-term)]
+    (let [menu-data             (language-menu-data corpus lang-code)
+          descriptions          (tag-descriptions menu-data wrapped-term [:features])
+          corpus-specific-attrs (language-corpus-specific-attrs corpus lang-code)
+          cs-names              (->> corpus-specific-attrs (map first))
+          cs-vals               (->> corpus-specific-attrs (map nnext))
+          cs-descriptions       (map (fn [tag-name vals]
+                                       (tag-descriptions vals wrapped-term
+                                                         [:corpus-specific-attrs
+                                                          (name tag-name)]))
+                                     cs-names cs-vals)]
       [:div.table-cell {:style          {:max-width  200
                                          ;; Show the descriptions in their entire length on
                                          ;; mouseover
@@ -471,27 +511,14 @@
        [:div {:style {:margin-top 5}}
         (for [{:keys [pos description tooltip]} descriptions]
           ^{:key description}
-          [b/label {:bs-style    "primary"
-                    :data-toggle (when tooltip "tooltip")
-                    :title       tooltip
-                    :style       {:float        "left"
-                                  :margin-top   3
-                                  :margin-right 3
-                                  :cursor       "pointer"}
-                    :on-click    #(reset! show-attr-popup? true)}
-           description [:span {:style    {:margin-left 6 :cursor "pointer"}
-                               :on-click (fn [e]
-                                           (.stopPropagation e)
-                                           ;; Need to manually remove the tooltip of our parent
-                                           ;; label; otherwise the tooltip may persist after
-                                           ;; the label has been removed (and then there is no way
-                                           ;; to remove it).
-                                           (-> (.-target e)
-                                               js/$
-                                               (.closest "[data-toggle]")
-                                               (.tooltip "destroy"))
-                                           (swap! wrapped-term update :features dissoc pos))}
-                        "x"]])]])))
+          [tag-description-label pos description tooltip [:features]
+           wrapped-term show-attr-popup?])
+        (map (fn [attr desc]
+               (for [{:keys [pos description tooltip]} desc]
+                 ^{:key description}
+                 [tag-description-label pos description tooltip [:corpus-specific-attrs (name attr)]
+                  wrapped-term show-attr-popup?]))
+             cs-names cs-descriptions)]])))
 
 
 (defn multiword-term [a m wrapped-query wrapped-term query-term-ids
