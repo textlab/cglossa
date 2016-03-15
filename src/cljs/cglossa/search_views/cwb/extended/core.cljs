@@ -1,169 +1,12 @@
-(ns cglossa.search-views.cwb.extended
+(ns cglossa.search-views.cwb.extended.core
   "Implementation of search view component with text inputs, checkboxes
   and menus for easily building complex and grammatically specified queries."
   (:require [clojure.string :as str]
             [reagent.core :as r :include-macros true]
             [cglossa.shared :refer [on-key-down remove-row-btn headword-search-checkbox search!]]
-            [cglossa.react-adapters.bootstrap :as b]))
-
-(defn- combine-regexes [regexes]
-  "Since there is no way to concatenate regexes directly, we convert
-  them to strings, remove the initial and final slash from each one,
-  concatenate the resulting strings with a pipe symbol, and finally
-  convert the concatenated string back to a single regex."
-  (->> regexes
-       (map str)
-       (map (partial re-matches #"/(.+)/"))
-       (map last)
-       (str/join \|)
-       re-pattern))
-
-;; An interval, e.g. []{1,2}
-(def interval-rx #"\[\]\{(.+?)\}")
-
-;; An attribute/value expression such as [lemma="car" %c] or [(lemma="car" & pos="n")].
-;; Treat quoted strings separately; they may contain right brackets
-(def attribute-value-rx #"\[\(?([^\"]+?(?:\"[^\"]*\"[^\]\"]*?)*?)(?:\s+%c)?\)?\]")
-
-;; A quoted string or a single unspecified token
-(def quoted-or-empty-term-rx #"\".*?\"|\[\]")
-
-(def terms-rx (combine-regexes [interval-rx quoted-or-empty-term-rx attribute-value-rx]))
-
-
-(defn split-query [query]
-  (let [terms (if (str/blank? query)
-                query
-                (re-seq terms-rx query))]
-    (if (str/blank? terms)
-      [["[]"]]
-      terms)))
-
-
-(defn- process-form [term name val]
-  (cond-> (assoc term :form (-> val
-                                (str/replace #"^(?:\.\*)?(.+?)" "$1")
-                                (str/replace #"(.+?)(?:\.\*)?$" "$1")))
-          (= name "lemma") (assoc :lemma? true)
-          (= name "phon") (assoc :phonetic? true)
-          (re-find #".+\.\*$" val) (assoc :start? true)
-          (re-find #"^\.\*.+" val) (assoc :end? true)))
-
-
-(defn construct-query-terms [parts corpus-specific-attrs]
-  ;; Use an atom to keep track of interval specifications so that we can set
-  ;; them as the value of the :interval key in the map representing the following
-  ;; query term.
-  (let [interval                    (atom [nil nil])
-        corpus-specific-attr-names  (when (seq corpus-specific-attrs)
-                                      (str "(" (str/join "|" corpus-specific-attrs) ")"))
-        corpus-specific-attrs-regex (when corpus-specific-attr-names
-                                      (re-pattern (str corpus-specific-attr-names "=\"(.+?)\"")))]
-    (reduce (fn [terms part]
-              (condp re-matches (first part)
-                interval-rx
-                (let [values (second part)
-                      min    (some->> values
-                                      (re-find #"(\d+),")
-                                      last)
-                      max    (some->> values
-                                      (re-find #",(\d+)")
-                                      last)]
-                  (reset! interval [min max])
-                  terms)
-
-                attribute-value-rx
-                (let [term (as-> {:interval @interval} $
-                                 (if-let [[_ name val] (re-find #"(word|lemma|phon)\s*=\s*\"(.+?)\""
-                                                                (last part))]
-                                   (process-form $ name val)
-                                   $)
-                                 (if-let [pos-exprs (re-seq #"\(pos=\"(.+?)\"(.*?)\)" (last part))]
-                                   (reduce (fn [t [_ pos rest]]
-                                             (let [others (re-seq #"(\w+)=\"([\w\|/]+)\"" rest)]
-                                               (assoc-in t [:features pos]
-                                                         (into {} (map (fn [[_ name vals]]
-                                                                         [name
-                                                                          (set (str/split vals
-                                                                                          #"\|"))])
-                                                                       others)))))
-                                           $
-                                           pos-exprs)
-                                   $)
-                                 (if-let [exprs (when corpus-specific-attrs-regex
-                                                  (re-seq corpus-specific-attrs-regex (last part)))]
-                                   (reduce (fn [t [_ attr vals]]
-                                             (assoc-in t [:corpus-specific-attrs attr]
-                                                       (set (str/split vals #"\|"))))
-                                           $
-                                           exprs)
-                                   $))]
-                  (reset! interval [nil nil])
-                  (conj terms term))
-
-                quoted-or-empty-term-rx
-                (let [p    (first part)
-                      len  (count p)
-                      form (if (> len 2)
-                             (subs p 1 len)
-                             "")
-                      term (cond-> {:form     form
-                                    :interval @interval}
-                                   (re-find #".+\.\*$" form)
-                                   (assoc :start? true)
-
-                                   (re-find #"^\.\*.+" form)
-                                   (assoc :end? true))]
-                  (reset! interval [nil nil])
-                  (conj terms term))))
-            []
-            parts)))
-
-
-(defn- process-attr-map [[attr-name values]]
-  (str attr-name "=\"" (str/join "|" values) "\""))
-
-
-(defn- process-pos-map [[pos attrs]]
-  (let [attr-strings (map process-attr-map attrs)
-        attr-str     (when (seq attr-strings)
-                       (str " & " (str/join " & " attr-strings)))]
-    (str "(pos=\"" pos "\"" attr-str ")")))
-
-
-(defn- construct-cqp-query [terms query-term-ids lang-config]
-  (let [;; Remove ids whose corresponding terms have been set to nil
-        _      (swap! query-term-ids #(vec (keep-indexed (fn [index id]
-                                                           (when (nth terms index) id)) %)))
-        terms* (filter identity terms)                      ; nil means term should be removed
-        parts  (for [{:keys [interval form lemma? phonetic?
-                             start? end? features corpus-specific-attrs]} terms*]
-                 (let [attr   (cond
-                                lemma? "lemma"
-                                phonetic? "phon"
-                                :else "word")
-                       form*  (if (empty? form)
-                                (when (empty? features) ".*")
-                                (cond-> form
-                                        start? (str ".*")
-                                        end? (#(str ".*" %))))
-                       main   (when form*
-                                (str attr "=\"" form* "\" %c"))
-                       feats  (when (seq features)
-                                (str "(" (str/join " | " (map process-pos-map features)) ")"))
-                       extra  (when (seq corpus-specific-attrs)
-                                (str/join " & " (map process-attr-map corpus-specific-attrs)))
-                       [min max] interval
-                       interv (if (or min max)
-                                (str "[]{" (or min 0) "," (or max "") "} ")
-                                "")]
-                   (str interv "[" (str/join " & " (filter identity [main feats extra])) "]")))
-        query* (str/join \space parts)
-        query  (if-let [pos-attr (:pos-attr lang-config)]
-                 (str/replace query* #"\bpos(?=\s*=)" pos-attr)
-                 query*)]
-    query))
-
+            [cglossa.react-adapters.bootstrap :as b]
+            [cglossa.search-views.cwb.extended.cqp :refer [set-pos-attr query->terms
+                                                           terms->query]]))
 
 (defn- language-data [corpus lang-code]
   (->> (:languages @corpus) (filter #(= (:code %) lang-code)) first))
@@ -182,8 +25,8 @@
 
 
 (defn wrapped-term-changed [wrapped-query terms index query-term-ids lang-config term]
-  (swap! wrapped-query assoc :query (construct-cqp-query (assoc terms index term)
-                                                         query-term-ids lang-config)))
+  (swap! wrapped-query assoc :query (terms->query (assoc terms index term)
+                                                  query-term-ids lang-config)))
 
 ;;;;;;;;;;;;;;;;
 ;;;; Components
@@ -576,17 +419,11 @@
                query-term-ids (atom nil)]
     (let [lang-code             (:lang @wrapped-query)
           lang-config           (language-config corpus lang-code)
-          query*                (:query @wrapped-query)
-          query                 (if-let [pos-attr (:pos-attr lang-config)]
-                                  (str/replace query*
-                                               (re-pattern (str "\\b" pos-attr "(?=\\s*=)"))
-                                               "pos")
-                                  query*)
-          parts                 (split-query query)
+          query                 (set-pos-attr wrapped-query lang-config)
           corpus-specific-attrs (->> (language-corpus-specific-attrs corpus lang-code)
                                      (map first)
                                      (map name))
-          terms                 (construct-query-terms parts corpus-specific-attrs)
+          terms                 (query->terms query corpus-specific-attrs)
           last-term-index       (dec (count terms))]
       (when (nil? @query-term-ids)
         (reset! query-term-ids (vec (range (count terms)))))
