@@ -104,7 +104,8 @@
                        :repl-options {:init-ns          cglossa.server
                                       :port             8230}
 
-                       :plugins      [[lein-figwheel "0.5.0-SNAPSHOT"]]
+                       :plugins      [[lein-figwheel "0.5.0-SNAPSHOT"]
+                                      [lein-kibit "0.1.2"]]
 
                        :figwheel     {:css-dirs          ["resources/public/css"]
                                       :open-file-command "idea-opener"
