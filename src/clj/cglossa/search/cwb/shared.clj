@@ -22,8 +22,9 @@
       (str uc-code "_" (-> queries first :lang str/upper-case))
       uc-code)))
 
-(defn cwb-query-name [corpus search-id]
+(defn cwb-query-name
   "Constructs a name for the saved query in CQP, e.g. MYCORPUS11."
+  [corpus search-id]
   (str (str/upper-case (:code corpus)) search-id))
 
 (defn- build-monolingual-query [queries s-tag]
@@ -47,9 +48,10 @@
   "The database fields that contain corpus positions for texts."
   (fn [corpus _] (:search_engine corpus)))
 
-(defn- join-metadata [sql metadata-ids]
+(defn- join-metadata
   "Adds a join with the metadata_value_text table for each metadata category
   for which we have selected one or more values."
+  [sql metadata-ids]
   (reduce (fn [q join-index]
             (let [alias1         (str \j (inc join-index))
                   alias2         (str \j join-index)
@@ -61,7 +63,7 @@
           sql
           (-> metadata-ids count range)))
 
-(defn- where-metadata [sql metadata-ids]
+(defn- where-metadata
   "For each metadata category for which we have selected one or more
   values, adds a 'where' clause with the ids of the metadata values in that
   category. The 'where' clause is associated with the corresponding instance of
@@ -71,6 +73,7 @@
   This gives us an OR (union) relationship between values from the same
   category and an AND (intersection) relationship between values from different
   categories."
+  [sql metadata-ids]
   (let [cats (map-indexed (fn [index [_ ids]] [index ids]) metadata-ids)]
     (reduce (fn [q [cat-index cat-ids]]
               (let [alias     (str \j (inc cat-index))
@@ -84,11 +87,12 @@
     (where sql {:language (-> queries first :lang)})
     sql))
 
-(defn- print-positions-matching-metadata [corpus queries metadata-ids positions-filename]
+(defn- print-positions-matching-metadata
   "Returns start and stop positions of all corpus texts that are associated
   with the metadata values that have the given database ids, with an OR
   relationship between values within the same category and an AND relationship
   between categories."
+  [corpus queries metadata-ids positions-filename]
   ;; It seems impossible to prevent Korma (or rather the underlying Java library)
   ;; from throwing an exception when we do a SELECT that does not return any results
   ;; because they are written to file instead using INTO OUTFILE. However, the

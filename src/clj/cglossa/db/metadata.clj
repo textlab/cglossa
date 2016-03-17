@@ -23,9 +23,10 @@
         total      (-> (korma.core/exec-raw "SELECT FOUND_ROWS() AS total" :results) first :total)]
     [total res]))
 
-(defn- join-selected-values [sql selected-ids]
+(defn- join-selected-values
   "Adds a join with the metadata_value_text table for each metadata category
   for which we have already selected one or more values."
+  [sql selected-ids]
   (reduce (fn [q join-index]
             (let [alias1         (str \j (inc join-index))
                   alias2         (str \j join-index)
@@ -35,7 +36,7 @@
           sql
           (-> selected-ids count range)))
 
-(defn- where-selected-values [sql selected-ids]
+(defn- where-selected-values
   "For each metadata category for which we have already selected one or more
   values, adds a 'where' clause with the ids of the metadata values in that
   category. The 'where' clause is associated with the corresponding instance of
@@ -45,6 +46,7 @@
   This gives us an OR (union) relationship between values from the same
   category and an AND (intersection) relationship between values from different
   categories."
+  [sql selected-ids]
   (let [cats (map-indexed (fn [index [_ ids]] [index ids]) selected-ids)]
     (reduce (fn [q [cat-index cat-ids]]
               (let [alias     (str \j (inc cat-index))
@@ -104,5 +106,5 @@
         rows      (partition ncats (map :text_value res))
         total     (-> (korma.core/exec-raw "SELECT FOUND_ROWS() AS total" :results) first :total)
         max-pages (-> (/ total pagesize) Math/ceil int)]
-    {:rows rows
+    {:rows      rows
      :max-pages max-pages}))

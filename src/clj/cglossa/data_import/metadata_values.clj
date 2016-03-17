@@ -6,9 +6,10 @@
             [cglossa.data-import.utils :as utils])
   (:gen-class))
 
-(defn- create-value-data [unique-vals]
+(defn- create-value-data
   "Creates seqs of [category-id, value] vectors from each column and
   concatenate them; this will be imported into the metadata_values table."
+  [unique-vals]
   (->> unique-vals
        (map-indexed (fn [index col-unique-vals]
                       ;; Return the metadata category id and the metadata value. The metadata
@@ -17,9 +18,10 @@
                       (map (fn [val] [(inc index) val]) col-unique-vals)))
        (apply concat)))
 
-(defn- create-value-text-joins [value-cols unique-vals]
+(defn- create-value-text-joins
   "Creates data to import into the metadata_values_texts join table, linking
   metadata values and texts in a many-to-many relationship."
+  [value-cols unique-vals]
   (let [prev-col-counts (atom 0)]
     (mapcat (fn [col-vals col-unique-vals]
               (let [prev-col-counts* @prev-col-counts]
@@ -36,7 +38,7 @@
                              col-vals)))
             value-cols unique-vals)))
 
-(defn create-texts [cols cat-codes]
+(defn create-texts
   "Creates data to import into the texts table. The returned lists will
   contain either a startpos and an endpos or a bounds value, depending on
   whether the metadata defines either a bounds category (typically used with
@@ -44,6 +46,7 @@
   written corpora). For multilingual corpora, there should also be a language
   column that indicates which aligned language the text belongs to (can also be
   used for other types of aligned corpus parts)."
+  [cols cat-codes]
   (let [startpos-index (.indexOf cat-codes "startpos")
         endpos-index   (.indexOf cat-codes "endpos")
         bounds-index   (.indexOf cat-codes "bounds")
