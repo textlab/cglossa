@@ -13,7 +13,6 @@
                               :temp :pers :case :degr :descr :nlex :mood :voice])
 
 (defmethod position-fields "cwb_speech" [_ positions-filename]
-  "The database fields that contain corpus positions for texts."
   (korma/raw (str "replace(replace(`bounds`, '-', '\t'), ':', '\n') INTO OUTFILE '"
                   positions-filename "' FIELDS ESCAPED BY ''")))
 

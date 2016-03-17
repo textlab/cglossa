@@ -11,7 +11,6 @@
                                                sort-command]]))
 
 (defmethod position-fields :default [_ positions-filename]
-  "The database fields that contain corpus positions for texts."
   (korma/raw (str "startpos, endpos INTO OUTFILE '" positions-filename "'")))
 
 (defmethod run-queries :default [corpus search queries metadata-ids step cut sort-key]
