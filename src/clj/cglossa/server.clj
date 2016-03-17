@@ -45,7 +45,7 @@
 
 (def http-handler
   (let [r (routes #'db-routes #'search-routes #'app-routes)
-        r (if (:is-dev env) (-> r reload/wrap-reload) r)]
+        r (if (:is-dev env) (reload/wrap-reload r) r)]
     (-> r
         wrap-with-logger
         wrap-db
@@ -61,11 +61,10 @@
                                                              ".log")})}})
   (init-corpus-connections! corpus-connections)
   (defonce ^:private server
-    (do
-      (let [port (Integer. (or port (env :port) 10555))]
-        (print "Starting web server on port" port ".\n")
-        (run-server http-handler {:port  port
-                                  :join? false}))))
+    (let [port (Integer. (or port (env :port) 10555))]
+      (print "Starting web server on port" port ".\n")
+      (run-server http-handler {:port  port
+                                :join? false})))
   server)
 
 (defn -main [& [port]]

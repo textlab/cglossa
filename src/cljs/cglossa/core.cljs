@@ -58,7 +58,7 @@
 (def on-resize-throttle (Throttle. #(reset! (:narrow-view? app-state) (narrow-view?)) 200))
 (.addEventListener js/window "resize" #(.fire on-resize-throttle))
 
-(. (js/$ "body") tooltip #js {:selector "[data-toggle= 'tooltip']"})
+(.tooltip (js/$ "body") {:selector "[data-toggle='tooltip']"})
 
 (defn- get-models
   ([url] (get-models url {}))
@@ -83,6 +83,6 @@
 (defn ^:export main []
   (rdom/render
     [app app-state model-state]
-    (. js/document (getElementById "app"))))
+    (.getElementById js/document "app")))
 
 (main)

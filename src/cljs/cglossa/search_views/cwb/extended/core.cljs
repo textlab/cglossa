@@ -342,8 +342,8 @@
     (let [menu-data             (language-menu-data corpus lang-code)
           descriptions          (tag-descriptions menu-data wrapped-term [:features])
           corpus-specific-attrs (language-corpus-specific-attrs corpus lang-code)
-          cs-names              (->> corpus-specific-attrs (map first))
-          cs-vals               (->> corpus-specific-attrs (map nnext))
+          cs-names              (map first corpus-specific-attrs)
+          cs-vals               (map nnext corpus-specific-attrs)
           cs-descriptions       (map (fn [tag-name vals]
                                        (tag-descriptions vals wrapped-term
                                                          [:corpus-specific-attrs

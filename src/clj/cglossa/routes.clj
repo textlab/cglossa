@@ -33,7 +33,7 @@
    (let [baos   (ByteArrayOutputStream. 2000)
          writer (transit/writer baos (if (:is-dev env) :json-verbose :json))
          _      (transit/write writer (if hyphenize? (hyphenize-keys body) body))
-         res    (.toString baos)]
+         res    (str baos)]
      (.reset baos)
      (-> (response/response res)
          (response/content-type "application/transit+json")

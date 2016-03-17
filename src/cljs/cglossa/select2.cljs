@@ -43,8 +43,7 @@
                                            data*
                                            ;; Assume a hashmap; convert to seq of maps with
                                            ;; :id and :text keys
-                                           (->> data*
-                                                (map (fn [[id name]] {:id id :text name}))))]
+                                           (map (fn [[id name]] {:id id, :text name}) data*))]
                              (.select2 sel (clj->js
                                              (merge options
                                                     {:data   entries

@@ -17,7 +17,7 @@
 ;; defines Reagent components called 'button', 'dropdown' and 'dropdown-menu' from
 ;; js/ReactBootstrap.Button, js/ReactBootstrap.Dropdown and js/ReactBootstrap.Dropdown.Menu.
 (defmacro adapt! [& components]
-  (let [prefix (if (str/ends-with? (first components) ".") (first components) nil)
+  (let [prefix (when (str/ends-with? (first components) ".") (first components))
         cs     (if prefix (rest components) components)]
     `(do
        ~@(for [c cs]

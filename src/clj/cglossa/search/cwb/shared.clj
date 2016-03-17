@@ -103,7 +103,7 @@
         (where-language corpus queries)
         (select))
     (catch SQLException e
-      (when-not (.contains (.toString e) "ResultSet is from UPDATE")
+      (when-not (.contains (str e) "ResultSet is from UPDATE")
         (println e)))))
 
 (defn displayed-attrs-command [corpus queries]

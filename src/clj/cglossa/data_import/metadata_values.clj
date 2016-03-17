@@ -62,7 +62,7 @@
 (defn- create-import-data [value-tsv-path cat-tsv-path]
   (with-open [value-tsv-file (io/reader value-tsv-path)
               cat-tsv-file   (io/reader cat-tsv-path)]
-    (let [cat-codes    (->> (utils/read-csv cat-tsv-file) (map first))
+    (let [cat-codes    (map first (utils/read-csv cat-tsv-file))
           ;; Find the row indexes of the actual metadata categories in the category file,
           ;; which will correspond to the column indexes of those categories in the value file.
           cat-indexes  (set (keep-indexed (fn [index cat]
@@ -70,8 +70,7 @@
                                               index))
                                           cat-codes))
           ;; Convert rows to columns
-          cols         (->> (utils/read-csv value-tsv-file)
-                            (apply map list))
+          cols         (apply map list (utils/read-csv value-tsv-file))
           ;; This only includes columns with values for actual metadata categories
           value-cols   (keep-indexed (fn [index col] (when (cat-indexes index) col)) cols)
           ;; Get a seq containing sorted sets of unique values for each column
