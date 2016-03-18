@@ -170,24 +170,24 @@
 (defn run-cqp-commands [corpus commands counting?]
   (let [commands* (->> commands
                        (map #(str % \;))
-                       (str/join \newline))]
-    (let [encoding (:encoding corpus "UTF-8")
-          cqp      (sh/proc "cqp" "-c" :env {"LC_ALL" encoding})
-          ;; Run the CQP commands and capture the output
-          out      (do
-                     (sh/feed-from-string cqp commands*)
-                     (sh/done cqp)
-                     (sh/stream-to-string cqp :out :encoding encoding))
-          err      (sh/stream-to-string cqp :err)
-          _        (assert (str/blank? err) (if (:is-dev env) (println err) (timbre/error err)))
-          ;; Split into lines and throw away the first line, which contains the CQP version.
-          ;; If counting? is true (which it is when we are searching, but not when retrieving
-          ;; results), the first line after that contains the number of results (either total or
-          ;; cut). Any following lines contain actual search results (only in the first step).
-          res      (rest (str/split-lines out))
-          cnt      (when counting? (first res))
-          results  (if counting? (rest res) res)]
-      (if (and (pos? (count results))
-               (re-find #"PARSE ERROR|CQP Error" (first results)))
-        (throw (str "CQP error: " results))
-        [results cnt]))))
+                       (str/join \newline))
+        encoding  (:encoding corpus "UTF-8")
+        cqp       (sh/proc "cqp" "-c" :env {"LC_ALL" encoding})
+        ;; Run the CQP commands and capture the output
+        out       (do
+                    (sh/feed-from-string cqp commands*)
+                    (sh/done cqp)
+                    (sh/stream-to-string cqp :out :encoding encoding))
+        err       (sh/stream-to-string cqp :err)
+        _         (assert (str/blank? err) (if (:is-dev env) (println err) (timbre/error err)))
+        ;; Split into lines and throw away the first line, which contains the CQP version.
+        ;; If counting? is true (which it is when we are searching, but not when retrieving
+        ;; results), the first line after that contains the number of results (either total or
+        ;; cut). Any following lines contain actual search results (only in the first step).
+        res       (rest (str/split-lines out))
+        cnt       (when counting? (first res))
+        results   (if counting? (rest res) res)]
+    (if (and (pos? (count results))
+             (re-find #"PARSE ERROR|CQP Error" (first results)))
+      (throw (str "CQP error: " results))
+      [results cnt])))
