@@ -76,7 +76,9 @@
                      $)
                    (if-let [pos-exprs (re-seq #"\(pos=\"(.+?)\"(.*?)\)" (last part))]
                      (reduce (fn [t [_ pos rest]]
-                               (let [others (re-seq #"(\w+)=\"([\w\|/]+)\"" rest)]
+                               ;; Allow attribute values to contain -, <, > and / in addition
+                               ;; to alphanumeric characters
+                               (let [others (re-seq #"(\w+)=\"([\w\|\-\<\>/]+)\"" rest)]
                                  (assoc-in t [:features pos]
                                            (into {} (map (fn [[_ name vals]]
                                                            [name
