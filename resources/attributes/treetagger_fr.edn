@@ -1,23 +1,23 @@
 [{:type "Type" :mood_case "Mood/Case" :tense_defin "Tense/definiteness"}
- ["abbr" "abbreviation" []]
- ["adj" "adjective" []]
- ["adv" "adverb" []]
- ["art" "article" []]
- ["pron" "pronoun"
+ ["abbr" "abbreviation" nil []]
+ ["adj" "adjective" nil []]
+ ["adv" "adverb" nil []]
+ ["art" "article" nil []]
+ ["pron" "pronoun" nil
   ["Type" [[:type "poss" "possessive"]
            [:type "dem" "demonstrative"]
            [:type "indef" "indefinite"]
            [:type "pers" "personal"]
            [:type "rel" "relative"]]]]
- ["int" "interjection" []]
- ["n" "noun"
+ ["int" "interjection" nil []]
+ ["n" "noun" nil
   ["Type" [[:type "p" "proper noun"]
            [:type "c" "common noun"]]]]
- ["number" "number" []]
- ["prep" "preposition" []]
- ["punct" "punctuation" []]
- ["symb" "symbol" []]
- ["v" "verb"
+ ["number" "number" nil []]
+ ["prep" "preposition" nil []]
+ ["punct" "punctuation" nil []]
+ ["symb" "symbol" nil []]
+ ["v" "verb" nil
   ["Mood" [[:mood_case "cond" "conditional"]
            [:mood_case "subj" "subjunctive"]]
    "Tense" [[:tense_defin "futur" "future"]
