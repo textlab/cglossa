@@ -57,7 +57,7 @@
   (timbre/handle-uncaught-jvm-exceptions!)
   (timbre/merge-config! {:appenders
                          {:rotor (rotor-appender {:path (str "./log/timbre-rotor."
-                                                             (if :is-dev "dev" "prod")
+                                                             (if (:is-dev env) "dev" "prod")
                                                              ".log")})}})
   (init-corpus-connections! corpus-connections)
   (defonce ^:private server
