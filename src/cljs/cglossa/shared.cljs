@@ -65,8 +65,8 @@
   map. The :default case implements CWB support."
   (fn [{corpus :corpus} _] (:search-engine @corpus)))
 
-(defn- do-search-steps! [{:keys [searching?]
-                          {:keys [queries]} :search-view
+(defn- do-search-steps! [{:keys                   [searching?]
+                          {:keys [queries]}       :search-view
                           {:keys [results total]} :results-view}
                          {:keys [search] :as m}
                          url search-params step-params]
@@ -76,7 +76,7 @@
           ;; work the way you would expect in CWB: It first cuts the number of results from the
           ;; first language and only then tries to find aligned regions, which may yield an
           ;; empty or too small result set.
-          cut (when (= 1 (->> @queries (map :lang) set count)) cut)
+          cut         (when (= 1 (->> @queries (map :lang) set count)) cut)
           json-params (cond-> search-params
                               true (assoc :step step :cut cut)
                               (:id @search) (assoc :search-id (:id @search)))
@@ -126,7 +126,7 @@
 
 (defn search!
   ([a m]
-    (search! a m [[1 (* 2 page-size)] [2 (* 20 page-size)] [3 nil]]))
+   (search! a m [[1 (* 2 page-size)] [2 (* 20 page-size)] [3 nil]]))
   ([{{queries :queries}                     :search-view
      {:keys [show-results? total sort-key]} :results-view
      searching?                             :searching?
