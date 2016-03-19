@@ -49,6 +49,10 @@
                          ;; Replace literal quotes with __QUOTE__ to prevent them from confusing
                          ;; our regexes later on
                          (map #(str/replace % "\"" "__QUOTE__") $)
+                         ;; Escape other special characters using a regex from
+                         ;; https://developer.mozilla.org/en-US/docs/Web/JavaScript/
+                         ;;   Guide/Regular_Expressions
+                         (map #(str/replace % #"[\.\*\+\?\^\$\{\}\(\)\|\[\]\\]" "\\$&") $)
                          (map #(if (= % "")
                                 ""
                                 (str "[" attr "=\"" % "\" %c]"))
