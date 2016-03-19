@@ -199,9 +199,15 @@
                                                        :on-click #(reset! wrapped-term nil)}
                                              [b/glyphicon {:glyph "minus"}]]))
              :default-value (if (:form @wrapped-term)
-                              (str/replace (:form @wrapped-term) #"^\.\*$" "")
+                              (-> (:form @wrapped-term)
+                                  (str/replace "__QUOTE__" "\"")
+                                  (str/replace #"^\.\*$" ""))
                               "")
-             :on-change     #(swap! wrapped-term assoc :form (.-target.value %))
+             :on-change     #(swap! wrapped-term assoc :form
+                                    ;; Replace literal quotes with __QUOTE__ to prevent them from
+                                    ;; confusing our regexes later on
+                                    (str/replace (.-target.value %)
+                                                 "\"" "__QUOTE__"))
              :on-key-down   #(on-key-down % a m)}]])
 
 

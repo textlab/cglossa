@@ -46,6 +46,9 @@
                                 (re-pattern (str "(" chinese-ch ")"))
                                 " $1 ")
         p2         (as-> (str/split p1 #"\s") $
+                         ;; Replace literal quotes with __QUOTE__ to prevent them from confusing
+                         ;; our regexes later on
+                         (map #(str/replace % "\"" "__QUOTE__") $)
                          (map #(if (= % "")
                                 ""
                                 (str "[" attr "=\"" % "\" %c]"))
@@ -211,7 +214,8 @@
                             (str/replace #"\[\(?\w+=\"(.*?)\"(?:\s+%c)?\)?\]" "$1")
                             (str/replace #"\"([^\s=]+)\"" "$1")
                             (str/replace #"\s*\[\]\s*" " .* ")
-                            (str/replace #"^\s*\.\*\s*$" ""))
+                            (str/replace #"^\s*\.\*\s*$" "")
+                            (str/replace "__QUOTE__" "\""))
         on-text-changed (fn [event wrapped-query phonetic?]
                           (let [value (.-target.value event)
                                 query (if (= value "") "" (phrase->cqp value phonetic?))]
@@ -223,9 +227,13 @@
 (defn- cqp
   "CQP query view component"
   [a m wrapped-query show-remove-row-btn?]
-  (let [displayed-query (:query @wrapped-query)
+  (let [displayed-query (str/replace (:query @wrapped-query) "__QUOTE__" "\\\"")
         on-text-changed (fn [event wrapped-query _]
-                          (let [value      (.-target.value event)
+                          (let [value      (-> (.-target.value event)
+                                               ;; Replace literal quotes with __QUOTE__ to prevent
+                                               ;; them from confusing our regexes later on
+                                               (str/replace "word=\"\\\"\"" "word=\"__QUOTE__\"")
+                                               (str/replace "^\\\"$" "[word=\"__QUOTE__\"]"))
                                 query      (->non-headword-query value)
                                 hw-search? (= (->headword-query query) value)]
                             (swap! wrapped-query assoc :query query :headword-search hw-search?)))]

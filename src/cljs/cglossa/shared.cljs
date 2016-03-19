@@ -147,9 +147,11 @@
                                 str/replace #"\bphon=\"([^0-9\"]+)\"" "phon=\"$1[1-4]?\""))
                       ;; For other languages, leave the queries unmodified
                       @queries)
+             q*     (for [qu q]
+                      (update qu :query str/replace "\"__QUOTE__\"" "'\"'"))
              url    "/search"
              params {:corpus-id    (:id @corpus)
-                     :queries      q
+                     :queries      q*
                      :metadata-ids (->> (:metadata @search) (filter #(second %)) (into {}))
                      :sort-key     @sort-key}]
          (reset! show-results? true)
