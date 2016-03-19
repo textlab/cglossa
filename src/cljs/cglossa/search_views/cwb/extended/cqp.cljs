@@ -160,9 +160,7 @@
                                         ;; Escape special characters using a regex from
                                         ;; https://developer.mozilla.org/en-US/docs/Web/JavaScript/
                                         ;;   Guide/Regular_Expressions
-                                        ;; with the addition of quotes (since quotes enclose
-                                        ;; regexes in CQP)
-                                        true (str/replace #"[\"\.\*\+\?\^\$\{\}\(\)\|\[\]\\]"
+                                        true (str/replace #"[\.\*\+\?\^\$\{\}\(\)\|\[\]\\]"
                                                           "\\$&")
                                         start? (str ".*")
                                         end? (#(str ".*" %))))
