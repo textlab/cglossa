@@ -11,7 +11,7 @@
            [:type "rel" "relative"]]]]
  ["int" "interjection" nil []]
  ["n" "noun" nil
-  ["Type" [[:type "p" "proper noun"]
+  ["Type" [[:type "p" "proper name"]
            [:type "c" "common noun"]]]]
  ["number" "number" nil []]
  ["prep" "preposition" nil []]
