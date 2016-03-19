@@ -211,6 +211,9 @@
   (let [query           (:query @wrapped-query)
         displayed-query (-> query
                             (->non-headword-query)
+                            ;; Unescape any escaped chars, since we don't want the backslashes
+                            ;; to show in the text input
+                            (str/replace #"\\(.)" "$1")
                             (str/replace #"\[\(?\w+=\"(.*?)\"(?:\s+%c)?\)?\]" "$1")
                             (str/replace #"\"([^\s=]+)\"" "$1")
                             (str/replace #"\s*\[\]\s*" " .* ")

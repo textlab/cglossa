@@ -60,6 +60,9 @@
 
 (defn- process-form [term name val]
   (cond-> (assoc term :form (-> val
+                                ;; Unescape any escaped chars, since we don't want the backslashes
+                                ;; to show in the text input
+                                (str/replace #"\\(.)" "$1")
                                 (str/replace #"^(?:\.\*)?(.+?)" "$1")
                                 (str/replace #"(.+?)(?:\.\*)?$" "$1")))
           (= name "lemma") (assoc :lemma? true)
