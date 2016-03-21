@@ -14,27 +14,27 @@
   (korma/raw (str "startpos, endpos INTO OUTFILE '" positions-filename "'")))
 
 (defmethod run-queries :default [corpus search queries metadata-ids step cut sort-key]
-  (let [search-id       (:id search)
-        named-query     (cwb-query-name corpus search-id)
-        commands        [(str "set DataDirectory \"" (fs/tmpdir) \")
-                         (cwb-corpus-name corpus queries)
-                         (construct-query-commands corpus queries metadata-ids named-query
-                                                   search-id cut step)
-                         (str "save " named-query)
-                         (str "set Context 15 word")
-                         "set PrintStructures \"s_id\""
-                         "set LD \"{{\""
-                         "set RD \"}}\""
-                         (displayed-attrs-command corpus queries)
-                         (aligned-languages-command corpus queries)
-                         ;; Always return the number of results, which may be either total or
-                         ;; cut size depending on whether we asked for a cut
-                         "size Last"
-                         (when (= step 1)
-                           ;; When we do the first search, also return the first 100 results,
-                           ;; which amounts to two search result pages.
-                           "cat Last 0 99")]
-        commands        (filter identity (flatten commands))]
+  (let [search-id   (:id search)
+        named-query (cwb-query-name corpus search-id)
+        commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
+                     (cwb-corpus-name corpus queries)
+                     (construct-query-commands corpus queries metadata-ids named-query
+                                               search-id cut step)
+                     (str "save " named-query)
+                     (str "set Context 15 word")
+                     "set PrintStructures \"s_id\""
+                     "set LD \"{{\""
+                     "set RD \"}}\""
+                     (displayed-attrs-command corpus queries)
+                     (aligned-languages-command corpus queries)
+                     ;; Always return the number of results, which may be either total or
+                     ;; cut size depending on whether we asked for a cut
+                     "size Last"
+                     (when (= step 1)
+                       ;; When we do the first search, also return the first 100 results,
+                       ;; which amounts to two search result pages.
+                       "cat Last 0 99")]
+        commands    (filter identity (flatten commands))]
     (run-cqp-commands corpus (filter identity (flatten commands)) true)))
 
 (defmethod get-results :default [corpus search queries start end sort-key]
