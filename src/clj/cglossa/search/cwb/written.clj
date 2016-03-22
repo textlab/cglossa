@@ -33,8 +33,7 @@
                      (when (= step 1)
                        ;; When we do the first search, also return the first 100 results,
                        ;; which amounts to two search result pages.
-                       "cat Last 0 99")]
-        commands    (filter identity (flatten commands))]
+                       "cat Last 0 99")]]
     (run-cqp-commands corpus (filter identity (flatten commands)) true)))
 
 (defmethod get-results :default [corpus search queries start end sort-key]
