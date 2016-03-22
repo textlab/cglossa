@@ -20,7 +20,7 @@
     (reset! current-media-type new-media-type)))
 
 (defn- extract-fields [res]
-  (let [m (re-find #"<who_name\s+(.*?)>(.*)\{\{(.+?)\}\}(.*?)</who_name>" (:text res))]
+  (let [m (re-find #"^<who_name\s+(.*?)>:\s+(.*)\{\{(.+?)\}\}(.*?)$" res)]
     (let [[_ s-id pre match post] m]
       [(str/trim s-id) [pre match post]])))
 
@@ -62,42 +62,45 @@
      [:td {:col-span 3}
       row-contents]]))
 
+(defn- process-token [token index]
+  (let [attrs    (str/split token #"/")
+        tip-text (str/join " " (->> attrs rest
+                                    (remove #(get #{"__UNDEF__" "-"} %))))]
+    ^{:key index}
+    [:span {:data-toggle "tooltip"
+            :title       tip-text}
+     (first attrs) " "]))
+
 (defn- process-field [field]
   "Processes a pre-match, match, or post-match field."
-  (as-> field $
-        ;; Extract any speaker IDs and put them in front of their segments
-        (str/replace $ #"<who_name\s*(.+?)>"
-                     "<span class=\"speaker-id\">&lt;$1&gt;</span>")
-        (str/replace $ #"</who_name>" "")
-        (str/replace $ #"span class=" "span_class=")
-        (str/split $ #"\s+")
-        ;; TODO: Handle Opentip jQuery attributes, or use something else?
-        #_(map (fn [token]
-                 (if (re-find #"span_class=" token)
-                   token                                    ; Don't touch HTML spans
-                   (str/split token #"/")                   ; The slash separates CWB attributes
-                   ))
-               $)
-        (str/join \space $)
-        (str/replace $ #"span_class=" "span class=")))
+  (let [tokens (-> field
+                   (str/replace #"<who_name\s+(.+?)>" "<who_name_$1> ")
+                   (str/replace "</who_name>" " $&")
+                   (str/split #"\s+"))]
+    (map-indexed (fn [index token]
+                   (if-let [[_ speaker-id] (re-find #"<who_name_(.+?)>" token)]
+                     ;; Extract the speaker ID and put it in front of its segment
+                     ^{:key index} [:span.speaker-id speaker-id " "]
+                     ;; Ignore end-of-segment tags; process all other tokens
+                     (when-not (re-find #"</who_name>" token)
+                       (process-token token index))))
+                 tokens)))
 
-(defn single-result-rows
-  [{{{:keys [player-row-index current-player-type current-media-type]} :media} :results-view :as a}
-   {:keys [corpus] :as m} res index]
+(defn single-result-rows [a m res index]
   "Returns one or more rows representing a single search result."
-  (let [[s-id fields] (extract-fields res)
+  (let [[main-line & other-lines] (:text res)
+        [s-id fields] (extract-fields main-line)
         [pre match post] (map process-field fields)
-        res-info  {:s-id       s-id
-                   :pre-match  pre
-                   :match      match
-                   :post-match post}
-        main      (main-row res-info index a m)
-        extras    (for [attr []]                            ; TODO: Handle extra attributes
-                    (extra-row res-info attr m))
-        media-row (when (= index @player-row-index)
-                    )]
-    #_(flatten [main extras media-row])
-    (list main media-row)))
+        res-info {:s-id       s-id
+                  :pre-match  pre
+                  :match      match
+                  :post-match post}
+        main     (main-row res-info index a m)
+        ;others   (map-indexed non-first-multilingual other-lines)
+        ]
+    ;(cons main others)
+    main
+    ))
 
 (defmethod concordance-table "cwb_speech"
   [{{:keys [results page-no] {:keys [player-row-index

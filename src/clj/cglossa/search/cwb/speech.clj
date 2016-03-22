@@ -6,6 +6,7 @@
             [cglossa.search.core :refer [run-queries get-results transform-results]]
             [cglossa.search.cwb.shared :refer [cwb-query-name cwb-corpus-name run-cqp-commands
                                                construct-query-commands position-fields
+                                               displayed-attrs-command aligned-languages-command
                                                sort-command]]))
 
 ;; TODO: Fetch these from the definition of the tag set for the tagger that is being used
@@ -25,29 +26,30 @@
                                                search-id cut step
                                                :s-tag "sync_time")
                      (str "save " named-query)
-                     (str "set Context 7 sync_time")
+                     (str "set Context 1 sync_time")
+                     "set PrintStructures \"who_name\""
                      "set LD \"{{\""
                      "set RD \"}}\""
-                     "show +sync_time +sync_end +who_name +who_line_key"
+                     (displayed-attrs-command corpus queries)
+                     "show +who_name"
                      ;; Always return the number of results, which may be either total or
                      ;; cut size depending on whether we asked for a cut
                      "size Last"
                      (when (= step 1)
                        ;; When we do the first search, also return the first 100 results,
                        ;; which amounts to two search result pages.
-                       "cat Last 0 99")]
-        res         (run-cqp-commands corpus (filter identity (flatten commands)) true)]
-    (println res)
-    res))
+                       "cat Last 0 99")]]
+    (run-cqp-commands corpus (filter identity (flatten commands)) true)))
 
 (defmethod get-results "cwb_speech" [corpus search queries start end sort-key]
   (let [named-query (cwb-query-name corpus (:id search))
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
                      (cwb-corpus-name corpus queries)
-                     (str "set Context 7 sync_time")
+                     (str "set Context 1 sync_time")
+                     "set PrintStructures \"who_name\""
                      "set LD \"{{\""
                      "set RD \"}}\""
-                     "show +sync_time +sync_end +who_name +who_line_key"
+                     (displayed-attrs-command corpus queries)
                      (sort-command named-query sort-key)
                      (str "cat " named-query " " start " " end)]]
     (run-cqp-commands corpus (flatten commands) false)))
@@ -108,7 +110,14 @@
      :min_start         0
      :max_end           last-line-index}))
 
-(defmethod transform-results "cwb_speech" [corpus queries [results _]]
+
+(defmethod transform-results "cwb_speech" [_ queries results]
+  (when results
+    (let [num-langs (->> queries (map :lang) set count)]
+      (map (fn [lines] {:text lines}) (partition num-langs results)))))
+
+
+#_(defmethod transform-results "cwb_speech" [corpus queries [results _]]
   (when results
     (for [result results
           :let [result*           (fix-brace-positions result)
