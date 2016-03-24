@@ -20,9 +20,9 @@
     (reset! current-media-type new-media-type)))
 
 (defn- extract-fields [res]
-  (let [m (re-find #"^<who_name\s+(.*?)>:\s+(.*)\{\{(.+?)\}\}(.*?)$" res)]
+  (let [m (re-find #"^<who_name\s+(\S*?)>:\s+(.*)\{\{(.+?)\}\}(.*?)$" res)]
     (let [[_ s-id pre match post] m]
-      [(str/trim s-id) [pre match post]])))
+      [s-id [pre match post]])))
 
 (defn- main-row [result index a {:keys [corpus] :as m}]
   (let [sound? (:has-sound @corpus)
@@ -62,20 +62,26 @@
      [:td {:col-span 3}
       row-contents]]))
 
-(defn- process-token [token index]
-  (let [attrs    (str/split token #"/")
-        tip-text (str/join " " (->> attrs rest
-                                    (remove #(get #{"__UNDEF__" "-"} %))))]
-    ^{:key index}
-    [:span {:data-toggle "tooltip"
-            :title       tip-text}
-     (first attrs) " "]))
+(defn- process-token [token index displayed-field-index]
+  (when-not (str/blank? token)
+    (let [attrs     (str/split token #"/")
+          tip-attrs (->> attrs
+                         (keep-indexed (fn [index attr]
+                                         (when (not= index displayed-field-index)
+                                           attr)))
+                         (remove #(get #{"__UNDEF__" "-"} %)))
+          tip-text  (str/join " " (-> tip-attrs vec (update 0 #(str "<i>" % "</i>"))))]
+      ^{:key index}
+      [:span {:data-toggle "tooltip"
+              :title       tip-text
+              :data-html   true}
+       (nth attrs displayed-field-index) " "])))
 
 (defn- process-field [field]
   "Processes a pre-match, match, or post-match field."
   (let [tokens (-> field
-                   (str/replace #"<who_name\s+(.+?)>" "<who_name_$1> ")
-                   (str/replace "</who_name>" " $&")
+                   (str/replace #"<who_name\s+(.+?)>\s*" "<who_name_$1> ")
+                   (str/replace #"\s*</who_name>" " $&")
                    (str/split #"\s+"))]
     (map-indexed (fn [index token]
                    (if-let [[_ speaker-id] (re-find #"<who_name_(.+?)>" token)]
@@ -83,7 +89,7 @@
                      ^{:key index} [:span.speaker-id speaker-id " "]
                      ;; Ignore end-of-segment tags; process all other tokens
                      (when-not (re-find #"</who_name>" token)
-                       (process-token token index))))
+                       (process-token token index 1))))
                  tokens)))
 
 (defn single-result-rows [a m res index]
