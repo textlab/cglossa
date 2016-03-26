@@ -74,7 +74,11 @@
           tip-attrs (->> tip-field-indexes
                          (map #(nth attrs %))
                          (remove #(get #{"__UNDEF__" "-"} %)))
-          tip-text  (str/join " " (-> tip-attrs vec (update 0 #(str "<i>" % "</i>"))))]
+          tip-text  (str/join " " (-> tip-attrs vec
+                                      ;; Show the (orthographic or phonetic) form in italics
+                                      (update 0 #(str "<i>" % "</i>"))
+                                      ;; Show the lemma in quotes
+                                      (update 1 #(str "\"" % "\""))))]
       ^{:key index}
       [:span {:data-toggle "tooltip"
               :title       tip-text
