@@ -24,10 +24,10 @@
     (let [[_ s-id pre match post] m]
       [s-id [pre match post]])))
 
-(defn- main-row [result index a {:keys [corpus] :as m}]
+(defn- orthographic-row [result index a {:keys [corpus] :as m}]
   (let [sound? (:has-sound @corpus)
         video? (:has-video @corpus)]
-    ^{:key (hash result)}
+    ^{:key (str "ort" (hash result))}
     [:tr
      (if (or sound? video?)
        [:td.span1
@@ -47,6 +47,12 @@
      (shared/id-column m result)
      (shared/text-columns result)]))
 
+(defn- phonetic-row [result m]
+  ^{:key (str "phon" (hash result))}
+  [:tr
+   [:td]
+   (shared/text-columns result)])
+
 (defn- extra-row [result attr {:keys [corpus]}]
   (let [sound?       (:has-sound @corpus)
         video?       (:has-video @corpus)
@@ -62,13 +68,11 @@
      [:td {:col-span 3}
       row-contents]]))
 
-(defn- process-token [token index displayed-field-index]
+(defn- process-token [token index displayed-field-index tip-field-indexes]
   (when-not (str/blank? token)
     (let [attrs     (str/split token #"/")
-          tip-attrs (->> attrs
-                         (keep-indexed (fn [index attr]
-                                         (when (not= index displayed-field-index)
-                                           attr)))
+          tip-attrs (->> tip-field-indexes
+                         (map #(nth attrs %))
                          (remove #(get #{"__UNDEF__" "-"} %)))
           tip-text  (str/join " " (-> tip-attrs vec (update 0 #(str "<i>" % "</i>"))))]
       ^{:key index}
@@ -77,7 +81,7 @@
               :data-html   true}
        (nth attrs displayed-field-index) " "])))
 
-(defn- process-field [field]
+(defn- process-field [displayed-field-index tip-field-indexes field]
   "Processes a pre-match, match, or post-match field."
   (let [tokens (-> field
                    (str/replace #"<who_name\s+(.+?)>\s*" "<who_name_$1> ")
@@ -89,24 +93,28 @@
                      ^{:key index} [:span.speaker-id speaker-id " "]
                      ;; Ignore end-of-segment tags; process all other tokens
                      (when-not (re-find #"</who_name>" token)
-                       (process-token token index 1))))
+                       (process-token token index displayed-field-index tip-field-indexes))))
                  tokens)))
 
-(defn single-result-rows [a m res index]
+(defn single-result-rows [a m ort-index phon-index ort-tip-indexes phon-tip-indexes res index]
   "Returns one or more rows representing a single search result."
-  (let [[main-line & other-lines] (:text res)
-        [s-id fields] (extract-fields main-line)
-        [pre match post] (map process-field fields)
-        res-info {:s-id       s-id
-                  :pre-match  pre
-                  :match      match
-                  :post-match post}
-        main     (main-row res-info index a m)
-        ;others   (map-indexed non-first-multilingual other-lines)
-        ]
-    ;(cons main others)
-    main
-    ))
+  (let [line         (first (:text res))
+        [s-id fields] (extract-fields line)
+        [ort-pre ort-match ort-post] (map (partial process-field ort-index ort-tip-indexes)
+                                          fields)
+        [phon-pre phon-match phon-post] (map (partial process-field phon-index phon-tip-indexes)
+                                             fields)
+        res-info     {:ort  {:s-id       s-id
+                             :pre-match  ort-pre
+                             :match      ort-match
+                             :post-match ort-post}
+                      :phon {:s-id       s-id
+                             :pre-match  phon-pre
+                             :match      phon-match
+                             :post-match phon-post}}
+        orthographic (orthographic-row (:ort res-info) index a m)
+        phonetic     (phonetic-row (:phon res-info) m)]
+    (list orthographic phonetic)))
 
 (defmethod concordance-table "cwb_speech"
   [{{:keys [results page-no] {:keys [player-row-index
@@ -142,6 +150,17 @@
      [:div.row>div.col-sm-12.search-result-table-container
       [b/table {:striped true :bordered true}
        [:tbody
-        (doall (map (partial single-result-rows a m)
-                    res
-                    (range (count res))))]]]]))
+        (let [attrs             (-> @corpus :languages first :config :displayed-attrs)
+              ort-index         0       ; orthographic form is always the first attribute
+              ;; We need to inc phon-index and lemma-index since the first attribute ('word') is
+              ;; not in the list because it is shown by default by CQP
+              phon-index        (first (keep-indexed #(when (= %2 :phon) (inc %1)) attrs))
+              lemma-index       (first (keep-indexed #(when (= %2 :lemma) (inc %1)) attrs))
+              remaining-indexes (remove #(#{ort-index phon-index lemma-index} %)
+                                        (range (count attrs)))
+              ort-tip-indexes   (into [phon-index lemma-index] remaining-indexes)
+              phon-tip-indexes  (into [ort-index lemma-index] remaining-indexes)]
+          (doall (map (partial single-result-rows a m
+                               ort-index phon-index ort-tip-indexes phon-tip-indexes)
+                      res
+                      (range (count res)))))]]]]))
