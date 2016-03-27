@@ -4,7 +4,8 @@
             [cglossa.shared :refer [search!]]
             [cglossa.search-views.cwb.extended.shared :refer [language-data language-menu-data
                                                               language-config
-                                                              language-corpus-specific-attrs]]))
+                                                              language-corpus-specific-attrs]]
+            [clojure.string :as str]))
 
 (defn- pos-panel [wrapped-term menu-data]
   ^{:key "pos-panel"}
@@ -94,7 +95,7 @@
                                      (swap! wrapped-term
                                             update :corpus-specific-attrs
                                             dissoc attr*)))}
-                   (or title attr-value)]))]))))
+                   (or title (str/capitalize attr-value))]))]))))
 
 (defn- attribute-modal [a {:keys [corpus] :as m}
                         wrapped-query wrapped-term menu-data show-attr-popup?]
@@ -104,11 +105,10 @@
             :show       @show-attr-popup?
             :on-hide    #(reset! show-attr-popup? false)}
    [b/modalbody
-    (when menu-data
-      (list
-        (pos-panel wrapped-term menu-data)
-        (morphsyn-panel wrapped-term menu-data)
-        (corpus-specific-panel corpus wrapped-query wrapped-term)))]
+    (list
+      (when menu-data (pos-panel wrapped-term menu-data))
+      (when menu-data (morphsyn-panel wrapped-term menu-data))
+      (corpus-specific-panel corpus wrapped-query wrapped-term))]
    [b/modalfooter
     [b/button {:bs-style "danger"
                :on-click #(swap! wrapped-term assoc :features nil)} "Clear"]
