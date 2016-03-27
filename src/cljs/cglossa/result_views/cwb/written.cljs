@@ -9,15 +9,25 @@
   "Processes a pre-match, match, or post-match field."
   (as-> field $
         (str/split $ #"\s+")
-        (map-indexed (fn [index token]
-                       (let [attrs    (str/split token #"/")
-                             tip-text (str/join " " (->> attrs rest
-                                                         (remove #(get #{"__UNDEF__" "-"} %))))]
-                         ^{:key index}
-                         [:span {:data-toggle "tooltip"
-                                 :title       tip-text}
-                          (first attrs) " "]))
-                     $)))
+        (keep-indexed (fn [index token]
+                        (if (str/includes? token \/)
+                          (let [attrs    (str/split token #"/")
+                                tip-text (str/join " " (as-> attrs $
+                                                             (rest $)
+                                                             (remove #(get #{"__UNDEF__" "-"} %) $)
+                                                             (vec $)
+                                                             ;; Show the lemma in quotes
+                                                             (update $ 0 #(str "\"" % "\""))))]
+                            ^{:key index}
+                            [:span {:data-toggle "tooltip"
+                                    :title       tip-text}
+                             (first attrs) " "])
+                          ;; With multi-word expressions, the non-last parts become simple strings
+                          ;; without any attributes (i.e., no slashes) when we split the text on
+                          ;; whitespace. Just print out those non-last parts and leave the tooltip
+                          ;; to be attached to the last part.
+                          [:span token " "]))
+                      $)))
 
 (defn- monolingual-or-first-multilingual [res]
   (let [m (re-find #"<(\w+_(?:id|name))(.*?)>(.*)\{\{(.+?)\}\}(.*?)</\1>$" (:text res))]
