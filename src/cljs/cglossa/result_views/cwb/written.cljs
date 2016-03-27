@@ -26,7 +26,7 @@
                           ;; without any attributes (i.e., no slashes) when we split the text on
                           ;; whitespace. Just print out those non-last parts and leave the tooltip
                           ;; to be attached to the last part.
-                          [:span token " "]))
+                          ^{:key index} [:span token " "]))
                       $)))
 
 (defn- monolingual-or-first-multilingual [res]
