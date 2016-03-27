@@ -155,7 +155,7 @@
                                 phonetic? "phon"
                                 :else "word")
                        form*  (if (empty? form)
-                                (when (empty? features) ".*")
+                                (when (and (empty? features) (empty? corpus-specific-attrs)) ".*")
                                 (cond-> form
                                         ;; Escape special characters using a regex from
                                         ;; https://developer.mozilla.org/en-US/docs/Web/JavaScript/
