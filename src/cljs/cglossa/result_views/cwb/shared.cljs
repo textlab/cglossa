@@ -7,7 +7,7 @@
   ;; defined, we print it in the first column (if we have a non-first language result, we
   ;; will include it in the next column instead).
   (when (and (:match result) (:s-id result))
-    [:td (:s-id result) [result-links m result]]))
+    [:td {:style {:vertical-align "middle"}} (:s-id result) [result-links m result]]))
 
 (defn text-columns [result]
   (if (:match result)
