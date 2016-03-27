@@ -8,7 +8,12 @@
 
 (defentity corpus
   (transform (fn [{:keys [languages] :as c}]
-               (assoc c :languages (edn/read-string languages)))))
+               (-> c
+                   (assoc :languages (edn/read-string languages))
+                   (assoc :audio? (fs/exists? (str "resources/public/media/"
+                                                   (:code c) "/audio")))
+                   (assoc :video? (fs/exists? (str "resources/public/media/"
+                                                   (:code c) "/video")))))))
 
 (defn- merge-tagger-attrs [c]
   (let [taggers   (->> c :languages (map :tagger))

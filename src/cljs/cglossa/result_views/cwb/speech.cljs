@@ -24,34 +24,38 @@
     (let [[_ s-id pre match post] m]
       [s-id [pre match post]])))
 
-(defn- orthographic-row [result index a {:keys [corpus] :as m}]
-  (let [sound? (:has-sound @corpus)
-        video? (:has-video @corpus)]
-    ^{:key (str "ort" (hash result))}
+(defn- orthographic-row [a {:keys [corpus] :as m} result]
+  ^{:key (str "ort" (hash result))}
+  [:tr
+   (shared/id-column m result)
+   (shared/text-columns result)])
+
+(defn- phonetic-row [a {:keys [corpus]} result row-index]
+  (let [audio? (:audio? @corpus)
+        video? (:video? @corpus)]
+    ^{:key (str "phon" (hash result))}
     [:tr
-     (if (or sound? video?)
-       [:td.span1
-        (when video?
-          [b/button {:bs-size  "xsmall" :title "Show video" :style {:width "100%" :margin-bottom 3}
-                     :on-click #(toggle-player index "jplayer" "video" a)}
-           [b/glyphicon {:glyph "film"}]])
-        (when sound?
-          (list ^{:key :audio-btn}
-                [b/button {:bs-size  "xsmall" :title "Play audio" :style {:width "100%"}
-                           :on-click #(toggle-player index "jplayer" "audio" a)}
-                 [b/glyphicon {:glyph "volume-up"}]]
-                ^{:key :waveform-btn}
-                [b/button {:bs-size  "xsmall" :title "Show waveform" :style {:width "100%"}
-                           :on-click #(toggle-player index "wfplayer" "audio" a)}
-                 [:img {:src "img/waveform.png"}]]))])
-     (shared/id-column m result)
+     [:td {:style {:vertical-align "middle"}}
+      [:nobr
+       (when video?
+         [b/button {:bs-size  "xsmall" :title "Show video"
+                    :on-click #(toggle-player row-index "jplayer" "video" a)}
+          [b/glyphicon {:glyph "film"}]])
+       (when audio?
+         (list ^{:key :audio-btn}
+               [b/button {:bs-size  "xsmall" :title "Play audio" :style {:margin-left 2}
+                          :on-click #(toggle-player row-index "jplayer" "audio" a)}
+                [b/glyphicon {:glyph "volume-up"}]]
+               ^{:key :waveform-btn}
+               [b/button {:bs-size  "xsmall" :title "Show waveform" :style {:margin-left 2}
+                          :on-click #(toggle-player row-index "wfplayer" "audio" a)}
+                [:img {:src "img/waveform.png" :style {:width 12}}]]))]]
      (shared/text-columns result)]))
 
-(defn- phonetic-row [result m]
-  ^{:key (str "phon" (hash result))}
-  [:tr
-   [:td]
-   (shared/text-columns result)])
+(defn- separator-row [result]
+  ^{:key (str "sep" (hash result))}
+  [:tr {:style {:background-color "#f1f1f1"}}
+   [:td {:col-span 4 :style {:padding 3}}]])
 
 (defn- extra-row [result attr {:keys [corpus]}]
   (let [sound?       (:has-sound @corpus)
@@ -116,9 +120,10 @@
                              :pre-match  phon-pre
                              :match      phon-match
                              :post-match phon-post}}
-        orthographic (orthographic-row (:ort res-info) index a m)
-        phonetic     (phonetic-row (:phon res-info) m)]
-    (list orthographic phonetic)))
+        orthographic (orthographic-row a m (:ort res-info))
+        phonetic     (phonetic-row a m (:phon res-info) index)
+        separator    (separator-row res-info)]
+    (list orthographic phonetic separator)))
 
 (defmethod concordance-table "cwb_speech"
   [{{:keys [results page-no] {:keys [player-row-index
@@ -152,7 +157,7 @@
           [b/modalfooter
            [b/button {:on-click hide-player} "Close"]]]))
      [:div.row>div.col-sm-12.search-result-table-container
-      [b/table {:striped true :bordered true}
+      [b/table {:bordered true}
        [:tbody
         (let [attrs             (-> @corpus :languages first :config :displayed-attrs)
               ort-index         0       ; orthographic form is always the first attribute
