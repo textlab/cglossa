@@ -95,14 +95,14 @@
                    (str/replace #"<who_name\s+(.+?)>\s*" "<who_name_$1> ")
                    (str/replace #"\s*</who_name>" " $&")
                    (str/split #"\s+"))]
-    (map-indexed (fn [index token]
-                   (if-let [[_ speaker-id] (re-find #"<who_name_(.+?)>" token)]
-                     ;; Extract the speaker ID and put it in front of its segment
-                     ^{:key index} [:span.speaker-id speaker-id " "]
-                     ;; Ignore end-of-segment tags; process all other tokens
-                     (when-not (re-find #"</who_name>" token)
-                       (process-token token index displayed-field-index tip-field-indexes))))
-                 tokens)))
+    (keep-indexed (fn [index token]
+                    (if-let [[_ speaker-id] (re-find #"<who_name_(.+?)>" token)]
+                      ;; Extract the speaker ID and put it in front of its segment
+                      ^{:key index} [:span.speaker-id speaker-id " "]
+                      ;; Ignore end-of-segment tags; process all other tokens
+                      (when-not (re-find #"</who_name>" token)
+                        (process-token token index displayed-field-index tip-field-indexes))))
+                  tokens)))
 
 (defn single-result-rows [a m ort-index phon-index ort-tip-indexes phon-tip-indexes res index]
   "Returns one or more rows representing a single search result."
