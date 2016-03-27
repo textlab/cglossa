@@ -1,0 +1,2 @@
+[{:displayed-attrs [:lemma :phon :pos, :gender, :num, :type, :defn, :temp, :pers,
+                    :case, :degr, :descr, :nlex, :mood, :voice]}]
