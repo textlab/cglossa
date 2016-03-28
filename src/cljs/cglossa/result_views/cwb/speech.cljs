@@ -21,8 +21,12 @@
 
 (defn- extract-fields [res]
   (let [m (re-find #"^<who_name\s+(\S*?)>:\s+(.*)\{\{(.+?)\}\}(.*?)$" res)]
-    (let [[_ s-id pre match post] m]
-      [s-id [pre match post]])))
+    (let [[_ s-id pre match post] m
+          ;; If the result begins with a who_name tag with the same ID as the one for the
+          ;; actual match, it feels reduntant (since that speaker ID is listed just
+          ;; to the left of it), so just remove it.
+          pre* (str/replace pre (re-pattern (str "^<who_name\\s+" s-id ">")) "")]
+      [s-id [pre* match post]])))
 
 (defn- orthographic-row [a {:keys [corpus] :as m} result]
   ^{:key (str "ort" (hash result))}
