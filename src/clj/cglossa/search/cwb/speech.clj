@@ -13,9 +13,11 @@
 (def ^:private display-attrs [:lemma :phon :pos :gender :num :type :defn
                               :temp :pers :case :degr :descr :nlex :mood :voice])
 
+
 (defmethod position-fields "cwb_speech" [_ positions-filename]
   (korma/raw (str "replace(replace(`bounds`, '-', '\t'), ':', '\n') INTO OUTFILE '"
                   positions-filename "' FIELDS ESCAPED BY ''")))
+
 
 (defmethod run-queries "cwb_speech" [corpus search queries metadata-ids step cut sort-key]
   (let [search-id   (:id search)
@@ -41,6 +43,7 @@
                        "cat Last 0 99")]]
     (run-cqp-commands corpus (filter identity (flatten commands)) true)))
 
+
 (defmethod get-results "cwb_speech" [corpus search queries start end sort-key]
   (let [named-query (cwb-query-name corpus (:id search))
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
@@ -54,6 +57,7 @@
                      (str "cat " named-query " " start " " end)]]
     (run-cqp-commands corpus (flatten commands) false)))
 
+
 (defn- fix-brace-positions [result]
   ;; If the matching word/phrase is at the beginning of the segment, CQP puts the braces
   ;; marking the start of the match before the starting segment tag
@@ -66,12 +70,14 @@
       (str/replace #"((?:</\S+?>\s*)+)\}\}"                 ; Find end tags
                    "}}$1")))
 
+
 (defn- find-timestamps [result]
   (for [[segment start end] (re-seq #"<sync_time\s+([\d\.]+)><sync_end\s+([\d\.]+)>.*?</sync_time>"
                                     result)
         :let [num-speakers (count (re-seq #"<who_name" segment))]]
     ;; Repeat the start and end time for each speaker within the same segment
     [(repeat num-speakers start) (repeat num-speakers end)]))
+
 
 (defn- build-annotation [index line speaker starttime endtime]
   (let [match? (re-find #"\{\{" line)
@@ -86,6 +92,7 @@
             :from     starttime
             :to       endtime
             :is_match match?}]))
+
 
 (defn- create-media-object
   "Creates the data structure that is needed by jPlayer for a single search result."
