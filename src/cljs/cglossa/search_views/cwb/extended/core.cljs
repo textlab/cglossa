@@ -50,7 +50,9 @@
    [b/button {:bs-style "info"
               :bs-size  "xsmall"
               :title    "Add search word"
-              :disabled (and (str/blank? (:form @wrapped-term)) (nil? (:features @wrapped-term)))
+              :disabled (and (str/blank? (:form @wrapped-term))
+                             (nil? (:features @wrapped-term))
+                             (nil? (:corpus-specific-attrs @wrapped-term)))
               :on-click (fn []
                           ; Append greatest-current-id-plus-one to the
                           ; query-term-ids vector
