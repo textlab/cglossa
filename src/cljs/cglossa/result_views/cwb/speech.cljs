@@ -106,7 +106,7 @@
     (keep-indexed (fn [index token]
                     (if-let [[_ speaker-id] (re-find #"<who_name_(.+?)>" token)]
                       ;; Extract the speaker ID and put it in front of its segment
-                      ^{:key index} [:span.speaker-id speaker-id " "]
+                      ^{:key index} [:span.speaker-id (str "<" speaker-id ">") " "]
                       ;; Ignore end-of-segment tags; process all other tokens
                       (when-not (re-find #"</who_name>" token)
                         (process-token token index displayed-field-index tip-field-indexes))))
