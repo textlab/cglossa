@@ -25,7 +25,7 @@
           ;; If the result begins with a who_name tag with the same ID as the one for the
           ;; actual match, it feels reduntant (since that speaker ID is listed just
           ;; to the left of it), so just remove it.
-          pre* (str/replace pre (re-pattern (str "^<who_name\\s+" s-id ">")) "")
+          pre*   (str/replace pre (re-pattern (str "^<who_name\\s+" s-id ">")) "")
           ;; Do the same with the match if there is no left context
           match* (if (str/blank? pre)
                    (str/replace match (re-pattern (str "^<who_name\\s+" s-id ">")) "")
