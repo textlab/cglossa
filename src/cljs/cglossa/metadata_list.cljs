@@ -3,7 +3,8 @@
             [cljs.core.async :refer [<!]]
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.select2 :as sel]
-            [cglossa.shared :refer [search!]])
+            [cglossa.shared :refer [search!]]
+            [clojure.string :as str])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (defn- metadata-select [a m corpus cat-id search selected open-metadata-cat]
@@ -74,7 +75,7 @@
                                        (remove-cat-values cat-id)
                                        (reset! open-metadata-cat cat-id))
                                      (.preventDefault e))}
-           (:name cat)]
+           (or (:name cat) (-> cat :code (str/replace "_" " ") str/capitalize))]
           (when show?
             (list
               ^{:key (str "close-btn" cat-id)}
