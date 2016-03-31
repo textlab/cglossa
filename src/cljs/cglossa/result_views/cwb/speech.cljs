@@ -158,8 +158,13 @@
                       (reset! current-media-type nil))]
     [:span
      (when @showing-media-popup
-       [b/modal {:show    true
-                 :on-hide hide-player}
+       [b/modal {:class-name "media-popup"
+                 :show       true
+                 :on-hide    hide-player
+                 :on-enter   (fn [node]
+                               ;; Set the width of the popup to almost that of the window
+                               (.width (.find (js/$ node) ".modal-dialog")
+                                       (- (.-innerWidth js/window) 40)))}
         [b/modalheader {:close-button true}
          [b/modaltitle "Video"]]
         [b/modalbody (condp = @current-player-type
