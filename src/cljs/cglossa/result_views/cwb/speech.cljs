@@ -1,23 +1,33 @@
 (ns cglossa.result-views.cwb.speech
   (:require [clojure.string :as str]
-            [reagent.core :as r]
+            [cljs.core.async :refer [<!]]
+            [cljs-http.client :as http]
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.results :refer [concordance-table]]
             [cglossa.result-views.cwb.shared :as shared]
-            react-jplayer))
+            react-jplayer)
+  (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (defn- toggle-player [index player-type media-type
-                      {{{:keys [player-row-index
-                                current-player-type current-media-type]} :media} :results-view}]
+                      {{{:keys [showing-media-popup media-obj player-row-index
+                                current-player-type current-media-type]} :media} :results-view}
+                      {:keys [corpus search]}]
   (let [row-no         (when-not (and (= index @player-row-index)
                                       (= player-type @current-player-type)
                                       (= media-type @current-media-type))
                          index)
         new-media-type (when row-no
                          media-type)]
-    (reset! player-row-index row-no)
-    (reset! current-player-type player-type)
-    (reset! current-media-type new-media-type)))
+    (go
+      (let [response (<! (http/get "play-video" {:query-params {:corpus-code (:code @corpus)
+                                                                :search-id (:id @search)
+                                                                :result-index index
+                                                                :context-size 7}}))]
+        (reset! showing-media-popup true)
+        (reset! media-obj (get-in response [:body :media-obj]))
+        (reset! player-row-index row-no)
+        (reset! current-player-type player-type)
+        (reset! current-media-type new-media-type)))))
 
 (defn- extract-fields [res]
   (let [m (re-find #"^<who_name\s+(\S*?)>:\s+(.*)\{\{(.+?)\}\}(.*?)$" res)]
@@ -38,7 +48,7 @@
    (shared/id-column m result)
    (shared/text-columns result)])
 
-(defn- phonetic-row [a {:keys [corpus]} result row-index]
+(defn- phonetic-row [a {:keys [corpus] :as m} result row-index]
   (let [audio? (:audio? @corpus)
         video? (:video? @corpus)]
     ^{:key (str "phon" (hash result))}
@@ -47,16 +57,16 @@
       [:nobr
        (when video?
          [b/button {:bs-size  "xsmall" :title "Show video"
-                    :on-click #(toggle-player row-index "jplayer" "video" a)}
+                    :on-click #(toggle-player row-index "jplayer" "video" a m)}
           [b/glyphicon {:glyph "film"}]])
        (when audio?
          (list ^{:key :audio-btn}
                [b/button {:bs-size  "xsmall" :title "Play audio" :style {:margin-left 2}
-                          :on-click #(toggle-player row-index "jplayer" "audio" a)}
+                          :on-click #(toggle-player row-index "jplayer" "audio" a m)}
                 [b/glyphicon {:glyph "volume-up"}]]
                ^{:key :waveform-btn}
                [b/button {:bs-size  "xsmall" :title "Show waveform" :style {:margin-left 2}
-                          :on-click #(toggle-player row-index "wfplayer" "audio" a)}
+                          :on-click #(toggle-player row-index "wfplayer" "audio" a m)}
                 [:img {:src "img/waveform.png" :style {:width 12}}]]))]]
      (shared/text-columns result)]))
 
@@ -134,36 +144,34 @@
     (list orthographic phonetic separator)))
 
 (defmethod concordance-table "cwb_speech"
-  [{{:keys [results page-no] {:keys [player-row-index
+  [{{:keys [results page-no] {:keys [showing-media-popup
+                                     media-obj
+                                     player-row-index
                                      current-player-type
                                      current-media-type]} :media} :results-view :as a}
    {:keys [corpus] :as m}]
   (let [res         (get @results @page-no)
         hide-player (fn []
+                      (reset! showing-media-popup false)
                       (reset! player-row-index nil)
                       (reset! current-player-type nil)
                       (reset! current-media-type nil))]
     [:span
-     (when @player-row-index
-       (let [media-obj (:media-obj (nth res @player-row-index))]
-         [b/modal {:show    true
-                   :on-hide hide-player}
-          [b/modalheader {:close-button true}
-           [b/modaltitle "Video"]]
-          [b/modalbody (condp = @current-player-type
-                         "jplayer"
-                         [:tr
-                          [:td {:col-span 10}
-                           [:> js/Jplayer {:media-obj  media-obj
-                                           :media-type @current-media-type
-                                           :ctx_lines  (:initial-context-size @corpus 1)}]]]
+     (when @showing-media-popup
+       [b/modal {:show    true
+                 :on-hide hide-player}
+        [b/modalheader {:close-button true}
+         [b/modaltitle "Video"]]
+        [b/modalbody (condp = @current-player-type
+                       "jplayer"
+                       [:> js/Jplayer {:media-obj  @media-obj
+                                       :media-type @current-media-type
+                                       :ctx_lines  (:initial-context-size @corpus 1)}]
 
-                         "wfplayer"
-                         [:tr
-                          [:td {:col-span 10}
-                           [:WFplayer {:media-obj media-obj}]]])]
-          [b/modalfooter
-           [b/button {:on-click hide-player} "Close"]]]))
+                       "wfplayer"
+                       [:WFplayer {:media-obj @media-obj}])]
+        [b/modalfooter
+         [b/button {:on-click hide-player} "Close"]]])
      [:div.row>div.col-sm-12.search-result-table-container
       [b/table {:bordered true}
        [:tbody

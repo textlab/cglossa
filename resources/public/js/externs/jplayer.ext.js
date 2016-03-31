@@ -1,0 +1,2 @@
+var Jplayer = {};
+var TextBox = {};

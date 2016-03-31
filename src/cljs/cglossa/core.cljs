@@ -6,8 +6,8 @@
             cljsjs.jquery
             tooltip
             [devtools.core :as devtools]
-            [cglossa.search-engines]                        ; just to pull in implementations
-            [cglossa.corpora.core]                          ; just to pull in implementations
+            [cglossa.search-engines]    ; just to pull in implementations
+            [cglossa.corpora.core]      ; just to pull in implementations
             [cglossa.shared :refer [reset-queries!]]
             [cglossa.app :refer [app]])
   (:require-macros [cljs.core.async.macros :refer [go]])
@@ -40,7 +40,9 @@
                                         :fetching-pages     (r/atom #{})
                                         :sort-key           (r/atom :position)
                                         :freq-attr          (r/atom nil)
-                                        :media              {:player-row-index    (r/atom nil)
+                                        :media              {:showing-media-popup (r/atom false)
+                                                             :media-obj           (r/atom nil)
+                                                             :player-row-index    (r/atom nil)
                                                              :current-player-type (r/atom nil)
                                                              :current-media-type  (r/atom nil)}}
                     :search-view       {:view-type (r/atom :simple)

@@ -62,17 +62,28 @@
                     :foreign-libs         [{:file     "resources/public/js/react-bootstrap_0.28.1.min.js"
                                             :provides ["react-bootstrap"]
                                             :requires ["cljsjs.react"]}
+                                           {:file     "resources/public/js/jquery-ui.js"
+                                            :file-min "resources/public/js/jquery-ui.min.js"
+                                            :provides ["jquery-ui"]
+                                            :requires ["cljsjs.jquery"]}
                                            {:file     "resources/public/js/select2.js"
                                             :file-min "resources/public/js/select2.min.js"
                                             :provides ["js-select2"]
                                             :requires ["cljsjs.jquery"]}
-                                           {:file     "resources/public/js/jquery.jplayer.min.js"
+                                           {:file     "resources/public/js/jquery.jplayer.js"
+                                            :file-min "resources/public/js/jquery.jplayer.min.js"
                                             :requires ["cljsjs.jquery"]
                                             :provides ["js-jplayer"]}
                                            {:file     "resources/public/js/jplayer.js"
+                                            :file-min "resources/public/js/jplayer.min.js"
                                             :provides ["react-jplayer"]
-                                            :requires ["js-jplayer" "cljsjs.react"]}
+                                            :requires ["js-jplayer" "cljsjs.react" "jquery-ui"]}
+                                           {:file     "resources/public/js/jquery.colorpicker.js"
+                                            :file-min "resources/public/js/jquery.colorpicker.min.js"
+                                            :requires ["cljsjs.jquery"]
+                                            :provides ["colorpicker"]}
                                            {:file     "resources/public/js/react-spinner.js"
+                                            :file-min "resources/public/js/react-spinner.min.js"
                                             :provides ["react-spinner"]}
                                            {:file     "resources/public/js/underscore-min.js"
                                             :provides ["underscore"]}
@@ -81,6 +92,7 @@
                                             :provides ["tooltip"]
                                             :requires ["cljsjs.jquery"]}
                                            {:file     "resources/public/js/griddle_0.2.15.js"
+                                            :file-min "resources/public/js/griddle_0.2.15.min.js"
                                             :provides ["griddle"]
                                             :requires ["cljsjs.react" "underscore"]}]
                     :externs              ["resources/public/js/externs/extra.ext.js"
@@ -88,7 +100,8 @@
                                            "resources/public/js/externs/select2.ext.js"
                                            "resources/public/js/externs/react-spinner.ext.js"
                                            "resources/public/js/externs/bootstrap_tooltip.ext.js"
-                                           "resources/public/js/externs/griddle_0.2.15.ext.js"]
+                                           "resources/public/js/externs/griddle_0.2.15.ext.js"
+                                           "resources/public/js/externs/jplayer.ext.js"]
                     :pretty-print         true}}}}
 
   :sassc [{:src       "src/scss/style.scss"
@@ -101,8 +114,8 @@
                                       [leiningen "2.5.1"]
                                       [ring/ring-mock "0.3.0"]]
 
-                       :repl-options {:init-ns          cglossa.server
-                                      :port             8230}
+                       :repl-options {:init-ns cglossa.server
+                                      :port    8230}
 
                        :plugins      [[lein-figwheel "0.5.0-SNAPSHOT"]]
 

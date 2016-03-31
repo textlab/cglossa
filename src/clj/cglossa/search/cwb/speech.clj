@@ -3,6 +3,7 @@
   (:require [clojure.string :as str]
             [me.raynes.fs :as fs]
             [korma.core :as korma]
+            [cglossa.db.corpus :refer [get-corpus]]
             [cglossa.search.core :refer [run-queries get-results transform-results]]
             [cglossa.search.cwb.shared :refer [cwb-query-name cwb-corpus-name run-cqp-commands
                                                construct-query-commands position-fields
@@ -65,9 +66,9 @@
   ;; bug in CQP? In any case we have to fix it by moving the braces to the
   ;; start of the segment text instead. Similarly if the match is at the end of a segment.
   (-> result
-      (str/replace #"\{\{((?:<\S+?\s+?\S+?>\s*)+)"          ; Find start tags with attributes
-                   "$1{{")                                  ; (i.e., not the match)
-      (str/replace #"((?:</\S+?>\s*)+)\}\}"                 ; Find end tags
+      (str/replace #"\{\{((?:<\S+?\s+?\S+?>\s*)+)" ; Find start tags with attributes
+                   "$1{{")              ; (i.e., not the match)
+      (str/replace #"((?:</\S+?>\s*)+)\}\}" ; Find end tags
                    "}}$1")))
 
 
@@ -80,18 +81,18 @@
 
 
 (defn- build-annotation [index line speaker starttime endtime]
-  (let [match? (re-find #"\{\{" line)
+  (let [match? (boolean (re-find #"\{\{" line))
         line*  (str/replace line #"\{\{|\}\}" "")
-        tokens (re-seq #"\s+" line*)]
-    [index {:speaker  speaker
-            :line     (into {} (map-indexed (fn [index token]
-                                              (let [attr-values (str/split token #"/")]
-                                                [index (zipmap (cons "word" display-attrs)
-                                                               attr-values)]))
-                                            tokens))
-            :from     starttime
-            :to       endtime
-            :is_match match?}]))
+        tokens (str/split line* #"\s+")]
+    [index {:speaker speaker
+            :line    (into {} (map-indexed (fn [index token]
+                                             (let [attr-values (str/split token #"/")]
+                                               [index (zipmap (cons "word" display-attrs)
+                                                              attr-values)]))
+                                           tokens))
+            :from    starttime
+            :to      endtime
+            :match?  match?}]))
 
 
 (defn- create-media-object
@@ -103,19 +104,53 @@
         matching-line-index (first (keep-indexed #(when (re-find #"\{\{" %2) %1) lines))
         last-line-index     (dec (count lines))]
     {:title             ""
-     :last_line         last-line-index
-     :display_attribute "word"
-     :corpus_id         (:id corpus)
+     :last-line         last-line-index
+     :display-attribute "word"
+     :corpus-id         (:id corpus)
      :mov               {:supplied "m4v"
                          :path     (str "media/" (:code corpus))
-                         :line_key line-key
+                         :line-key line-key
                          :start    overall-starttime
                          :stop     overall-endtime}
      :divs              {:annotation annotations}
-     :start_at          matching-line-index
-     :end_at            matching-line-index
-     :min_start         0
-     :max_end           last-line-index}))
+     :start-at          matching-line-index
+     :end-at            matching-line-index
+     :min-start         0
+     :max-end           last-line-index}))
+
+
+(defn- extract-media-info [corpus result]
+  (let [result*           (fix-brace-positions result)
+        timestamps        (find-timestamps result*)
+        starttimes        (mapcat first timestamps)
+        endtimes          (mapcat last timestamps)
+        overall-starttime (ffirst starttimes)
+        overall-endtime   (last (last endtimes))
+        speakers          (map second (re-seq #"<who_name\s+(.+?)>" result*))
+        ;; All line keys within the same result should point to the same media file,
+        ;; so just find the first one.
+        line-key          (second (re-find #"<who_line_key\s+(\d+)>" result*))]
+    (let [media-obj-lines (map second (re-seq (if line-key
+                                                #"<who_line_key.+?>(.*?)</who_line_key>"
+                                                #"<who_name.+?>(.*?)</who_name>")
+                                              result*))]
+      {:media-obj (create-media-object overall-starttime overall-endtime starttimes endtimes
+                                       media-obj-lines speakers corpus line-key)
+       :line-key  line-key})))
+
+
+(defn play-video [corpus-code search-id result-index context-size]
+  (let [corpus      (get-corpus {:code corpus-code})
+        named-query (cwb-query-name corpus search-id)
+        commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
+                     (str/upper-case (:code corpus))
+                     (str "set Context " context-size " sync_time")
+                     "set LD \"{{\""
+                     "set RD \"}}\""
+                     "show +sync_time +sync_end +who_name +who_line_key"
+                     (str "cat " named-query " " result-index " " result-index)]
+        results     (run-cqp-commands corpus (flatten commands) false)]
+    (extract-media-info corpus (first results))))
 
 
 (defmethod transform-results "cwb_speech" [_ queries results]
@@ -125,35 +160,35 @@
 
 
 #_(defmethod transform-results "cwb_speech" [corpus queries [results _]]
-  (when results
-    (for [result results
-          :let [result*           (fix-brace-positions result)
-                [starttimes endtimes] (find-timestamps result*)
-                overall-starttime (ffirst starttimes)
-                overall-endtime   (last (last endtimes))
-                speakers          (map second (re-seq #"<who_name\s+(.+?)>" result*))
-                ;; All line keys within the same result should point to the same media file,
-                ;; so just find the first one. Note that corpora are only marked with line
-                ;; keys if they do in fact have media files, so line-key might be nil.
-                line-key          (second (re-find #"<who_line_key\s+(\d+)>" result*))
-                segments          (->> result*
-                                       (re-seq #"<sync_end.+?>(.+?)</sync_end")
-                                       (map second)
-                                       ;; Remove line key attribute tags, since they would only
-                                       ;; confuse the client code
-                                       (map #(str/replace % #"</?who_line_key.*?>" "")))
-                ;; We asked for a context of several segments to the left and right of the one
-                ;; containing the matching word or phrase in order to be able to show them in the
-                ;; media player display. However, only the segment with the match (marked by
-                ;; braces) should be included in the search result shown in the result table.
-                displayed-line    (first (filter (partial re-find #"\{\{.+\}\}") segments))]]
-      (if-not line-key
-        {:text displayed-line}
-        (let [media-obj-lines (map second (re-seq (if line-key
-                                                    #"<who_line_key.+?>(.*?)</who_line_key>"
-                                                    #"<who_name.+?>(.*?)</who_name>")
-                                                  result*))]
-          {:text      displayed-line
-           :media-obj (create-media-object overall-starttime overall-endtime starttimes endtimes
-                                           media-obj-lines speakers corpus line-key)
-           :line-key  line-key})))))
+    (when results
+      (for [result results
+            :let [result*           (fix-brace-positions result)
+                  [starttimes endtimes] (find-timestamps result*)
+                  overall-starttime (ffirst starttimes)
+                  overall-endtime   (last (last endtimes))
+                  speakers          (map second (re-seq #"<who_name\s+(.+?)>" result*))
+                  ;; All line keys within the same result should point to the same media file,
+                  ;; so just find the first one. Note that corpora are only marked with line
+                  ;; keys if they do in fact have media files, so line-key might be nil.
+                  line-key          (second (re-find #"<who_line_key\s+(\d+)>" result*))
+                  segments          (->> result*
+                                         (re-seq #"<sync_end.+?>(.+?)</sync_end")
+                                         (map second)
+                                         ;; Remove line key attribute tags, since they would only
+                                         ;; confuse the client code
+                                         (map #(str/replace % #"</?who_line_key.*?>" "")))
+                  ;; We asked for a context of several segments to the left and right of the one
+                  ;; containing the matching word or phrase in order to be able to show them in the
+                  ;; media player display. However, only the segment with the match (marked by
+                  ;; braces) should be included in the search result shown in the result table.
+                  displayed-line    (first (filter (partial re-find #"\{\{.+\}\}") segments))]]
+        (if-not line-key
+          {:text displayed-line}
+          (let [media-obj-lines (map second (re-seq (if line-key
+                                                      #"<who_line_key.+?>(.*?)</who_line_key>"
+                                                      #"<who_name.+?>(.*?)</who_name>")
+                                                    result*))]
+            {:text      displayed-line
+             :media-obj (create-media-object overall-starttime overall-endtime starttimes endtimes
+                                             media-obj-lines speakers corpus line-key)
+             :line-key  line-key})))))

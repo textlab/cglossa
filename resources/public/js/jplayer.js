@@ -14,7 +14,7 @@
         wfPlayer: null
       };
     },
-    renderWord: function(line) {
+    renderWord: function(line, index) {
       var att, attString;
       attString = "";
       for (att in line) {
@@ -23,7 +23,7 @@
         }
         attString += att + " : " + line[att] + "<br>";
       }
-      return React.createElement("a", {title: attString, style: line.match ? {color: '#b00', fontWeight: 'bold', fontSize: '0.9em'} : {}}, line[this.props.mediaObj.displayAttribute], " ");
+      return React.createElement("a", {key: index, title: attString, style: line.match ? {color: '#b00', fontWeight: 'bold', fontSize: '0.9em'} : {}}, line[this.props.mediaObj.displayAttribute], " ");
     },
     renderAnnotation: function(annotation, lineNo) {
       var endTimecode, getStyle, i, segment, speaker, speakerBrev, textDivs, timecode;
@@ -35,7 +35,7 @@
         var _results;
         _results = [];
         for (i in annotation.line) {
-          _results.push(this.renderWord(annotation.line[i]));
+          _results.push(this.renderWord(annotation.line[i], i));
         }
         return _results;
       }).call(this);
@@ -65,13 +65,13 @@
         };
       })(this);
       textDivs = [];
-      textDivs.push(React.createElement("div", {className: 'textDiv ' + timecode.replace(/\./,"_"), 
+      textDivs.push(React.createElement("div", {className: 'textDiv ' + timecode.replace(/\./,"_"),
             id: 'jp-' + lineNo, 
             "data-start_timecode": timecode, 
             "data-end_timecode": endTimecode,
             style: getStyle()
             }, 
-         React.createElement("div", {className: "waveformBtnDiv"}, React.createElement("button", {title: "Show waveform", className: "btn btn-mini", style: {width: '100%'}, onClick: this.toggleWFplayer.bind(this, lineNo)}, React.createElement("img", {src: "assets/rglossa/speech/waveform.png"}))), 
+         React.createElement("div", {className: "waveformBtnDiv"}, React.createElement("button", {title: "Show waveform", className: "btn btn-mini", style: {width: '100%'}, onClick: this.toggleWFplayer.bind(this, lineNo)}, React.createElement("img", {src: "assets/rglossa/speech/waveform.png"}))),
          React.createElement("div", {className: "speakerDiv"}, React.createElement("a", {className: "speaker", title: speaker}, speakerBrev)),
          React.createElement("div", {className: "segmentDiv"}, segment)
        )
@@ -171,19 +171,14 @@
     },
     pauseJPlayer: function() {
       var $node, $playerNode;
-      $node = ReactDOM.findDOMNode(this);
+      $node = $(ReactDOM.findDOMNode(this));
       $playerNode = $node.find(".jp-jplayer");
       return $playerNode.jPlayer("pause");
     },
     createPlayer: function() {
       var $node, $playerNode, ext, lastLine, mediaObj, mov, path, supplied;
-      $node = ReactDOM.findDOMNode(this);
+      $node = $(ReactDOM.findDOMNode(this));
       mediaObj = this.props.mediaObj;
-      $(document).tooltip({
-        content: function() {
-          return $node.prop('title');
-        }
-      });
       mov = mediaObj.mov.movieLoc;
       path = "" + mediaObj.mov.path + "/" + this.props.mediaType + "/";
       supplied = mediaObj.mov.supplied;
@@ -251,12 +246,12 @@
     },
     destroyPlayer: function() {
       var $node;
-      $node = ReactDOM.findDOMNode(this);
+      $node = $(ReactDOM.findDOMNode(this));
       return $node.find(".jp-jplayer").jPlayer('destroy');
     },
     restartPlayer: function() {
       var $node, $playerNode;
-      $node = ReactDOM.findDOMNode(this);
+      $node = $(ReactDOM.findDOMNode(this));
       $playerNode = $node.find(".jp-jplayer");
       return $playerNode.jPlayer("play", this.getStartTime(this.props.mediaObj));
     },
