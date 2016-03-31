@@ -19,8 +19,8 @@
         new-media-type (when row-no
                          media-type)]
     (go
-      (let [response (<! (http/get "play-video" {:query-params {:corpus-code (:code @corpus)
-                                                                :search-id (:id @search)
+      (let [response (<! (http/get "play-video" {:query-params {:corpus-code  (:code @corpus)
+                                                                :search-id    (:id @search)
                                                                 :result-index index
                                                                 :context-size 7}}))]
         (reset! showing-media-popup true)
