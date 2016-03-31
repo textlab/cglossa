@@ -71,7 +71,7 @@
             "data-end_timecode": endTimecode,
             style: getStyle()
             }, 
-         React.createElement("div", {className: "waveformBtnDiv"}, React.createElement("button", {title: "Show waveform", className: "btn btn-mini", style: {width: '100%'}, onClick: this.toggleWFplayer.bind(this, lineNo)}, React.createElement("img", {src: "assets/rglossa/speech/waveform.png"}))),
+         React.createElement("div", {className: "waveformBtnDiv"}, React.createElement("button", {title: "Show waveform", className: "btn btn-xs btn-default", style: {marginRight: 10}, onClick: this.toggleWFplayer.bind(this, lineNo)}, React.createElement("img", {src: "img/speech/waveform.png", style: {width: 12}}))),
          React.createElement("div", {className: "speakerDiv"}, React.createElement("a", {className: "speaker", title: speaker}, speakerBrev)),
          React.createElement("div", {className: "segmentDiv"}, segment)
        )
@@ -193,7 +193,7 @@
             $playerNode.jPlayer("setMedia", {
               rtmpv: path + mov + ext,
               m4v: path + mov + ext,
-              poster: "assets/rglossa/speech/_6.6-%27T%27_ligo.skev.graa.jpg"
+              poster: "img/speech/_6.6-%27T%27_ligo.skev.graa.jpg"
             });
             return $playerNode.jPlayer("play", _this.getStartTime(mediaObj));
           };
@@ -261,7 +261,7 @@
       React.createElement("div", {className: "jp-video jp-video-270p", id: "jp_container_1"}, 
          React.createElement("div", {className: "jp-type-single"}, 
              React.createElement("div", {className: "jp-jplayer", style: this.props.mediaType == 'audio' ? {display: 'none'} : {width: 480, height: 270}}, 
-                 React.createElement("img", {id: "jp_poster_1", src: "assets/rglossa/speech/_6.6-%27T%27_ligo.skev.graa.jpg", style: {width: 480, height: 270, display: 'none'}}), 
+                 React.createElement("img", {id: "jp_poster_1", src: "img/speech/_6.6-%27T%27_ligo.skev.graa.jpg", style: {width: 480, height: 270, display: 'none'}}),
                  React.createElement("object", {id: "jp_flash_1", name: "jp_flash_1", data: "Jplayer.swf", type: "application/x-shockwave-flash", width: "1", height: "1", tabIndex: "-1", style: {width: 1, height: 1}}, 
                      React.createElement("param", {name: "flashvars", value: "jQuery=jQuery&id=jplayer&vol=0.8&muted=false"}), 
                      React.createElement("param", {name: "allowscriptaccess", value: "always"}), 
