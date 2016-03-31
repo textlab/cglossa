@@ -15,22 +15,22 @@
       };
     },
     renderWord: function(line) {
-      var att, att_string;
-      att_string = "";
+      var att, attString;
+      attString = "";
       for (att in line) {
         if (att === "pos") {
           line[att] = line[att].replace(/:/g, "/");
         }
-        att_string += att + " : " + line[att] + "<br>";
+        attString += att + " : " + line[att] + "<br>";
       }
-      return React.createElement("a", {title: att_string, style: line.match ? {color: '#b00', fontWeight: 'bold', fontSize: '0.9em'} : {}}, line[this.props.mediaObj.display_attribute], " ");
+      return React.createElement("a", {title: attString, style: line.match ? {color: '#b00', fontWeight: 'bold', fontSize: '0.9em'} : {}}, line[this.props.mediaObj.displayAttribute], " ");
     },
     renderAnnotation: function(annotation, lineNo) {
-      var end_timecode, getStyle, i, segment, speaker, speaker_brev, textDivs, timecode;
+      var endTimecode, getStyle, i, segment, speaker, speakerBrev, textDivs, timecode;
       timecode = annotation.from;
-      end_timecode = annotation.to;
+      endTimecode = annotation.to;
       speaker = annotation.speaker;
-      speaker_brev = speaker.replace(/^.*_/, "");
+      speakerBrev = speaker.replace(/^.*_/, "");
       segment = (function() {
         var _results;
         _results = [];
@@ -52,7 +52,7 @@
               display: 'table-row',
               color: '#000'
             };
-          } else if (annotation.from === _this.first_start || annotation.to === _this.last_end) {
+          } else if (annotation.from === _this.firstStart || annotation.to === _this.lastEnd) {
             return {
               display: 'table-row',
               color: '#ccc'
@@ -68,11 +68,11 @@
       textDivs.push(React.createElement("div", {className: 'textDiv ' + timecode.replace(/\./,"_"), 
             id: 'jp-' + lineNo, 
             "data-start_timecode": timecode, 
-            "data-end_timecode": end_timecode, 
+            "data-end_timecode": endTimecode,
             style: getStyle()
             }, 
          React.createElement("div", {className: "waveformBtnDiv"}, React.createElement("button", {title: "Show waveform", className: "btn btn-mini", style: {width: '100%'}, onClick: this.toggleWFplayer.bind(this, lineNo)}, React.createElement("img", {src: "assets/rglossa/speech/waveform.png"}))), 
-         React.createElement("div", {className: "speakerDiv"}, React.createElement("a", {className: "speaker", title: speaker}, speaker_brev)), 
+         React.createElement("div", {className: "speakerDiv"}, React.createElement("a", {className: "speaker", title: speaker}, speakerBrev)),
          React.createElement("div", {className: "segmentDiv"}, segment)
        )
        );
@@ -94,11 +94,11 @@
       }
     },
     render: function() {
-      var annotation, annotations, display_attribute, n;
-      display_attribute = this.props.mediaObj.display_attribute;
+      var annotation, annotations, displayAttribute, n;
+      displayAttribute = this.props.mediaObj.displayAttribute;
       annotation = this.props.mediaObj.divs.annotation;
-      this.first_start = annotation[this.props.startAtLine].from;
-      this.last_end = annotation[this.props.endAtLine].to;
+      this.firstStart = annotation[this.props.startAtLine].from;
+      this.lastEnd = annotation[this.props.endAtLine].to;
       annotations = (function() {
         var _results;
         _results = [];
@@ -117,31 +117,31 @@
       mediaType: React.PropTypes.string.isRequired
     },
     getStartLine: function(mediaObj) {
-      var min_start, start_at;
-      start_at = parseInt(mediaObj.start_at);
-      min_start = parseInt(mediaObj.min_start);
-      if (!this.props.ctx_lines) {
-        return start_at;
-      } else if (this.props.ctx_lines === 'all') {
-        return min_start;
-      } else if (start_at - this.props.ctx_lines >= min_start) {
-        return start_at - this.props.ctx_lines;
+      var minStart, startAt;
+      startAt = parseInt(mediaObj.startAt);
+      minStart = parseInt(mediaObj.minStart);
+      if (!this.props.ctxLines) {
+        return startAt;
+      } else if (this.props.ctxLines === 'all') {
+        return minStart;
+      } else if (startAt - this.props.ctxLines >= minStart) {
+        return startAt - this.props.ctxLines;
       } else {
-        return min_start;
+        return minStart;
       }
     },
     getEndLine: function(mediaObj) {
-      var end_at, max_end;
-      end_at = parseInt(mediaObj.end_at);
-      max_end = parseInt(mediaObj.max_end);
-      if (!this.props.ctx_lines) {
-        return end_at;
-      } else if (this.props.ctx_lines === 'all') {
-        return max_end;
-      } else if (end_at + this.props.ctx_lines <= max_end) {
-        return end_at + this.props.ctx_lines;
+      var endAt, maxEnd;
+      endAt = parseInt(mediaObj.endAt);
+      maxEnd = parseInt(mediaObj.maxEnd);
+      if (!this.props.ctxLines) {
+        return endAt;
+      } else if (this.props.ctxLines === 'all') {
+        return maxEnd;
+      } else if (endAt + this.props.ctxLines <= maxEnd) {
+        return endAt + this.props.ctxLines;
       } else {
-        return max_end;
+        return maxEnd;
       }
     },
     getStartTime: function(mediaObj) {
@@ -176,7 +176,7 @@
       return $playerNode.jPlayer("pause");
     },
     createPlayer: function() {
-      var $node, $playerNode, ext, last_line, mediaObj, mov, path, supplied;
+      var $node, $playerNode, ext, lastLine, mediaObj, mov, path, supplied;
       $node = $(this.getDOMNode());
       mediaObj = this.props.mediaObj;
       $(document).tooltip({
@@ -184,11 +184,11 @@
           return $node.prop('title');
         }
       });
-      mov = mediaObj.mov.movie_loc;
+      mov = mediaObj.mov.movieLoc;
       path = "" + mediaObj.mov.path + "/" + this.props.mediaType + "/";
       supplied = mediaObj.mov.supplied;
       $("#movietitle").text(mediaObj.title);
-      last_line = parseInt(mediaObj.last_line);
+      lastLine = parseInt(mediaObj.lastLine);
       ext = this.props.mediaType === "audio" ? ".mp3" : "_800.mp4";
       $playerNode = $node.find(".jp-jplayer");
       $playerNode.jPlayer({
@@ -231,7 +231,7 @@
       return $(".slider-range").slider({
         range: true,
         min: 0,
-        max: last_line,
+        max: lastLine,
         values: [this.state.startLine, this.state.endLine + 1],
         slide: (function(_this) {
           return function(event, ui) {
