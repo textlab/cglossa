@@ -16,7 +16,8 @@
             [cglossa.shared :refer [corpus-connections]]
             [cglossa.db.corpus :refer [get-corpus]]
             [cglossa.db.metadata :refer [get-metadata-categories get-metadata-values show-texts]]
-            [cglossa.search.core :as search])
+            [cglossa.search.core :as search]
+            [cglossa.search.cwb.speech :refer [play-video]])
   (:import (java.io ByteArrayOutputStream)))
 
 (defn- hyphenize-keys
@@ -92,5 +93,8 @@
                                             step cut sort-key) false))
 
   (GET "/results" [corpus-id search-id start end sort-key]
-    (transit-response (search/results corpus-id search-id start end sort-key) false)))
+    (transit-response (search/results corpus-id search-id start end sort-key) false))
+
+  (GET "/play-video" [corpus-code search-id result-index context-size]
+    (transit-response (play-video corpus-code search-id result-index context-size) false)))
 
