@@ -171,13 +171,13 @@
     },
     pauseJPlayer: function() {
       var $node, $playerNode;
-      $node = $(this.getDOMNode());
+      $node = ReactDOM.findDOMNode(this);
       $playerNode = $node.find(".jp-jplayer");
       return $playerNode.jPlayer("pause");
     },
     createPlayer: function() {
       var $node, $playerNode, ext, lastLine, mediaObj, mov, path, supplied;
-      $node = $(this.getDOMNode());
+      $node = ReactDOM.findDOMNode(this);
       mediaObj = this.props.mediaObj;
       $(document).tooltip({
         content: function() {
@@ -251,12 +251,12 @@
     },
     destroyPlayer: function() {
       var $node;
-      $node = $(this.getDOMNode());
+      $node = ReactDOM.findDOMNode(this);
       return $node.find(".jp-jplayer").jPlayer('destroy');
     },
     restartPlayer: function() {
       var $node, $playerNode;
-      $node = $(this.getDOMNode());
+      $node = ReactDOM.findDOMNode(this);
       $playerNode = $node.find(".jp-jplayer");
       return $playerNode.jPlayer("play", this.getStartTime(this.props.mediaObj));
     },
