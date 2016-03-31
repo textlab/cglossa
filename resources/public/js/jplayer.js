@@ -45,7 +45,7 @@
             return {
               display: 'table-row',
               color: '#000',
-              'background-color': '#eea'
+              backgroundColor: '#eea'
             };
           } else if (lineNo >= _this.props.startAtLine && lineNo <= _this.props.endAtLine) {
             return {
