@@ -10,7 +10,7 @@
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (defn- toggle-player [index player-type media-type
-                      {{:keys [page-no]
+                      {{:keys                                            [page-no]
                         {:keys [showing-media-popup media-obj player-row-index
                                 current-player-type current-media-type]} :media} :results-view}
                       {:keys [corpus search]}]
@@ -160,26 +160,24 @@
                       (reset! current-player-type nil)
                       (reset! current-media-type nil))]
     [:span
-     (when @showing-media-popup
-       [b/modal {:class-name "media-popup"
-                 :show       true
-                 :on-hide    hide-player
-                 :on-enter   (fn [node]
-                               ;; Set the width of the popup to almost that of the window
-                               (.width (.find (js/$ node) ".modal-dialog")
-                                       (- (.-innerWidth js/window) 40)))}
-        [b/modalheader {:close-button true}
-         [b/modaltitle "Video"]]
-        [b/modalbody (condp = @current-player-type
-                       "jplayer"
-                       [:> js/Jplayer {:media-obj  @media-obj
-                                       :media-type @current-media-type
-                                       :ctx_lines  (:initial-context-size @corpus 1)}]
-
-                       "wfplayer"
-                       [:WFplayer {:media-obj @media-obj}])]
-        [b/modalfooter
-         [b/button {:on-click hide-player} "Close"]]])
+     [b/modal {:class-name "media-popup"
+               :show       @showing-media-popup
+               :on-hide    hide-player
+               :on-enter   (fn [node]
+                             ;; Set the width of the popup to almost that of the window
+                             (.width (.find (js/$ node) ".modal-dialog")
+                                     (- (.-innerWidth js/window) 40)))}
+      [b/modalheader {:close-button true}
+       [b/button {:bs-size "small"}
+        [b/glyphicon {:glyph "step-backward"}]]
+       [b/button {:bs-size "small" :style {:margin-left 10}}
+        [b/glyphicon {:glyph "step-forward"}]]]
+      [b/modalbody (if (= @current-player-type "wfplayer")
+                     [:WFplayer {:media-obj @media-obj}]
+                     [:> js/Jplayer {:media-obj  @media-obj
+                                     :media-type @current-media-type}])]
+      [b/modalfooter
+       [b/button {:on-click hide-player} "Close"]]]
      [:div.row>div.col-sm-12.search-result-table-container
       [b/table {:bordered true}
        [:tbody
