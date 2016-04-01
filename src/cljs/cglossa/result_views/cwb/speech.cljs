@@ -2,6 +2,7 @@
   (:require [clojure.string :as str]
             [cljs.core.async :refer [<!]]
             [cljs-http.client :as http]
+            [cglossa.shared :refer [page-size]]
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.results :refer [concordance-table]]
             [cglossa.result-views.cwb.shared :as shared]
@@ -9,7 +10,8 @@
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (defn- toggle-player [index player-type media-type
-                      {{{:keys [showing-media-popup media-obj player-row-index
+                      {{:keys [page-no]
+                        {:keys [showing-media-popup media-obj player-row-index
                                 current-player-type current-media-type]} :media} :results-view}
                       {:keys [corpus search]}]
   (let [row-no         (when-not (and (= index @player-row-index)
@@ -17,11 +19,12 @@
                                       (= media-type @current-media-type))
                          index)
         new-media-type (when row-no
-                         media-type)]
+                         media-type)
+        result-index   (+ (* page-size (dec @page-no)) index)]
     (go
       (let [response (<! (http/get "play-video" {:query-params {:corpus-id    (:id @corpus)
                                                                 :search-id    (:id @search)
-                                                                :result-index index
+                                                                :result-index result-index
                                                                 :context-size 7}}))]
         (reset! showing-media-popup true)
         (reset! media-obj (get-in response [:body :media-obj]))

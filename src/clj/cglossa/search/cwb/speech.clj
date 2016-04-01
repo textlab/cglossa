@@ -106,7 +106,8 @@
         matching-line-index (first (keep-indexed #(when (re-find #"\{\{" %2) %1) lines))
         last-line-index     (dec (count lines))
         movie-loc           (-> media-file
-                                (select (where (between 100 [:line_key_begin :line_key_end])))
+                                (select (where (between line-key
+                                                        [:line_key_begin :line_key_end])))
                                 first
                                 :basename)]
     {:title             ""
@@ -131,8 +132,8 @@
         timestamps        (find-timestamps result*)
         starttimes        (mapcat first timestamps)
         endtimes          (mapcat last timestamps)
-        overall-starttime (ffirst starttimes)
-        overall-endtime   (last (last endtimes))
+        overall-starttime (first starttimes)
+        overall-endtime   (last endtimes)
         speakers          (map second (re-seq #"<who_name\s+(.+?)>" result*))
         ;; All line keys within the same result should point to the same media file,
         ;; so just find the first one.
