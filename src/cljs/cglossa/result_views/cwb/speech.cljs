@@ -19,7 +19,7 @@
         new-media-type (when row-no
                          media-type)]
     (go
-      (let [response (<! (http/get "play-video" {:query-params {:corpus-code  (:code @corpus)
+      (let [response (<! (http/get "play-video" {:query-params {:corpus-id    (:id @corpus)
                                                                 :search-id    (:id @search)
                                                                 :result-index index
                                                                 :context-size 7}}))]

@@ -95,6 +95,6 @@
   (GET "/results" [corpus-id search-id start end sort-key]
     (transit-response (search/results corpus-id search-id start end sort-key) false))
 
-  (GET "/play-video" [corpus-code search-id result-index context-size]
-    (transit-response (play-video corpus-code search-id result-index context-size) false)))
+  (GET "/play-video" [corpus-id search-id result-index context-size]
+    (transit-response (play-video corpus-id search-id result-index context-size) false)))
 

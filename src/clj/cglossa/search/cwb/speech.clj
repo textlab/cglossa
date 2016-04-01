@@ -139,8 +139,8 @@
        :line-key  line-key})))
 
 
-(defn play-video [corpus-code search-id result-index context-size]
-  (let [corpus      (get-corpus {:code corpus-code})
+(defn play-video [corpus-id search-id result-index context-size]
+  (let [corpus      (get-corpus {:id corpus-id})
         named-query (cwb-query-name corpus search-id)
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
                      (str/upper-case (:code corpus))
