@@ -113,8 +113,8 @@
 
   window.Jplayer = React.createClass({displayName: "Jplayer",
     propTypes: {
-      mediaObj: React.PropTypes.object.isRequired,
-      mediaType: React.PropTypes.string.isRequired
+      mediaObj: React.PropTypes.object,
+      mediaType: React.PropTypes.string
     },
     getStartLine: function(mediaObj) {
       var minStart, startAt;
@@ -302,7 +302,7 @@
           React.createElement("a", {className: "ui-slider-handle ui-state-default ui-corner-all", href: "#", style: {left: '80%'}})
       )
       ), 
-      React.createElement(TextBox, {mediaObj: this.props.mediaObj, startAtLine: this.state.startLine, endAtLine: this.state.endLine, highlightLine: this.state.currentLine, pauseJPlayer: this.pauseJPlayer})
+      this.props.mediaObj && React.createElement(TextBox, {mediaObj: this.props.mediaObj, startAtLine: this.state.startLine, endAtLine: this.state.endLine, highlightLine: this.state.currentLine, pauseJPlayer: this.pauseJPlayer})
     );
     }
   });
