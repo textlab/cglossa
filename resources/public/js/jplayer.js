@@ -180,7 +180,8 @@
       $node = $(ReactDOM.findDOMNode(this));
       mediaObj = this.props.mediaObj;
       mov = mediaObj.mov.movieLoc;
-      path = "" + mediaObj.mov.path + "/" + this.props.mediaType + "/";
+      //path = "http://localhost:61054/" + mediaObj.mov.path + "/" + this.props.mediaType + "/";
+      path = "http://www.tekstlab.uio.no/glossa2/" + mediaObj.mov.path + "/" + this.props.mediaType + "/";
       supplied = mediaObj.mov.supplied;
       $("#movietitle").text(mediaObj.title);
       lastLine = parseInt(mediaObj.lastLine);
