@@ -2,13 +2,15 @@
   "Support for speech corpora encoded with the IMS Open Corpus Workbench."
   (:require [clojure.string :as str]
             [me.raynes.fs :as fs]
-            [korma.core :as korma]
+            [korma.core :as korma :refer [defentity table entity-fields select where]]
             [cglossa.db.corpus :refer [get-corpus]]
             [cglossa.search.core :refer [run-queries get-results transform-results]]
             [cglossa.search.cwb.shared :refer [cwb-query-name cwb-corpus-name run-cqp-commands
                                                construct-query-commands position-fields
                                                displayed-attrs-command aligned-languages-command
                                                sort-command]]))
+
+(defentity media-file (table :media_file) (entity-fields :basename))
 
 ;; TODO: Fetch these from the definition of the tag set for the tagger that is being used
 (def ^:private display-attrs [:lemma :phon :pos :gender :num :type :defn
@@ -102,16 +104,21 @@
                                           (range) lines speakers
                                           starttimes endtimes))
         matching-line-index (first (keep-indexed #(when (re-find #"\{\{" %2) %1) lines))
-        last-line-index     (dec (count lines))]
+        last-line-index     (dec (count lines))
+        movie-loc           (-> media-file
+                                (select (where (between 100 [:line_key_begin :line_key_end])))
+                                first
+                                :basename)]
     {:title             ""
      :last-line         last-line-index
      :display-attribute "word"
      :corpus-id         (:id corpus)
-     :mov               {:supplied "m4v"
-                         :path     (str "media/" (:code corpus))
-                         :line-key line-key
-                         :start    overall-starttime
-                         :stop     overall-endtime}
+     :mov               {:supplied  "m4v"
+                         :path      (str "media/" (:code corpus))
+                         :movie-loc movie-loc
+                         :line-key  line-key
+                         :start     overall-starttime
+                         :stop      overall-endtime}
      :divs              {:annotation annotations}
      :start-at          matching-line-index
      :end-at            matching-line-index

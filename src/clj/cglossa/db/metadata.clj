@@ -1,6 +1,5 @@
 (ns cglossa.db.metadata
-  (:require [korma.db :refer [with-db]]
-            [korma.core :refer [defentity table belongs-to select select* fields modifier aggregate
+  (:require [korma.core :refer [defentity table belongs-to select select* fields modifier aggregate
                                 where join order limit offset sqlfn]]))
 
 (defentity metadata-category (table :metadata_category))
