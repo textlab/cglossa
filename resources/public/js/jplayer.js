@@ -262,7 +262,7 @@
          React.createElement("div", {className: "jp-type-single"}, 
              React.createElement("div", {className: "jp-jplayer", style: this.props.mediaType == 'audio' ? {display: 'none'} : {width: 480, height: 270}}, 
                  React.createElement("img", {id: "jp_poster_1", src: "img/speech/_6.6-%27T%27_ligo.skev.graa.jpg", style: {width: 480, height: 270, display: 'none'}}),
-                 React.createElement("object", {id: "jp_flash_1", name: "jp_flash_1", data: "Jplayer.swf", type: "application/x-shockwave-flash", width: "1", height: "1", tabIndex: "-1", style: {width: 1, height: 1}}, 
+                 React.createElement("object", {id: "jp_flash_1", name: "jp_flash_1", data: "swf/Jplayer.swf", type: "application/x-shockwave-flash", width: "1", height: "1", tabIndex: "-1", style: {width: 1, height: 1}},
                      React.createElement("param", {name: "flashvars", value: "jQuery=jQuery&id=jplayer&vol=0.8&muted=false"}), 
                      React.createElement("param", {name: "allowscriptaccess", value: "always"}), 
                      React.createElement("param", {name: "bgcolor", value: "#000000"}), 
