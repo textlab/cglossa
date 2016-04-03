@@ -122,7 +122,11 @@
           (println e))))
     ;; No metadata selected, so just print the start and end positions specified in the
     ;; request, making sure that the end position does not exceed the size of the corpus.
-    (let [endpos* (min endpos (dec (get-in corpus [:extra-info :size])))]
+    (let [sizes       (get-in corpus [:extra-info :size])
+          corpus-size (or (get sizes (:code corpus))
+                          (get sizes (str (:code corpus) "_"
+                                          (-> queries first :lang))))
+          endpos*     (min endpos (dec corpus-size))]
       (spit positions-filename (str startpos \tab endpos* \newline)))))
 
 (defn displayed-attrs-command [corpus queries]

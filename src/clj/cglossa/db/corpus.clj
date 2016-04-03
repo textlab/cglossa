@@ -7,6 +7,9 @@
             [cglossa.shared :refer [core-db]]
             [cglossa.db.metadata :refer [metadata-category]]))
 
+(defn multilingual? [corpus]
+  (> (-> corpus :languages count) 1))
+
 (defmulti extra-info
   "Allows additional info besides the one residing in the database to be
   gathered using a procedure determined by the corpus type."
@@ -14,23 +17,33 @@
 
 (defmethod extra-info :default [corpus]
   (conch/with-programs [cwb-describe-corpus]
-    (let [corpus-descr (cwb-describe-corpus (:code corpus) {:seq true})
-          size-line    (first (filter #(re-find #"^size\s+\(tokens\)" %) corpus-descr))
-          size         (->> size-line
-                            (re-find #"^size\s+\(tokens\):\s+(\d+)")
-                            second
-                            (Integer/parseInt))]
-      {:size size})))
+    (let [cwb-corpora (if (multilingual? corpus)
+                        (map (fn [lang]
+                               (str (:code corpus) "_" (:code lang)))
+                             (:languages corpus))
+                        [(:code corpus)])
+          sizes       (reduce (fn [m cwb-corpus]
+                                (let [corpus-descr (cwb-describe-corpus cwb-corpus {:seq true})
+                                      size-line    (first (filter #(re-find #"^size\s+\(tokens\)" %)
+                                                                  corpus-descr))
+                                      size         (->> size-line
+                                                        (re-find #"^size\s+\(tokens\):\s+(\d+)")
+                                                        second
+                                                        (Integer/parseInt))]
+                                  (assoc m cwb-corpus size)))
+                              {}
+                              cwb-corpora)]
+      {:size sizes})))
 
 (defentity corpus
   (transform (fn [{:keys [languages] :as c}]
-               (-> c
-                   (assoc :extra-info (extra-info c))
-                   (assoc :languages (edn/read-string languages))
-                   (assoc :audio? (fs/exists? (str "resources/public/media/"
-                                                   (:code c) "/audio")))
-                   (assoc :video? (fs/exists? (str "resources/public/media/"
-                                                   (:code c) "/video")))))))
+               (as-> c $
+                     (assoc $ :languages (edn/read-string languages))
+                     (assoc $ :extra-info (extra-info $))
+                     (assoc $ :audio? (fs/exists? (str "resources/public/media/"
+                                                       (:code $) "/audio")))
+                     (assoc $ :video? (fs/exists? (str "resources/public/media/"
+                                                       (:code $) "/video")))))))
 
 (defn- merge-tagger-attrs [c]
   (let [taggers   (->> c :languages (map :tagger))
@@ -63,6 +76,3 @@
         first
         merge-tagger-attrs
         merge-corpus-specific-attrs)))
-
-(defn multilingual? [corpus]
-  (> (-> corpus :languages count) 1))

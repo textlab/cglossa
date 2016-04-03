@@ -66,11 +66,13 @@
   (fn [{corpus :corpus} _] (:search-engine @corpus)))
 
 (defn- do-search-steps! [{:keys                   [searching?]
-                          {:keys [queries]}       :search-view
                           {:keys [results total]} :results-view}
                          {:keys [corpus search] :as m}
                          url search-params corpus-positions]
-  (let [corpus-size (get-in @corpus [:extra-info :size])]
+  (let [sizes       (get-in @corpus [:extra-info :size])
+        corpus-size (or (get sizes (keyword (:code @corpus)))
+                        (get sizes (keyword (str (:code @corpus) "_"
+                                                 (-> search-params :queries first :lang)))))]
     (go-loop [positions corpus-positions]
       (let [[startpos endpos] (first positions)
             json-params (cond-> search-params
