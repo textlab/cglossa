@@ -107,6 +107,7 @@
   ;; because they are written to file instead using INTO OUTFILE. However, the
   ;; results are written to the file just fine despite the exception (which happens
   ;; after the query has run), so we can just catch and ignore the exception.
+  (fs/delete positions-filename)
   (if (seq metadata-ids)
     (try
       (-> (select* [text :t])
