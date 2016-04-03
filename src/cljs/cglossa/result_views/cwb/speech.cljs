@@ -9,28 +9,24 @@
             react-jplayer)
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
-(defn- toggle-player [index player-type media-type
-                      {{:keys                                            [page-no]
-                        {:keys [showing-media-popup media-obj player-row-index
-                                current-player-type current-media-type]} :media} :results-view}
-                      {:keys [corpus search]}]
-  (let [row-no         (when-not (and (= index @player-row-index)
-                                      (= player-type @current-player-type)
-                                      (= media-type @current-media-type))
-                         index)
-        new-media-type (when row-no
-                         media-type)
-        result-index   (+ (* page-size (dec @page-no)) index)]
-    (go
-      (let [response (<! (http/get "play-video" {:query-params {:corpus-id    (:id @corpus)
-                                                                :search-id    (:id @search)
-                                                                :result-index result-index
-                                                                :context-size 7}}))]
-        (reset! showing-media-popup true)
-        (reset! media-obj (get-in response [:body :media-obj]))
-        (reset! player-row-index row-no)
-        (reset! current-player-type player-type)
-        (reset! current-media-type new-media-type)))))
+(defn- show-media-player [index player-type media-type
+                          {{:keys [page-no] {:keys [showing-media-popup
+                                                    media-obj
+                                                    player-row-index
+                                                    current-player-type
+                                                    current-media-type]} :media} :results-view}
+                          {:keys [corpus search]}]
+  (go
+    (let [result-index (+ (* page-size (dec @page-no)) index)
+          response     (<! (http/get "play-video" {:query-params {:corpus-id    (:id @corpus)
+                                                                  :search-id    (:id @search)
+                                                                  :result-index result-index
+                                                                  :context-size 7}}))]
+      (reset! showing-media-popup true)
+      (reset! media-obj (get-in response [:body :media-obj]))
+      (reset! player-row-index index)
+      (reset! current-player-type player-type)
+      (reset! current-media-type media-type))))
 
 (defn- extract-fields [res]
   (let [m (re-find #"^<who_name\s+(\S*?)>:\s+(.*)\{\{(.+?)\}\}(.*?)$" res)]
@@ -60,16 +56,16 @@
       [:nobr
        (when video?
          [b/button {:bs-size  "xsmall" :title "Show video"
-                    :on-click #(toggle-player row-index "jplayer" "video" a m)}
+                    :on-click #(show-media-player row-index "jplayer" "video" a m)}
           [b/glyphicon {:glyph "film"}]])
        (when audio?
          (list ^{:key :audio-btn}
                [b/button {:bs-size  "xsmall" :title "Play audio" :style {:margin-left 2}
-                          :on-click #(toggle-player row-index "jplayer" "audio" a m)}
+                          :on-click #(show-media-player row-index "jplayer" "audio" a m)}
                 [b/glyphicon {:glyph "volume-up"}]]
                ^{:key :waveform-btn}
                [b/button {:bs-size  "xsmall" :title "Show waveform" :style {:margin-left 2}
-                          :on-click #(toggle-player row-index "wfplayer" "audio" a m)}
+                          :on-click #(show-media-player row-index "wfplayer" "audio" a m)}
                 [:img {:src "img/waveform.png" :style {:width 12}}]]))]]
      (shared/text-columns result)]))
 
@@ -168,9 +164,24 @@
                              (.width (.find (js/$ node) ".modal-dialog")
                                      (- (.-innerWidth js/window) 40)))}
       [b/modalheader {:close-button true}
-       [b/button {:bs-size "small"}
+       [b/button {:bs-size     "small"
+                  :data-toggle "tooltip"
+                  :title       "Previous result"
+                  :disabled    (zero? @player-row-index)
+                  :on-click    #(show-media-player (dec @player-row-index)
+                                                   @current-player-type
+                                                   @current-media-type
+                                                   a m)}
         [b/glyphicon {:glyph "step-backward"}]]
-       [b/button {:bs-size "small" :style {:margin-left 10}}
+       [b/button {:bs-size     "small"
+                  :data-toggle "tooltip"
+                  :title       "Next result"
+                  :style       {:margin-left 10}
+                  :disabled    (= (inc @player-row-index) (count res))
+                  :on-click    #(show-media-player (inc @player-row-index)
+                                                   @current-player-type
+                                                   @current-media-type
+                                                   a m)}
         [b/glyphicon {:glyph "step-forward"}]]]
       [b/modalbody (if (= @current-player-type "wfplayer")
                      [:WFplayer {:media-obj @media-obj}]
