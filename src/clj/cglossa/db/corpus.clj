@@ -2,13 +2,30 @@
   (:require [korma.db :as kdb]
             [korma.core :refer [defentity transform select where]]
             [clojure.edn :as edn]
+            [me.raynes.conch :as conch]
             [me.raynes.fs :as fs]
             [cglossa.shared :refer [core-db]]
             [cglossa.db.metadata :refer [metadata-category]]))
 
+(defmulti extra-info
+  "Allows additional info besides the one residing in the database to be
+  gathered using a procedure determined by the corpus type."
+  (fn [corpus] (:search-engine corpus)))
+
+(defmethod extra-info :default [corpus]
+  (conch/with-programs [cwb-describe-corpus]
+    (let [corpus-descr (cwb-describe-corpus (:code corpus) {:seq true})
+          size-line    (first (filter #(re-find #"^size\s+\(tokens\)" %) corpus-descr))
+          size         (->> size-line
+                            (re-find #"^size\s+\(tokens\):\s+(\d+)")
+                            second
+                            (Integer/parseInt))]
+      {:size size})))
+
 (defentity corpus
   (transform (fn [{:keys [languages] :as c}]
                (-> c
+                   (assoc :extra-info (extra-info c))
                    (assoc :languages (edn/read-string languages))
                    (assoc :audio? (fs/exists? (str "resources/public/media/"
                                                    (:code c) "/audio")))
