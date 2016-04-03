@@ -22,13 +22,13 @@
                   positions-filename "' FIELDS ESCAPED BY ''")))
 
 
-(defmethod run-queries "cwb_speech" [corpus search queries metadata-ids step cut sort-key]
+(defmethod run-queries "cwb_speech" [corpus search queries metadata-ids startpos endpos sort-key]
   (let [search-id   (:id search)
         named-query (cwb-query-name corpus search-id)
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
                      (cwb-corpus-name corpus queries)
                      (construct-query-commands corpus queries metadata-ids named-query
-                                               search-id cut step
+                                               search-id startpos endpos
                                                :s-tag "sync_time")
                      (str "save " named-query)
                      (str "set Context 1 sync_time")
@@ -40,10 +40,8 @@
                      ;; Always return the number of results, which may be either total or
                      ;; cut size depending on whether we asked for a cut
                      "size Last"
-                     (when (= step 1)
-                       ;; When we do the first search, also return the first 100 results,
-                       ;; which amounts to two search result pages.
-                       "cat Last 0 99")]]
+                     "cat Last 0 99"
+                     ]]
     (run-cqp-commands corpus (filter identity (flatten commands)) true)))
 
 

@@ -87,28 +87,43 @@
     (where sql {:language (-> queries first :lang)})
     sql))
 
+(defmulti where-limits
+  "Limits selected corpus positions to be between the supplied start and end positions,
+  if applicable to the current corpus type."
+  (fn [_ corpus _ _] (:search-engine corpus)))
+
+;; The default implementation of where-limits does nothing.
+(defmethod where-limits :default [sql _ _ _] sql)
+
 (defn- print-positions-matching-metadata
-  "Returns start and stop positions of all corpus texts that are associated
-  with the metadata values that have the given database ids, with an OR
-  relationship between values within the same category and an AND relationship
-  between categories."
-  [corpus queries metadata-ids positions-filename]
+  "Prints to file the start and stop positions of all corpus texts that are
+  associated with the metadata values that have the given database ids, with an
+  OR relationship between values within the same category and an AND
+  relationship between categories. Also restricts the positions to the start
+  and end positions provided in the request."
+  [corpus queries metadata-ids startpos endpos positions-filename]
   ;; It seems impossible to prevent Korma (or rather the underlying Java library)
   ;; from throwing an exception when we do a SELECT that does not return any results
   ;; because they are written to file instead using INTO OUTFILE. However, the
   ;; results are written to the file just fine despite the exception (which happens
   ;; after the query has run), so we can just catch and ignore the exception.
-  (try
-    (-> (select* [text :t])
-        (modifier "DISTINCT")
-        (fields (position-fields corpus positions-filename))
-        (join-metadata metadata-ids)
-        (where-metadata metadata-ids)
-        (where-language corpus queries)
-        (select))
-    (catch SQLException e
-      (when-not (.contains (str e) "ResultSet is from UPDATE")
-        (println e)))))
+  (if (seq metadata-ids)
+    (try
+      (-> (select* [text :t])
+          (modifier "DISTINCT")
+          (fields (position-fields corpus positions-filename))
+          (join-metadata metadata-ids)
+          (where-metadata metadata-ids)
+          (where-language corpus queries)
+          (where-limits corpus startpos endpos)
+          (select))
+      (catch SQLException e
+        (when-not (.contains (str e) "ResultSet is from UPDATE")
+          (println e))))
+    ;; No metadata selected, so just print the start and end positions specified in the
+    ;; request, making sure that the end position does not exceed the size of the corpus.
+    (let [endpos* (min endpos (dec (get-in corpus [:extra-info :size])))]
+      (spit positions-filename (str startpos \tab endpos* \newline)))))
 
 (defn displayed-attrs-command [corpus queries]
   ;; NOTE: CWB doesn't seem to allow different attributes to be specified for each aligned
@@ -146,26 +161,16 @@
     ["set ExternalSort on"
      (str "sort " named-query " by word %c" context)]))
 
-(defn construct-query-commands [corpus queries metadata-ids named-query search-id cut step
+(defn construct-query-commands [corpus queries metadata-ids named-query search-id startpos endpos
                                 & {:keys [s-tag] :or {s-tag "s"}}]
-  (let [query-str       (if (multilingual? corpus)
-                          (build-multilingual-query corpus queries s-tag)
-                          (build-monolingual-query queries s-tag))
-        init-cmds       (if (seq metadata-ids)
-                          (let [positions-filename (str (fs/tmpdir) "/positions_" search-id)]
-                            (when (= step 1)
-                              (print-positions-matching-metadata corpus queries
-                                                                 metadata-ids positions-filename))
-                            [(str "undump " named-query " < '" positions-filename \') named-query])
-                          [])
-        ;; Note: We cannot cut multilingual queries, since CQP actually applies the cut to the
-        ;; search in the first language and only then tries to find aligned regions. As a
-        ;; consequence there may be no results returned at all, since the results found in the
-        ;; first language may not be aligned to the other languages at all, or they may not match
-        ;; the queries provided for the other languages.
-        monoling-query? (= (->> queries (map :lang) set count) 1)
-        cut-str         (when (and cut monoling-query?) (str " cut " cut))]
-    (conj init-cmds (str named-query " = " query-str cut-str))))
+  (let [query-str          (if (multilingual? corpus)
+                             (build-multilingual-query corpus queries s-tag)
+                             (build-monolingual-query queries s-tag))
+        positions-filename (str (fs/tmpdir) "/positions_" search-id)
+        init-cmds          [(str "undump " named-query " < '" positions-filename \') named-query]]
+    (print-positions-matching-metadata corpus queries metadata-ids startpos endpos
+                                       positions-filename)
+    (conj init-cmds (str named-query " = " query-str))))
 
 (defn run-cqp-commands [corpus commands counting?]
   (let [commands* (->> commands
