@@ -161,7 +161,19 @@
     componentDidMount: function() {
       return this.createPlayer();
     },
-    componentDidUpdate: function() {
+    componentWillReceiveProps: function(nextProps) {
+      if(!_.isEqual(this.props.mediaObj, nextProps.mediaObj)) {
+        this.setState({
+          startLine: this.getStartLine(nextProps.mediaObj),
+          endLine: this.getEndLine(nextProps.mediaObj),
+          currentLine: this.getStartLine(nextProps.mediaObj)
+        }, function() {
+          this.destroyPlayer();
+          this.createPlayer();
+        });
+      }
+    },
+    componentDidUpdate: function(prevProps, prevState) {
       if (this.state.restart) {
         return this.restartPlayer();
       }
