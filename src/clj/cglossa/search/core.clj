@@ -31,12 +31,12 @@
     (first (select search (where {:id id})))))
 
 (defn search-corpus [corpus-id search-id queries metadata-ids startpos endpos sort-key]
-  (let [corpus        (get-corpus {:id corpus-id})
-        search-id*    (or search-id (:generated_key (create-search! corpus-id queries)))
-        s             (search-by-id search-id*)
-        [res cnt] (run-queries corpus s queries metadata-ids startpos endpos sort-key)
-        results       (transform-results corpus queries res)
-        count         (if (string? cnt) (Integer/parseInt cnt) cnt)]
+  (let [corpus     (get-corpus {:id corpus-id})
+        search-id* (or search-id (:generated_key (create-search! corpus-id queries)))
+        s          (search-by-id search-id*)
+        [res cnt]  (run-queries corpus s queries metadata-ids startpos endpos sort-key)
+        results    (transform-results corpus queries res)
+        count      (if (string? cnt) (Integer/parseInt cnt) cnt)]
     {:search  s
      :results results
      :count   count}))
