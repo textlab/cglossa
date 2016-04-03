@@ -40,8 +40,7 @@
                      ;; Always return the number of results, which may be either total or
                      ;; cut size depending on whether we asked for a cut
                      "size Last"
-                     "cat Last 0 99"
-                     ]]
+                     "cat Last 0 99"]]
     (run-cqp-commands corpus (filter identity (flatten commands)) true)))
 
 
