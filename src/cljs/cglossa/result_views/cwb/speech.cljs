@@ -66,7 +66,7 @@
                ^{:key :waveform-btn}
                [b/button {:bs-size  "xsmall" :title "Show waveform" :style {:margin-left 2}
                           :on-click #(show-media-player row-index "wfplayer" "audio" a m)}
-                [:img {:src "img/waveform.png" :style {:width 12}}]]))]]
+                [:img {:src "img/speech/waveform.png" :style {:width 12}}]]))]]
      (shared/text-columns result)]))
 
 (defn- separator-row [result]
