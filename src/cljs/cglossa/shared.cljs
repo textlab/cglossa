@@ -94,7 +94,9 @@
                 (swap! search merge resp-search)
                 ;; Only the first request actually returns results; the others just save the results
                 ;; on the server to be fetched on demand and return an empty result list (but a
-                ;; non-zero resp-count). Thus, we set the results if we either receive a non-empty
+                ;; non-zero resp-count), unless the first result did not find enough results to
+                ;; fill up two result pages - in that case, later requests will continue filling
+                ;; them. Thus, we set the results if we either receive a non-empty
                 ;; list of results or a resp-count of zero (meaning that there were actually no
                 ;; matches).
                 (if (or (seq resp-results) (zero? resp-count))
@@ -124,7 +126,7 @@
 
 (defn search!
   ([a m]
-   (search! a m [[0 9999999] [0 99999999] [0 nil]]))
+   (search! a m [[0 4999999] [0 99999999] [0 nil]]))
   ([{{queries :queries}                     :search-view
      {:keys [show-results? total sort-key]} :results-view
      searching?                             :searching?
