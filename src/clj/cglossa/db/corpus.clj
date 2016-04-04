@@ -19,7 +19,7 @@
   (conch/with-programs [cwb-describe-corpus]
     (let [cwb-corpora (if (multilingual? c)
                         (map (fn [lang]
-                               (str (:code c) "_" (:code lang)))
+                               (str (:code c) "_" (name (:code lang))))
                              (:languages c))
                         [(:code c)])
           sizes       (reduce (fn [m cwb-corpus]
