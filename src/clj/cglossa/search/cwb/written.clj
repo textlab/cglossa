@@ -37,18 +37,15 @@
                      ;; Always return the number of results, which may be either total or
                      ;; cut size depending on whether we restricted the corpus positions
                      "size Last"
-                     (cond
-                       ;; No last-count means this is the first request of this search, in which
-                       ;; case we return the first two pages of search results (or as many as
-                       ;; we found in this first part of the corpus)
-                       (nil? last-count) (str "cat Last 0 " (dec ret-results))
-                       ;; If we got a last-count value, it means this is not the first request
-                       ;; of this search. In that case, we only return enough results to
-                       ;; fill up the first two pages of search results if they could not already
-                       ;; be filled by previous requests.
-                       (< last-count ret-results) (str "cat Last " last-count " "
-                                                       (dec (- ret-results last-count)))
-                       :else nil)]]
+                     ;; No last-count means this is the first request of this search, in which
+                     ;; case we return the first two pages of search results (or as many as
+                     ;; we found in this first part of the corpus). If we got a last-count value,
+                     ;; it means this is not the first request of this search. In that case,
+                     ;; we check to see if the previous request(s) managed to fill those two pages,
+                     ;; and if not we return results in order to keep filling them.
+                     (when (or (nil? last-count)
+                               (< last-count ret-results))
+                       (str "cat Last 0 " (dec ret-results)))]]
     (run-cqp-commands corpus (filter identity (flatten commands)) true)))
 
 (defmethod get-results :default [corpus search queries start end sort-key]
