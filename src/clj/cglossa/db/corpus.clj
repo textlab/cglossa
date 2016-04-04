@@ -15,13 +15,13 @@
   gathered using a procedure determined by the corpus type."
   (fn [corpus] (:search-engine corpus)))
 
-(defmethod extra-info :default [corpus]
+(defmethod extra-info :default [c]
   (conch/with-programs [cwb-describe-corpus]
-    (let [cwb-corpora (if (multilingual? corpus)
+    (let [cwb-corpora (if (multilingual? c)
                         (map (fn [lang]
-                               (str (:code corpus) "_" (:code lang)))
-                             (:languages corpus))
-                        [(:code corpus)])
+                               (str (:code c) "_" (:code lang)))
+                             (:languages c))
+                        [(:code c)])
           sizes       (reduce (fn [m cwb-corpus]
                                 (let [corpus-descr (cwb-describe-corpus cwb-corpus {:seq true})
                                       size-line    (first (filter #(re-find #"^size\s+\(tokens\)" %)
