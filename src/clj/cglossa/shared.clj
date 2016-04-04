@@ -15,6 +15,12 @@
                                :password (:glossa-db-password env)
                                :db       core-db-name}))
 
+(defn convert-string [s from-charset-name to-charset-name]
+  (let [from-charset (Charset/forName from-charset-name)
+        to-charset   (Charset/forName to-charset-name)]
+    ;; Do we seriously have to do all this to convert a Java string between two charsets??
+    (->> s .getBytes ByteBuffer/wrap (.decode from-charset) (.encode to-charset) .array String.)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; A slightly modified implementation of the feed-from-string function
