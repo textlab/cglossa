@@ -88,9 +88,10 @@
       (transit-response (show-texts selected-metadata ncats* page*)))))
 
 (defroutes search-routes
-  (POST "/search" [corpus-id search-id queries metadata-ids startpos endpos sort-key]
+  (POST "/search" [corpus-id search-id queries metadata-ids startpos endpos
+                   page-size last-count sort-key]
     (transit-response (search/search-corpus corpus-id search-id queries metadata-ids
-                                            startpos endpos sort-key) false))
+                                            startpos endpos page-size last-count sort-key) false))
 
   (GET "/results" [corpus-id search-id start end sort-key]
     (transit-response (search/results corpus-id search-id start end sort-key) false))

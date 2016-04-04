@@ -14,15 +14,19 @@
   (korma/raw (str "startpos, endpos INTO OUTFILE '" positions-filename "'")))
 
 (defmethod where-limits "cwb" [sql _ startpos endpos]
-  (where sql (and (>= :startpos startpos) (<= :endpos endpos))))
+  (cond-> sql
+          true (where (>= :startpos startpos))
+          endpos (where (>= :endpos endpos))))
 
-(defmethod run-queries :default [corpus search queries metadata-ids step cut sort-key]
+(defmethod run-queries :default [corpus search queries metadata-ids startpos endpos
+                                 page-size last-count sort-key]
   (let [search-id   (:id search)
         named-query (cwb-query-name corpus search-id)
+        ret-results (* 2 page-size)     ; number of results to return initially
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
                      (cwb-corpus-name corpus queries)
                      (construct-query-commands corpus queries metadata-ids named-query
-                                               search-id cut step)
+                                               search-id startpos endpos)
                      (str "save " named-query)
                      (str "set Context 15 word")
                      "set PrintStructures \"s_id\""
@@ -31,12 +35,20 @@
                      (displayed-attrs-command corpus queries)
                      (aligned-languages-command corpus queries)
                      ;; Always return the number of results, which may be either total or
-                     ;; cut size depending on whether we asked for a cut
+                     ;; cut size depending on whether we restricted the corpus positions
                      "size Last"
-                     (when (= step 1)
-                       ;; When we do the first search, also return the first 100 results,
-                       ;; which amounts to two search result pages.
-                       "cat Last 0 99")]]
+                     (cond
+                       ;; No last-count means this is the first request of this search, in which
+                       ;; case we return the first two pages of search results (or as many as
+                       ;; we found in this first part of the corpus)
+                       (nil? last-count) (str "cat Last 0 " (dec ret-results))
+                       ;; If we got a last-count value, it means this is not the first request
+                       ;; of this search. In that case, we only return enough results to
+                       ;; fill up the first two pages of search results if they could not already
+                       ;; be filled by previous requests.
+                       (< last-count ret-results) (str "cat Last " last-count " "
+                                                       (dec (- ret-results last-count)))
+                       :else nil)]]
     (run-cqp-commands corpus (filter identity (flatten commands)) true)))
 
 (defmethod get-results :default [corpus search queries start end sort-key]

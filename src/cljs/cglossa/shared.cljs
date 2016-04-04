@@ -77,6 +77,7 @@
       (let [[startpos endpos] (first positions)
             json-params (cond-> search-params
                                 true (assoc :startpos startpos :endpos endpos)
+                                @total (assoc :last-count @total)
                                 (:id @search) (assoc :search-id (:id @search)))
             ;; Fire off a search query
             results-ch  (http/post url {:json-params json-params})
@@ -123,7 +124,7 @@
 
 (defn search!
   ([a m]
-   (search! a m [[0 9999999] [10000000 99999999] [100000000 nil]]))
+   (search! a m [[0 9999999] [0 99999999] [0 nil]]))
   ([{{queries :queries}                     :search-view
      {:keys [show-results? total sort-key]} :results-view
      searching?                             :searching?
@@ -150,6 +151,7 @@
              params {:corpus-id    (:id @corpus)
                      :queries      q*
                      :metadata-ids (->> (:metadata @search) (filter #(second %)) (into {}))
+                     :page-size    page-size
                      :sort-key     @sort-key}]
          (reset! show-results? true)
          (reset! searching? true)

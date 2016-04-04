@@ -37,13 +37,17 @@
 
 (defentity corpus
   (transform (fn [{:keys [languages] :as c}]
-               (as-> c $
-                     (assoc $ :languages (edn/read-string languages))
-                     (assoc $ :extra-info (extra-info $))
-                     (assoc $ :audio? (fs/exists? (str "resources/public/media/"
-                                                       (:code $) "/audio")))
-                     (assoc $ :video? (fs/exists? (str "resources/public/media/"
-                                                       (:code $) "/video")))))))
+               ;; Don't do the extra transformations if we have only requested a few specific
+               ;; fields, excluding languages
+               (if languages
+                 (as-> c $
+                       (assoc $ :languages (edn/read-string languages))
+                       (assoc $ :extra-info (extra-info $))
+                       (assoc $ :audio? (fs/exists? (str "resources/public/media/"
+                                                         (:code $) "/audio")))
+                       (assoc $ :video? (fs/exists? (str "resources/public/media/"
+                                                         (:code $) "/video"))))
+                 c))))
 
 (defn- merge-tagger-attrs [c]
   (let [taggers   (->> c :languages (map :tagger))

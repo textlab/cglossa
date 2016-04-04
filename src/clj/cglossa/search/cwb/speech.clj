@@ -22,7 +22,8 @@
                   positions-filename "' FIELDS ESCAPED BY ''")))
 
 
-(defmethod run-queries "cwb_speech" [corpus search queries metadata-ids startpos endpos sort-key]
+(defmethod run-queries "cwb_speech" [corpus search queries metadata-ids startpos endpos
+                                     page-size last-count sort-key]
   (let [search-id   (:id search)
         named-query (cwb-query-name corpus search-id)
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
@@ -37,10 +38,10 @@
                      "set RD \"}}\""
                      (displayed-attrs-command corpus queries)
                      "show +who_name"
-                     ;; Always return the number of results, which may be either total or
-                     ;; cut size depending on whether we asked for a cut
+                     ;; Return the total number of search results...
                      "size Last"
-                     "cat Last 0 99"]]
+                     ;; ...as well as two pages of actual results
+                     (str "cat Last 0 " (dec (* 2 page-size)))]]
     (run-cqp-commands corpus (filter identity (flatten commands)) true)))
 
 

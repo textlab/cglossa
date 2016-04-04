@@ -127,7 +127,9 @@
           corpus-size (or (get sizes (:code corpus))
                           (get sizes (str (:code corpus) "_"
                                           (-> queries first :lang))))
-          endpos*     (min endpos (dec corpus-size))]
+          endpos*     (if endpos
+                        (min endpos (dec corpus-size))
+                        (dec corpus-size))]
       (spit positions-filename (str startpos \tab endpos* \newline)))))
 
 (defn displayed-attrs-command [corpus queries]
