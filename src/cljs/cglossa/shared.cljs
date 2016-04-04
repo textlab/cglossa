@@ -126,7 +126,7 @@
 
 (defn search!
   ([a m]
-   (search! a m [[0 4999999] [0 99999999] [0 nil]]))
+   (search! a m [[0 4999999] [0 49999999] [0 nil]]))
   ([{{queries :queries}                     :search-view
      {:keys [show-results? total sort-key]} :results-view
      searching?                             :searching?
