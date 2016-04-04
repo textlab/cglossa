@@ -7,6 +7,7 @@
             [me.raynes.conch.low-level :as sh]
             [environ.core :refer [env]]
             [taoensso.timbre :as timbre]
+            [cglossa.shared :as shared]
             [cglossa.db.corpus :refer [multilingual?]]
             [cglossa.db.metadata :refer [metadata-value-text]])
   (:import [java.sql SQLException]))
@@ -187,7 +188,9 @@
         cqp       (sh/proc "cqp" "-c" :env {"LC_ALL" encoding})
         ;; Run the CQP commands and capture the output
         out       (do
-                    (sh/feed-from-string cqp commands*)
+                    ;; We need to use our own implementation of feed-from-string here because
+                    ;; of problems with sending options to the original in me.raynes.conch.low-level
+                    (shared/feed-from-string cqp commands* :encoding encoding)
                     (sh/done cqp)
                     (sh/stream-to-string cqp :out :encoding encoding))
         err       (sh/stream-to-string cqp :err)
