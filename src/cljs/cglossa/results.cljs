@@ -94,7 +94,7 @@
                     (reset! sort-key (keyword event-key))
                     (reset-results! a)
                     (fetch-result-window! a m 1))]
-    [b/dropdownbutton {:id "sort-button"
+    [b/dropdownbutton {:id       "sort-button"
                        :title    "Sort"
                        :bs-size  "small"
                        :disabled (or @searching?
