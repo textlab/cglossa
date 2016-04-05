@@ -106,7 +106,7 @@
                 :on-change #(swap! wrapped-term assoc :end? (.-target.checked %))
                 }] "End"]]
      (when has-phonetic?
-       [:div>label.checkbox-inline {:style {:padding-left 23}}
+       [:div>label.checkbox-inline {:style {:padding-left 15}}
         [:input {:type      "checkbox"
                  :style     {:margin-left -15}
                  :checked   (:phonetic? term-val)
@@ -266,7 +266,9 @@
                                      (map first)
                                      (map name))
           terms                 (query->terms query corpus-specific-attrs)
-          last-term-index       (dec (count terms))]
+          last-term-index       (dec (count terms))
+          has-phonetic?         (->> @corpus :languages first :config
+                                     :displayed-attrs (some #{:phon}))]
       (when (nil? @query-term-ids)
         (reset! query-term-ids (vec (range (count terms)))))
       [:div.multiword-container
@@ -283,8 +285,7 @@
                                  first?                (zero? index)
                                  last?                 (= index last-term-index)
                                  ;; Show buttons to remove terms if there is more than one term
-                                 show-remove-term-btn? (pos? last-term-index)
-                                 has-phonetic?         (:has-phonetic @corpus)]
+                                 show-remove-term-btn? (pos? last-term-index)]
                              (list (when-not first?
                                      ^{:key (str "interval" term-id)}
                                      [interval a m wrapped-term corpus])
