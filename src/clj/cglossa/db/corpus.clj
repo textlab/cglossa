@@ -46,7 +46,11 @@
                        (assoc $ :audio? (fs/exists? (str "resources/public/media/"
                                                          (:code $) "/audio")))
                        (assoc $ :video? (fs/exists? (str "resources/public/media/"
-                                                         (:code $) "/video"))))
+                                                         (:code $) "/video")))
+                       (assoc $ :geo-coord (let [path (str "resources/geo_coord/"
+                                                           (:code $) ".edn")]
+                                             (when (fs/exists? path)
+                                               (edn/read-string (slurp path))))))
                  c))))
 
 (defn- merge-tagger-attrs [c]
