@@ -6,7 +6,7 @@
             [goog.dom :as dom]
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.shared :refer [search! on-key-down remove-row-btn headword-search-checkbox]]
-            [cglossa.search-views.shared :refer [search-inputs]]
+            [cglossa.search-views.shared :refer [search-inputs has-phonetic?]]
             [cglossa.search-views.cwb.extended.core :refer [extended]]))
 
 (def ^:private headword-query-prefix "<headword>")
@@ -194,7 +194,7 @@
               ;; div.checkbox, since each [input {:type "checkbox"}] generates its own div.checkbox
               ;; wrapper (or is it possible somehow?), so we create the markup manually instead.
               [:div.checkbox {:style {:display "table-cell"}}
-               (when (:has-phonetic @corpus)
+               (when (has-phonetic? @corpus)
                  [:label {:style {:margin-top 7}}
                   [:input {:name      "phonetic"
                            :type      "checkbox"

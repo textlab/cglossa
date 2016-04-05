@@ -5,6 +5,7 @@
             [reagent.core :as r :include-macros true]
             [cglossa.shared :refer [on-key-down remove-row-btn headword-search-checkbox search!]]
             [cglossa.react-adapters.bootstrap :as b]
+            [cglossa.search-views.shared :refer [has-phonetic?]]
             [cglossa.search-views.cwb.extended.shared :refer [language-data language-menu-data
                                                               language-config
                                                               language-corpus-specific-attrs]]
@@ -81,7 +82,7 @@
    [interval-input a m wrapped-term 1] "max"])
 
 
-(defn- checkboxes [wrapped-term has-phonetic?]
+(defn- checkboxes [wrapped-term has-phon?]
   (let [term-val @wrapped-term]
     [:div.table-cell {:style {:min-width 200}}
      [:div.word-checkboxes
@@ -105,7 +106,7 @@
                 :checked   (:end? term-val)
                 :on-change #(swap! wrapped-term assoc :end? (.-target.checked %))
                 }] "End"]]
-     (when has-phonetic?
+     (when has-phon?
        [:div>label.checkbox-inline {:style {:padding-left 15}}
         [:input {:type      "checkbox"
                  :style     {:margin-left -15}
@@ -211,7 +212,7 @@
 
 
 (defn multiword-term [a m wrapped-query wrapped-term query-term-ids
-                      index first? last? has-phonetic? show-remove-row-btn?
+                      index first? last? has-phon? show-remove-row-btn?
                       show-remove-term-btn?]
   (r/with-let [show-attr-popup? (r/atom false)]
     [:div.table-cell>div.multiword-term>div.control-group
@@ -225,7 +226,7 @@
      [:div.table-row
       (when first?
         [:div.table-cell])
-      [checkboxes wrapped-term has-phonetic?]
+      [checkboxes wrapped-term has-phon?]
       (when last?
         [:div.table-cell])]
 
@@ -266,9 +267,7 @@
                                      (map first)
                                      (map name))
           terms                 (query->terms query corpus-specific-attrs)
-          last-term-index       (dec (count terms))
-          has-phonetic?         (->> @corpus :languages first :config
-                                     :displayed-attrs (some #{:phon}))]
+          last-term-index       (dec (count terms))]
       (when (nil? @query-term-ids)
         (reset! query-term-ids (vec (range (count terms)))))
       [:div.multiword-container
@@ -291,7 +290,7 @@
                                      [interval a m wrapped-term corpus])
                                    ^{:key (str "term" term-id)}
                                    [multiword-term a m wrapped-query wrapped-term query-term-ids
-                                    index first? last? has-phonetic? show-remove-row-btn?
+                                    index first? last? (has-phonetic? @corpus) show-remove-row-btn?
                                     show-remove-term-btn?])))
                          terms))]
          (when (:has-headword-search @corpus)
