@@ -163,38 +163,3 @@
   (when results
     (let [num-langs (->> queries (map :lang) set count)]
       (map (fn [lines] {:text lines}) (partition num-langs results)))))
-
-
-#_(defmethod transform-results "cwb_speech" [corpus queries [results _]]
-    (when results
-      (for [result results
-            :let [result*           (fix-brace-positions result)
-                  [starttimes endtimes] (find-timestamps result*)
-                  overall-starttime (ffirst starttimes)
-                  overall-endtime   (last (last endtimes))
-                  speakers          (map second (re-seq #"<who_name\s+(.+?)>" result*))
-                  ;; All line keys within the same result should point to the same media file,
-                  ;; so just find the first one. Note that corpora are only marked with line
-                  ;; keys if they do in fact have media files, so line-key might be nil.
-                  line-key          (second (re-find #"<who_line_key\s+(\d+)>" result*))
-                  segments          (->> result*
-                                         (re-seq #"<sync_end.+?>(.+?)</sync_end")
-                                         (map second)
-                                         ;; Remove line key attribute tags, since they would only
-                                         ;; confuse the client code
-                                         (map #(str/replace % #"</?who_line_key.*?>" "")))
-                  ;; We asked for a context of several segments to the left and right of the one
-                  ;; containing the matching word or phrase in order to be able to show them in the
-                  ;; media player display. However, only the segment with the match (marked by
-                  ;; braces) should be included in the search result shown in the result table.
-                  displayed-line    (first (filter (partial re-find #"\{\{.+\}\}") segments))]]
-        (if-not line-key
-          {:text displayed-line}
-          (let [media-obj-lines (map second (re-seq (if line-key
-                                                      #"<who_line_key.+?>(.*?)</who_line_key>"
-                                                      #"<who_name.+?>(.*?)</who_name>")
-                                                    result*))]
-            {:text      displayed-line
-             :media-obj (create-media-object overall-starttime overall-endtime starttimes endtimes
-                                             media-obj-lines speakers corpus line-key)
-             :line-key  line-key})))))
