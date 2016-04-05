@@ -22,10 +22,9 @@
                   positions-filename "' FIELDS ESCAPED BY ''")))
 
 
-(defmethod run-queries "cwb_speech" [corpus search queries metadata-ids startpos endpos
-                                     page-size last-count sort-key]
-  (let [search-id   (:id search)
-        named-query (cwb-query-name corpus search-id)
+(defmethod run-queries "cwb_speech" [corpus search-id queries metadata-ids startpos endpos
+                                     page-size _ sort-key]
+  (let [named-query (cwb-query-name corpus search-id)
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
                      (cwb-corpus-name corpus queries)
                      (construct-query-commands corpus queries metadata-ids named-query

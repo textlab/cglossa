@@ -34,11 +34,11 @@
                      page-size last-count sort-key]
   (let [corpus     (get-corpus {:id corpus-id})
         search-id* (or search-id (:generated_key (create-search! corpus-id queries)))
-        s          (search-by-id search-id*)
-        [res cnt]  (run-queries corpus s queries metadata-ids startpos endpos
-                                page-size last-count sort-key)
+        [res cnt]  (run-queries corpus search-id* queries metadata-ids startpos endpos
+                               page-size last-count sort-key)
         results    (transform-results corpus queries res)
-        count      (if (string? cnt) (Integer/parseInt cnt) cnt)]
+        count      (if (string? cnt) (Integer/parseInt cnt) cnt)
+        s          (search-by-id search-id*)]
     {:search  s
      :results results
      :count   count}))

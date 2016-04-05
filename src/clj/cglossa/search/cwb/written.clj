@@ -18,10 +18,9 @@
           true (where (>= :startpos startpos))
           endpos (where (>= :endpos endpos))))
 
-(defmethod run-queries :default [corpus search queries metadata-ids startpos endpos
+(defmethod run-queries :default [corpus search-id queries metadata-ids startpos endpos
                                  page-size last-count sort-key]
-  (let [search-id   (:id search)
-        named-query (cwb-query-name corpus search-id)
+  (let [named-query (cwb-query-name corpus search-id)
         ret-results (* 2 page-size)     ; number of results to return initially
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
                      (cwb-corpus-name corpus queries)
