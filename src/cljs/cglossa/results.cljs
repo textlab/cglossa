@@ -254,16 +254,23 @@
     [:div.col-sm-12
      [pagination a m]]]])
 
-(defn results [{:keys [num-resets] {:keys [results]} :results-view :as a} m]
+(defn- geo-map [a m]
+  [:div.container-fluid "Map"])
+
+(defn results [{:keys                       [num-resets]
+                {:keys [view-type results]} :results-view :as a} m]
   [:div
    [:div.row
     [top-toolbar a m]
     [results-info a]]
-   ^{:key @num-resets} [search-inputs a m]                  ; See comments in cglossa.start
+   ^{:key @num-resets} [search-inputs a m] ; See comments in cglossa.start
    [spinner-overlay {:spin? (not @results) :width 45 :height 45 :top 75}
-    [b/tabs {:style              {:margin-top 15}
-             :animation          false
-             :default-active-key :concordance}
+    [b/tabs {:style      {:margin-top 15}
+             :animation  false
+             :active-key @view-type
+             :on-select  #(reset! view-type %)}
      [b/tab {:title "Concordance" :event-key :concordance}
       [concordances a m]]
+     [b/tab {:title "Map" :event-key :geo-map}
+      [geo-map a m]]
      [b/tab {:title "Statistics" :event-key :statistics :disabled true}]]]])

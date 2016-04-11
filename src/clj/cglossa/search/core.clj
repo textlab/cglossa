@@ -20,6 +20,11 @@
   appropriate for the search engine of the corpus in question."
   (fn [corpus _ _] (:search_engine corpus)))
 
+(defmulti geo-distr-queries
+  "Multimethod for running a query and returning geographical distribution of
+   results."
+  (fn [corpus _ _ _] (:search-engine corpus)))
+
 (defn- create-search! [corpus-id queries]
   (kdb/with-db core-db
     (insert search (values {:corpus_id corpus-id
@@ -49,3 +54,12 @@
         queries (edn/read-string (:queries s))
         [results _] (get-results corpus s queries start end sort-key)]
     (transform-results corpus queries results)))
+
+
+(defn geo-distr [corpus-id search-id queries metadata-ids]
+  (let [corpus     (get-corpus {:id corpus-id})
+        search-id* (or search-id (:generated_key (create-search! corpus-id queries)))
+        results    (geo-distr-queries corpus search-id* queries metadata-ids)
+        s          (search-by-id search-id*)]
+    {:search  s
+     :results results}))

@@ -23,6 +23,7 @@
                     :show-metadata?    (r/atom nil)
                     :show-texts?       (r/atom false)
                     :results-view      {:show-results?      (r/atom false)
+                                        :view-type          (r/atom :concordance)
                                         :results            (r/atom nil)
                                         :total              (r/atom nil)
                                         :page-no            (r/atom 1)

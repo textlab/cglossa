@@ -16,7 +16,7 @@
             [cglossa.shared :refer [corpus-connections]]
             [cglossa.db.corpus :refer [get-corpus]]
             [cglossa.db.metadata :refer [get-metadata-categories get-metadata-values show-texts]]
-            [cglossa.search.core :as search]
+            [cglossa.search.core :refer [search-corpus results geo-distr]]
             [cglossa.search.cwb.speech :refer [play-video]])
   (:import (java.io ByteArrayOutputStream)))
 
@@ -90,11 +90,14 @@
 (defroutes search-routes
   (POST "/search" [corpus-id search-id queries metadata-ids startpos endpos
                    page-size last-count sort-key]
-    (transit-response (search/search-corpus corpus-id search-id queries metadata-ids
+    (transit-response (search-corpus corpus-id search-id queries metadata-ids
                                             startpos endpos page-size last-count sort-key) false))
 
   (GET "/results" [corpus-id search-id start end sort-key]
-    (transit-response (search/results corpus-id search-id start end sort-key) false))
+    (transit-response (results corpus-id search-id start end sort-key) false))
 
   (GET "/play-video" [corpus-id search-id result-index context-size]
-    (transit-response (play-video corpus-id search-id result-index context-size) false)))
+    (transit-response (play-video corpus-id search-id result-index context-size) false))
+
+  (GET "/geo-distr" [corpus-id search-id queries metadata-ids]
+    (transit-response (geo-distr corpus-id search-id queries metadata-ids))))

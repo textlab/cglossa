@@ -4,7 +4,8 @@
             [me.raynes.fs :as fs]
             [korma.core :as korma :refer [defentity table entity-fields select where]]
             [cglossa.db.corpus :refer [get-corpus]]
-            [cglossa.search.core :refer [run-queries get-results transform-results]]
+            [cglossa.search.core :refer [run-queries get-results transform-results
+                                         geo-distr-queries]]
             [cglossa.search.cwb.shared :refer [cwb-query-name cwb-corpus-name run-cqp-commands
                                                construct-query-commands position-fields
                                                displayed-attrs-command aligned-languages-command
@@ -162,3 +163,14 @@
   (when results
     (let [num-langs (->> queries (map :lang) set count)]
       (map (fn [lines] {:text lines}) (partition num-langs results)))))
+
+
+(defmethod geo-distr-queries "cwb_speech" [corpus search-id queries metadata-ids]
+  (let [named-query (cwb-query-name corpus search-id)
+        commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
+                     (cwb-corpus-name corpus queries)
+                     (construct-query-commands corpus queries metadata-ids named-query search-id
+                                               :s-tag "sync_time")
+                     (str "save " named-query)
+                     "group Last match who_name"]]
+    (run-cqp-commands corpus (filter identity (flatten commands)) true)))
