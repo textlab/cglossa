@@ -10,10 +10,12 @@
 (defn multilingual? [corpus]
   (> (-> corpus :languages count) 1))
 
+
 (defmulti extra-info
   "Allows additional info besides the one residing in the database to be
   gathered using a procedure determined by the corpus type."
   (fn [corpus] (:search-engine corpus)))
+
 
 (defmethod extra-info :default [c]
   (conch/with-programs [cwb-describe-corpus]
@@ -35,6 +37,7 @@
                               cwb-corpora)]
       {:size sizes})))
 
+
 (defentity corpus
   (transform (fn [{:keys [languages] :as c}]
                ;; Don't do the extra transformations if we have only requested a few specific
@@ -53,6 +56,7 @@
                                                (edn/read-string (slurp path))))))
                  c))))
 
+
 (defn- merge-tagger-attrs [c]
   (let [taggers   (->> c :languages (map :tagger))
         tags      (map (fn [tagger]
@@ -68,6 +72,7 @@
         languages (map #(assoc %1 :config %2 :menu-data %3) (:languages c) config menu-data)]
     (assoc c :languages languages)))
 
+
 (defn- merge-corpus-specific-attrs [c]
   (let [lang-codes (->> c :languages (map :code))
         attrs      (for [lang-code lang-codes
@@ -77,6 +82,7 @@
                        (edn/read-string (slurp path))))
         languages  (map #(assoc %1 :corpus-specific-attrs %2) (:languages c) attrs)]
     (assoc c :languages languages)))
+
 
 (defn get-corpus [conditions]
   (kdb/with-db core-db
