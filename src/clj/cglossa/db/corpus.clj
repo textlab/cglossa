@@ -1,11 +1,13 @@
 (ns cglossa.db.corpus
-  (:require [korma.db :as kdb]
-            [korma.core :refer [defentity transform select where]]
+  (:require [clojure.string :as str]
+            [korma.db :as kdb]
+            [korma.core :refer [defentity transform select where set-fields]]
             [clojure.edn :as edn]
             [me.raynes.conch :as conch]
             [me.raynes.fs :as fs]
             [cglossa.shared :refer [core-db]]
-            [cglossa.db.metadata :refer [metadata-category]]))
+            [cglossa.db.metadata :refer [metadata-category]]
+            [korma.core :as korma]))
 
 (defn multilingual? [corpus]
   (> (-> corpus :languages count) 1))
@@ -38,22 +40,69 @@
       {:size sizes})))
 
 
+(defn calc-multicore-bounds [c]
+  "Calculates the upper boundaries (i.e., corpus positions) for each corpus
+   part to be searched by a separate thread in a multicore machine."
+  (let [corpus-size (get-in c [:extra-info :size (:code c)])
+        ncores      (.availableProcessors (Runtime/getRuntime))
+        block-sizes (for [total [5000000 50000000 corpus-size]]
+                      (int (Math/ceil (/ (float total) (float ncores)))))
+        block-ends  (for [size block-sizes]
+                      (map #(* size %) (range 1 (inc ncores))))
+        text-ends   (conch/with-programs [cwb-s-decode]
+                      (->> (cwb-s-decode (:code c) "-S" "text" {:seq true})
+                           (map #(str/split % #"\t"))
+                           (map last)
+                           (map #(Integer/parseInt %))))]
+    (mapv (fn [step-block-ends]
+            (mapv (fn [block-end]
+                    (let [smaller (take-while #(< % block-end) text-ends)]
+                      (last smaller)))
+                  step-block-ends))
+          block-ends)))
+
+
 (defentity corpus
   (transform (fn [{:keys [languages] :as c}]
                ;; Don't do the extra transformations if we have only requested a few specific
                ;; fields, excluding languages
                (if languages
-                 (as-> c $
-                       (assoc $ :languages (edn/read-string languages))
-                       (assoc $ :extra-info (extra-info $))
-                       (assoc $ :audio? (fs/exists? (str "resources/public/media/"
-                                                         (:code $) "/audio")))
-                       (assoc $ :video? (fs/exists? (str "resources/public/media/"
-                                                         (:code $) "/video")))
-                       (assoc $ :geo-coord (let [path (str "resources/geo_coord/"
-                                                           (:code $) ".edn")]
-                                             (when (fs/exists? path)
-                                               (edn/read-string (slurp path))))))
+                 (let [c*     (as-> c $
+                                    (assoc $ :languages (edn/read-string languages))
+                                    (assoc $ :extra-info (extra-info $))
+                                    (assoc $ :audio? (fs/exists? (str "resources/public/media/"
+                                                                      (:code $) "/audio")))
+                                    (assoc $ :video? (fs/exists? (str "resources/public/media/"
+                                                                      (:code $) "/video")))
+                                    (assoc $ :geo-coord (let [path (str "resources/geo_coord/"
+                                                                        (:code $) ".edn")]
+                                                          (when (fs/exists? path)
+                                                            (edn/read-string (slurp path))))))
+                       mb     (edn/read-string (:multicore_bounds c*))
+                       ncores (.availableProcessors (Runtime/getRuntime))]
+                   (if (and
+                         ;; This corpus should use multicore processing...
+                         mb
+                         (or
+                           ;; ...but we have just marked that we want it, not actually calculated
+                           ;; the bounds...
+                           (not (sequential? mb))
+                           ;; ...or the number of parts is different from the number of cores,
+                           ;; indicating that the corpus has been copied from a machine with a
+                           ;; different number of cores...
+                           (not= (count (first mb)) ncores)
+                           ;; ...or the last bound is different from the corpus size, indicating
+                           ;; that the contents of the corpus have changed since we calculated the
+                           ;; bounds...
+                           (not= (last (last mb))
+                                 (dec (get-in c* [:extra-info :size (:code c*)])))))
+                     ;; ...so calculate new bounds and store them
+                     (let [mb* (calc-multicore-bounds c*)]
+                       (korma/update corpus
+                                     (set-fields {:multicore_bounds (pr-str mb*)})
+                                     (where {:code (:code c*)}))
+                       (assoc c* :multicore_bounds mb*))
+                     c*))
                  c))))
 
 
