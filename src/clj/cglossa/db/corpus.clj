@@ -45,10 +45,14 @@
    part to be searched by a separate thread in a multicore machine."
   (let [corpus-size (get-in c [:extra-info :size (:code c)])
         ncores      (.availableProcessors (Runtime/getRuntime))
-        block-sizes (for [total [5000000 50000000 corpus-size]]
+        ;; Calculate the block size for each core by dividing into equal blocks the corpus sizes
+        ;; searched in each search step (first 5 mill words, then the following 45 mill words,
+        ;; and then the whole corpus)
+        block-sizes (for [total [5000000 45000000 (- corpus-size 50000000)]]
                       (int (Math/ceil (/ (float total) (float ncores)))))
-        block-ends  (for [size block-sizes]
-                      (map #(* size %) (range 1 (inc ncores))))
+        block-ends  [(map #(* (nth block-sizes 0) %) (range 1 (inc ncores)))
+                     (map #(+ 5000000 (* (nth block-sizes 1) %)) (range 1 (inc ncores)))
+                     (map #(+ 50000000 (* (nth block-sizes 2) %)) (range 1 (inc ncores)))]
         text-ends   (conch/with-programs [cwb-s-decode]
                       (->> (cwb-s-decode (:code c) "-S" "text" {:seq true})
                            (map #(str/split % #"\t"))
@@ -62,14 +66,22 @@
           block-ends)))
 
 
+(declare corpus)
+(defn- set-multicore-bounds [c bounds]
+  (korma/update corpus
+                (set-fields {:multicore_bounds (pr-str bounds)})
+                (where {:code (:code c)})))
+
+
 (defentity corpus
-  (transform (fn [{:keys [languages] :as c}]
+  (transform (fn [{:keys [languages multicore_bounds] :as c}]
                ;; Don't do the extra transformations if we have only requested a few specific
                ;; fields, excluding languages
                (if languages
                  (let [c*     (as-> c $
                                     (assoc $ :languages (edn/read-string languages))
                                     (assoc $ :extra-info (extra-info $))
+                                    (assoc $ :multicore_bounds (edn/read-string multicore_bounds))
                                     (assoc $ :audio? (fs/exists? (str "resources/public/media/"
                                                                       (:code $) "/audio")))
                                     (assoc $ :video? (fs/exists? (str "resources/public/media/"
@@ -78,7 +90,7 @@
                                                                         (:code $) ".edn")]
                                                           (when (fs/exists? path)
                                                             (edn/read-string (slurp path))))))
-                       mb     (edn/read-string (:multicore_bounds c*))
+                       mb     (:multicore_bounds c*)
                        ncores (.availableProcessors (Runtime/getRuntime))]
                    (if (and
                          ;; This corpus should use multicore processing...
@@ -98,9 +110,7 @@
                                  (dec (get-in c* [:extra-info :size (:code c*)])))))
                      ;; ...so calculate new bounds and store them
                      (let [mb* (calc-multicore-bounds c*)]
-                       (korma/update corpus
-                                     (set-fields {:multicore_bounds (pr-str mb*)})
-                                     (where {:code (:code c*)}))
+                       (set-multicore-bounds c* mb*)
                        (assoc c* :multicore_bounds mb*))
                      c*))
                  c))))
