@@ -68,54 +68,47 @@
 (defn- do-search-steps! [{:keys                   [searching?]
                           {:keys [results total]} :results-view}
                          {:keys [corpus search] :as m}
-                         url search-params corpus-positions]
+                         url search-params nsteps]
   (let [sizes       (get-in @corpus [:extra-info :size])
         corpus-size (or (get sizes (keyword (:code @corpus)))
                         (get sizes (keyword (str (:code @corpus) "_"
                                                  (-> search-params :queries first :lang)))))]
-    (go-loop [positions corpus-positions]
-      (let [[startpos endpos] (first positions)
-            json-params (cond-> search-params
-                                true (assoc :startpos startpos :endpos endpos)
-                                @total (assoc :last-count @total)
-                                (:id @search) (assoc :search-id (:id @search)))
-            ;; Fire off a search query
-            results-ch  (http/post url {:json-params json-params})
-            ;; Wait for either the results of the query or a message to cancel the query
-            ;; because we have started another search
-            [val ch] (async/alts! [cancel-search-ch results-ch] :priority true)]
-        (when (= ch results-ch)
-          (let [{:keys [status success] {resp-search  :search
-                                         resp-results :results
-                                         resp-count   :count} :body} val]
-            (if-not success
-              (.log js/console status)
-              (do
-                (swap! search merge resp-search)
-                ;; Only the first request actually returns results; the others just save the results
-                ;; on the server to be fetched on demand and return an empty result list (but a
-                ;; non-zero resp-count), unless the first result did not find enough results to
-                ;; fill up two result pages - in that case, later requests will continue filling
-                ;; them. Thus, we set the results if we either receive a non-empty
-                ;; list of results or a resp-count of zero (meaning that there were actually no
-                ;; matches).
-                (if (or (seq resp-results) (zero? resp-count))
-                  (do
-                    (reset! results (into {} (map (fn [page-index res]
-                                                    [(inc page-index)
-                                                     (map (partial cleanup-result m) res)])
-                                                  (range)
-                                                  (partition-all page-size resp-results))))
-                    (reset! total (or resp-count (count resp-results))))
-                  (reset! total resp-count))
-                (if (or (nil? (next positions))
-                        (and corpus-size
-                             (> (ffirst (next positions)) corpus-size)))
-                  ;; Either no more corpus positions to search have been specified, or the
-                  ;; next start position is beyond the size of the corpus. In either case,
-                  ;; don't send any more search requests.
-                  (reset! searching? false)
-                  (recur (next positions)))))))))))
+    (go
+      (dotimes [step nsteps]
+        (let [json-params (cond-> search-params
+                                  true (assoc :step (inc step))
+                                  @total (assoc :last-count @total)
+                                  (:id @search) (assoc :search-id (:id @search)))
+              ;; Fire off a search query
+              results-ch  (http/post url {:json-params json-params})
+              ;; Wait for either the results of the query or a message to cancel the query
+              ;; because we have started another search
+              [val ch] (async/alts! [cancel-search-ch results-ch] :priority true)]
+          (when (= ch results-ch)
+            (let [{:keys [status success] {resp-search  :search
+                                           resp-results :results
+                                           resp-count   :count} :body} val]
+              (if-not success
+                (.log js/console status)
+                (do
+                  (swap! search merge resp-search)
+                  ;; Only the first request actually returns results; the others just save the
+                  ;; results on the server to be fetched on demand and return an empty result list
+                  ;; (but a non-zero resp-count), unless the first result did not find enough
+                  ;; results to fill up two result pages - in that case, later requests will
+                  ;; continue filling them. Thus, we set the results if we either receive a
+                  ;; non-empty list of results or a resp-count of zero (meaning that there were
+                  ;; actually no matches).
+                  (if (or (seq resp-results) (zero? resp-count))
+                    (do
+                      (reset! results (into {} (map (fn [page-index res]
+                                                      [(inc page-index)
+                                                       (map (partial cleanup-result m) res)])
+                                                    (range)
+                                                    (partition-all page-size resp-results))))
+                      (reset! total (or resp-count (count resp-results))))
+                    (reset! total resp-count))))))))))
+  (reset! searching? false))
 
 (defn reset-results!
   [{{:keys [results page-no paginator-page-no paginator-text-val]} :results-view}]
@@ -126,13 +119,13 @@
 
 (defn search!
   ([a m]
-   (search! a m [[0 4999999] [0 49999999] [0 nil]]))
+   (search! a m 3))
   ([{{queries :queries}                     :search-view
      {:keys [show-results? total sort-key]} :results-view
      searching?                             :searching?
      :as                                    a}
     {:keys [corpus search] :as m}
-    corpus-positions]
+    nsteps]
    (let [first-query (:query (first @queries))]
      (when (and first-query
                 (not (str/blank? first-query))
@@ -160,7 +153,7 @@
          (reset! total nil)
          (reset! sort-key :position)
          (reset-results! a)
-         (do-search-steps! a m url params corpus-positions))))))
+         (do-search-steps! a m url params nsteps))))))
 
 (defn showing-metadata? [{:keys                   [show-metadata? narrow-view?]
                           {:keys [show-results?]} :results-view}

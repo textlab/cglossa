@@ -10,7 +10,7 @@
 (defmulti run-queries
   "Multimethod for actually running the received queries in a way that is
   appropriate for the search engine of the corpus in question."
-  (fn [corpus _ _ _ _ _ _ _ _] (:search_engine corpus)))
+  (fn [corpus _ _ _ _ _ _ _] (:search_engine corpus)))
 
 (defmulti get-results
   (fn [corpus _ _ _ _ _] (:search_engine corpus)))
@@ -35,12 +35,11 @@
   (kdb/with-db core-db
     (first (select search (where {:id id})))))
 
-(defn search-corpus [corpus-id search-id queries metadata-ids startpos endpos
-                     page-size last-count sort-key]
+(defn search-corpus [corpus-id search-id queries metadata-ids step page-size last-count sort-key]
   (let [corpus     (get-corpus {:id corpus-id})
         search-id* (or search-id (:generated_key (create-search! corpus-id queries)))
-        [res cnt]  (run-queries corpus search-id* queries metadata-ids startpos endpos
-                               page-size last-count sort-key)
+        [res cnt]  (run-queries corpus search-id* queries metadata-ids step
+                                page-size last-count sort-key)
         results    (transform-results corpus queries res)
         count      (if (string? cnt) (Integer/parseInt cnt) cnt)
         s          (search-by-id search-id*)]
