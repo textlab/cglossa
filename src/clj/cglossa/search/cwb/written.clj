@@ -81,11 +81,12 @@
         res-ch     (async/chan)
         _          (async/pipeline-blocking (count scripts)
                                             res-ch
-                                            (map (run-cqp-commands corpus % true))
+                                            (map #(run-cqp-commands corpus % true))
                                             (async/to-chan scripts))
         cwb-res    (<!! (async/into [] res-ch))
         hits       (take (- num-ret (or last-count 0)) (apply concat (map first cwb-res)))
-        cnt        (reduce + 0 (map #(-> % second Integer/parseInt) cwb-res))]
+        cnt        (+ (or last-count 0)
+                      (reduce + 0 (map #(-> % second Integer/parseInt) cwb-res)))]
     [hits cnt]))
 
 (defmethod get-results :default [corpus search queries start end sort-key]

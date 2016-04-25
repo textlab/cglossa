@@ -100,12 +100,14 @@
                   ;; non-empty list of results or a resp-count of zero (meaning that there were
                   ;; actually no matches).
                   (if (or (seq resp-results) (zero? resp-count))
-                    (do
+                    (let [old-results (apply concat (map second @results))]
                       (reset! results (into {} (map (fn [page-index res]
                                                       [(inc page-index)
                                                        (map (partial cleanup-result m) res)])
                                                     (range)
-                                                    (partition-all page-size resp-results))))
+                                                    (partition-all page-size
+                                                                   (concat old-results
+                                                                           resp-results)))))
                       (reset! total (or resp-count (count resp-results))))
                     (reset! total resp-count))))))))))
   (reset! searching? false))
