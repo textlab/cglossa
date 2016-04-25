@@ -170,11 +170,12 @@
      (str "sort " named-query " by word %c" context)]))
 
 (defn construct-query-commands [corpus queries metadata-ids named-query search-id startpos endpos
-                                & {:keys [s-tag] :or {s-tag "s"}}]
+                                & {:keys [s-tag core-index] :or {s-tag "s"}}]
   (let [query-str          (if (multilingual? corpus)
                              (build-multilingual-query corpus queries s-tag)
                              (build-monolingual-query queries s-tag))
-        positions-filename (str (fs/tmpdir) "/glossa/positions_" search-id)
+        positions-filename (str (fs/tmpdir) "/positions_" search-id (when core-index
+                                                                      (str "_" core-index)))
         init-cmds          [(str "undump " named-query " < '" positions-filename \') named-query]]
     (print-positions-matching-metadata corpus queries metadata-ids startpos endpos
                                        positions-filename)
@@ -197,8 +198,8 @@
         _         (assert (str/blank? err) (if (:is-dev env) (println err) (timbre/error err)))
         ;; Split into lines and throw away the first line, which contains the CQP version.
         ;; If counting? is true (which it is when we are searching, but not when retrieving
-        ;; results), the first line after that contains the number of results (either total or
-        ;; cut). Any following lines contain actual search results (only in the first step).
+        ;; results), the first line after that contains the number of results. Any following
+        ;; lines contain actual search results (only in the first step).
         res       (rest (str/split-lines out))
         cnt       (when counting? (first res))
         results   (if counting? (rest res) res)]

@@ -38,9 +38,9 @@
 (defn search-corpus [corpus-id search-id queries metadata-ids step page-size last-count sort-key]
   (let [corpus     (get-corpus {:id corpus-id})
         search-id* (or search-id (:generated_key (create-search! corpus-id queries)))
-        [res cnt]  (run-queries corpus search-id* queries metadata-ids step
+        [hits cnt] (run-queries corpus search-id* queries metadata-ids step
                                 page-size last-count sort-key)
-        results    (transform-results corpus queries res)
+        results    (transform-results corpus queries hits)
         count      (if (string? cnt) (Integer/parseInt cnt) cnt)
         s          (search-by-id search-id*)]
     {:search  s
