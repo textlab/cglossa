@@ -174,7 +174,7 @@
   (let [query-str          (if (multilingual? corpus)
                              (build-multilingual-query corpus queries s-tag)
                              (build-monolingual-query queries s-tag))
-        positions-filename (str (fs/tmpdir) "/positions_" search-id)
+        positions-filename (str (fs/tmpdir) "/glossa/positions_" search-id)
         init-cmds          [(str "undump " named-query " < '" positions-filename \') named-query]]
     (print-positions-matching-metadata corpus queries metadata-ids startpos endpos
                                        positions-filename)
