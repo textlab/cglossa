@@ -1,4 +1,4 @@
-[{:displayed-attrs [:pos :type :degr_dia :tense_defin :person_type2 :number]}
+[{:displayed-attrs [:lemma :pos :type :degr_dia :tense_defin :person_type2 :number]}
  ["adj" "adjective" nil
   ["Degree" [[:degr_dia "pos" "positive"]
              [:degr_dia "comp" "comparative"]

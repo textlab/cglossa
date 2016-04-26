@@ -1,4 +1,4 @@
-[{:displayed-attrs [:pos :type :degr_dia :tense_defin
+[{:displayed-attrs [:lemma :pos :type :degr_dia :tense_defin
                     :mood_case :person_type2 :number :gender]}
  ["adj" "adjective" nil
   ["Type" [[:type "ord" "ordinal"]
