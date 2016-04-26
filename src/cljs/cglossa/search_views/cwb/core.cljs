@@ -164,7 +164,7 @@
               :bs-size       "small"
               :style         {:width 166}
               :default-value selected-language
-              :on-change     #(swap! wrapped-query assoc :lang (keyword (.-target.value %)))}
+              :on-change     #(reset! wrapped-query {:query "" :lang (keyword (.-target.value %))})}
      (for [{:keys [code name]} languages
            :when (not (get previously-used-langs code))]
        [:option {:key code :value code} name])]))
