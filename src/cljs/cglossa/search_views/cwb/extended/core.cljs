@@ -3,7 +3,7 @@
   and menus for easily building complex and grammatically specified queries."
   (:require [clojure.string :as str]
             [reagent.core :as r :include-macros true]
-            [cglossa.shared :refer [on-key-down remove-row-btn headword-search-checkbox search!]]
+            [cglossa.shared :refer [on-key-down remove-row-btn headword-search-checkbox]]
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.search-views.shared :refer [has-phonetic?]]
             [cglossa.search-views.cwb.extended.shared :refer [language-data language-menu-data
