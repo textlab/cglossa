@@ -120,8 +120,8 @@
   (reset! paginator-text-val 1))
 
 (defn search!
-  ([a m]
-   (search! a m 3))
+  ([a {:keys [corpus search] :as m}]
+   (search! a m (if (= (:search-engine @corpus) "cwb") 3 1)))
   ([{{queries :queries}                     :search-view
      {:keys [show-results? total sort-key]} :results-view
      searching?                             :searching?
