@@ -170,12 +170,12 @@
      (str "sort " named-query " by word %c" context)]))
 
 (defn construct-query-commands [corpus queries metadata-ids named-query search-id startpos endpos
-                                & {:keys [s-tag core-index] :or {s-tag "s"}}]
+                                & {:keys [s-tag cpu-index] :or {s-tag "s"}}]
   (let [query-str          (if (multilingual? corpus)
                              (build-multilingual-query corpus queries s-tag)
                              (build-monolingual-query queries s-tag))
-        positions-filename (str (fs/tmpdir) "/glossa/positions_" search-id (when core-index
-                                                                             (str "_" core-index)))
+        positions-filename (str (fs/tmpdir) "/glossa/positions_" search-id (when cpu-index
+                                                                             (str "_" cpu-index)))
         init-cmds          [(str "undump " named-query " < '" positions-filename \') named-query]]
     (print-positions-matching-metadata corpus queries metadata-ids startpos endpos
                                        positions-filename)

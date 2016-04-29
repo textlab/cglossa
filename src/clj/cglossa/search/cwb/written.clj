@@ -23,37 +23,37 @@
                                  page-size last-count sort-key]
   (let [step-index (dec step)
         num-ret    (* 2 page-size)      ; number of results to return initially
-        parts      (if-let [bounds (get-in corpus [:multicore_bounds step-index])]
-                     ;; Multicore bounds have been defined for this corpus. The startpos for the
-                     ;; first core in the current step should be one above the last bounds value
+        parts      (if-let [bounds (get-in corpus [:multicpu_bounds step-index])]
+                     ;; Multicpu bounds have been defined for this corpus. The startpos for the
+                     ;; first cpu in the current step should be one above the last bounds value
                      ;; (i.e., the last endpos) in the previous step.
                      (let [prev-last-bounds (if (= step 1)
                                               -1
                                               (last (get-in corpus
-                                                            [:multicore_bounds (dec step-index)])))]
-                       (map-indexed (fn [core-index endpos]
-                                      (let [startpos (if (zero? core-index)
-                                                       ;; If first core, continue where we left off
+                                                            [:multicpu_bounds (dec step-index)])))]
+                       (map-indexed (fn [cpu-index endpos]
+                                      (let [startpos (if (zero? cpu-index)
+                                                       ;; If first cpu, continue where we left off
                                                        ;; in the previous step
                                                        (inc prev-last-bounds)
                                                        ;; Otherwise, contiune from the endpos of
-                                                       ;; the previous core
-                                                       (inc (nth bounds (dec core-index))))]
+                                                       ;; the previous cpu
+                                                       (inc (nth bounds (dec cpu-index))))]
                                         [startpos endpos]))
                                     bounds))
-                     ;; No multicore bounds defined; in that case, we search the whole
+                     ;; No multicpu bounds defined; in that case, we search the whole
                      ;; corpus in one go in the first step and just return if step != 1.
                      (when (= step 1)
                        [[0 (dec (get-in corpus [:extra-info :size (:code corpus)]))]]))
         scripts    (map-indexed
-                     (fn [core [startpos endpos]]
-                       (let [named-query (str (cwb-query-name corpus search-id) "_" step "_" core)
+                     (fn [cpu [startpos endpos]]
+                       (let [named-query (str (cwb-query-name corpus search-id) "_" step "_" cpu)
                              commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
                                           (cwb-corpus-name corpus queries)
                                           (construct-query-commands corpus queries metadata-ids
                                                                     named-query search-id
                                                                     startpos endpos
-                                                                    :core-index core)
+                                                                    :cpu-index cpu)
                                           (str "save " named-query)
                                           (str "set Context 15 word")
                                           "set PrintStructures \"s_id\""

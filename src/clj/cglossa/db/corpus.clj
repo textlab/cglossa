@@ -40,19 +40,19 @@
       {:size sizes})))
 
 
-(defn calc-multicore-bounds [c]
+(defn calc-multicpu-bounds [c]
   "Calculates the upper boundaries (i.e., corpus positions) for each corpus
-   part to be searched by a separate thread in a multicore machine."
+   part to be searched by a separate thread in a multicpu machine."
   (let [corpus-size (get-in c [:extra-info :size (:code c)])
-        ncores      (.availableProcessors (Runtime/getRuntime))
-        ;; Calculate the block size for each core by dividing into equal blocks the corpus sizes
+        ncpus      (.availableProcessors (Runtime/getRuntime))
+        ;; Calculate the block size for each cpu by dividing into equal blocks the corpus sizes
         ;; searched in each search step (first 5 mill words, then the following 45 mill words,
         ;; and then the whole corpus)
         block-sizes (for [total [5000000 45000000 (- corpus-size 50000000)]]
-                      (int (Math/ceil (/ (float total) (float ncores)))))
-        block-ends  [(map #(* (nth block-sizes 0) %) (range 1 (inc ncores)))
-                     (map #(+ 5000000 (* (nth block-sizes 1) %)) (range 1 (inc ncores)))
-                     (map #(+ 50000000 (* (nth block-sizes 2) %)) (range 1 (inc ncores)))]
+                      (int (Math/ceil (/ (float total) (float ncpus)))))
+        block-ends  [(map #(* (nth block-sizes 0) %) (range 1 (inc ncpus)))
+                     (map #(+ 5000000 (* (nth block-sizes 1) %)) (range 1 (inc ncpus)))
+                     (map #(+ 50000000 (* (nth block-sizes 2) %)) (range 1 (inc ncpus)))]
         text-ends   (conch/with-programs [cwb-s-decode]
                       (->> (cwb-s-decode (:code c) "-S" "text" {:seq true})
                            (map #(str/split % #"\t"))
@@ -67,21 +67,21 @@
 
 
 (declare corpus)
-(defn- set-multicore-bounds [c bounds]
+(defn- set-multicpu-bounds [c bounds]
   (korma/update corpus
-                (set-fields {:multicore_bounds (pr-str bounds)})
+                (set-fields {:multicpu_bounds (pr-str bounds)})
                 (where {:code (:code c)})))
 
 
 (defentity corpus
-  (transform (fn [{:keys [languages multicore_bounds] :as c}]
+  (transform (fn [{:keys [languages multicpu_bounds] :as c}]
                ;; Don't do the extra transformations if we have only requested a few specific
                ;; fields, excluding languages
                (if languages
                  (let [c*     (as-> c $
                                     (assoc $ :languages (edn/read-string languages))
                                     (assoc $ :extra-info (extra-info $))
-                                    (assoc $ :multicore_bounds (edn/read-string multicore_bounds))
+                                    (assoc $ :multicpu_bounds (edn/read-string multicpu_bounds))
                                     (assoc $ :audio? (fs/exists? (str "resources/public/media/"
                                                                       (:code $) "/audio")))
                                     (assoc $ :video? (fs/exists? (str "resources/public/media/"
@@ -90,28 +90,28 @@
                                                                         (:code $) ".edn")]
                                                           (when (fs/exists? path)
                                                             (edn/read-string (slurp path))))))
-                       mb     (:multicore_bounds c*)
-                       ncores (.availableProcessors (Runtime/getRuntime))]
+                       mb     (:multicpu_bounds c*)
+                       ncpus (.availableProcessors (Runtime/getRuntime))]
                    (if (and
-                         ;; This corpus should use multicore processing...
+                         ;; This corpus should use multicpu processing...
                          mb
                          (or
                            ;; ...but we have just marked that we want it, not actually calculated
                            ;; the bounds...
                            (not (sequential? mb))
-                           ;; ...or the number of parts is different from the number of cores,
+                           ;; ...or the number of parts is different from the number of cpus,
                            ;; indicating that the corpus has been copied from a machine with a
                            ;; different number of cores...
-                           (not= (count (first mb)) ncores)
+                           (not= (count (first mb)) ncpus)
                            ;; ...or the last bound is different from the corpus size, indicating
                            ;; that the contents of the corpus have changed since we calculated the
                            ;; bounds...
                            (not= (last (last mb))
                                  (dec (get-in c* [:extra-info :size (:code c*)])))))
                      ;; ...so calculate new bounds and store them
-                     (let [mb* (calc-multicore-bounds c*)]
-                       (set-multicore-bounds c* mb*)
-                       (assoc c* :multicore_bounds mb*))
+                     (let [mb* (calc-multicpu-bounds c*)]
+                       (set-multicpu-bounds c* mb*)
+                       (assoc c* :multicpu_bounds mb*))
                      c*))
                  c))))
 

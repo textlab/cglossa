@@ -92,8 +92,8 @@
     (transit-response (search-corpus corpus-id search-id queries metadata-ids
                                      step page-size last-count sort-key) false))
 
-  (GET "/results" [corpus-id search-id start end sort-key]
-    (transit-response (results corpus-id search-id start end sort-key) false))
+  (GET "/results" [corpus-id search-id start end cpu-counts sort-key]
+    (transit-response (results corpus-id search-id start end cpu-counts sort-key) false))
 
   (GET "/play-video" [corpus-id search-id result-index context-size]
     (transit-response (play-video corpus-id search-id result-index context-size) false))
