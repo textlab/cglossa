@@ -66,7 +66,7 @@
   (fn [{corpus :corpus} _] (:search-engine @corpus)))
 
 (defn- do-search-steps! [{:keys                   [searching?]
-                          {:keys [results total]} :results-view}
+                          {:keys [results total cpu-counts]} :results-view}
                          {:keys [corpus search] :as m}
                          url search-params nsteps]
   (let [sizes       (get-in @corpus [:extra-info :size])
@@ -85,13 +85,16 @@
               ;; because we have started another search
               [val ch] (async/alts! [cancel-search-ch results-ch] :priority true)]
           (when (= ch results-ch)
-            (let [{:keys [status success] {resp-search  :search
-                                           resp-results :results
-                                           resp-count   :count} :body} val]
+            (let [{:keys [status success] {resp-search      :search
+                                           resp-results     :results
+                                           resp-count       :count
+                                           resp-cpu-counts :cpu-counts} :body} val]
               (if-not success
                 (.log js/console status)
                 (do
                   (swap! search merge resp-search)
+                  ;; Add the number of hits found by each cpu core in this search step
+                  (swap! cpu-counts concat resp-cpu-counts)
                   ;; Only the first request actually returns results; the others just save the
                   ;; results on the server to be fetched on demand and return an empty result list
                   ;; (but a non-zero resp-count), unless the first result did not find enough
@@ -113,8 +116,9 @@
   (reset! searching? false))
 
 (defn reset-results!
-  [{{:keys [results page-no paginator-page-no paginator-text-val]} :results-view}]
+  [{{:keys [results cpu-counts page-no paginator-page-no paginator-text-val]} :results-view}]
   (reset! results nil)
+  (reset! cpu-counts [])
   (reset! page-no 1)
   (reset! paginator-page-no 1)
   (reset! paginator-text-val 1))

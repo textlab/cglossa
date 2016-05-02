@@ -43,11 +43,15 @@
                      ;; Return the total number of search results...
                      "size Last"
                      ;; ...as well as two pages of actual results
-                     (str "cat Last 0 " (dec (* 2 page-size)))]]
-    (run-cqp-commands corpus (filter identity (flatten commands)) true)))
+                     (str "cat Last 0 " (dec (* 2 page-size)))]
+        [hits cnt-str] (run-cqp-commands corpus (filter identity (flatten commands)) true)
+        cnt         (Integer/parseInt cnt-str)]
+    ;; Since we dont't currently do multi-cpu processing of speech corpora,
+    ;; the sequence of counts only contains the count we get by the single cpu.
+    [hits cnt [cnt]]))
 
 
-(defmethod get-results "cwb_speech" [corpus search queries start end sort-key]
+(defmethod get-results "cwb_speech" [corpus search queries start end _ sort-key]
   (let [named-query (cwb-query-name corpus (:id search))
         commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
                      (cwb-corpus-name corpus queries)

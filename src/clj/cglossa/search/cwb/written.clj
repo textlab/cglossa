@@ -85,23 +85,87 @@
                                             (async/to-chan scripts))
         cwb-res    (<!! (async/into [] res-ch))
         hits       (take (- num-ret (or last-count 0)) (apply concat (map first cwb-res)))
+        ;; Number of hits found by each cpu in this search step
+        cnts       (mapv #(-> % second Integer/parseInt) cwb-res)
+        ;; Sum of the number of hits found by the different cpus in this search step
         cnt        (+ (or last-count 0)
-                      (reduce + 0 (map #(-> % second Integer/parseInt) cwb-res)))]
-    [hits cnt]))
+                      (reduce + 0 cnts))]
+    [hits cnt cnts]))
 
-(defmethod get-results :default [corpus search queries start end sort-key]
-  (let [named-query (cwb-query-name corpus (:id search))
-        commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
-                     (cwb-corpus-name corpus queries)
-                     (str "set Context 15 word")
-                     "set PrintStructures \"s_id\""
-                     "set LD \"{{\""
-                     "set RD \"}}\""
-                     (displayed-attrs-command corpus queries)
-                     (aligned-languages-command corpus queries)
-                     (sort-command named-query sort-key)
-                     (str "cat " named-query " " start " " end)]]
-    (run-cqp-commands corpus (flatten commands) false)))
+(defmethod get-results :default [corpus search queries start end cpu-counts sort-key]
+  (let [named-query   (cwb-query-name corpus (:id search))
+        nres-1        (- end start)
+        [first-file first-start] (reduce-kv
+                                   (fn [sum k v]
+                                     (let [new-sum (+ sum v)]
+                                       (if (> new-sum start)
+                                         ;; We found the first result file to fetch results from.
+                                         ;; Return the index of that file as well as the first
+                                         ;; result index to fetch from this file; e.g. if we want
+                                         ;; to fetch results starting at index 100 and the sum of
+                                         ;; counts up to this file is 93, we should start fetching
+                                         ;; from index 7 in this file.
+                                         (reduced [k (- start sum)])
+                                         new-sum)))
+                                   0
+                                   cpu-counts)
+        last-file     (loop [sum        0
+                             counts     cpu-counts
+                             file-index 0]
+                        (let [new-sum (+ sum (first counts))]
+                          ;; If either the end index can be found in the current file (meaning
+                          ;; that if we add the current count to the sum, we exceed the end
+                          ;; index) or there are no more files, the current file should be the
+                          ;; last one we fetch results from.
+                          (if (or (> new-sum end)
+                                  (nil? (next counts)))
+                            file-index
+                            ;; Otherwise, continue with the next file
+                            (recur new-sum
+                                   (next counts)
+                                   (inc file-index)))))
+        ncpus         (.availableProcessors (Runtime/getRuntime))
+        ;; Generate the names of the files containing saved CQP queries
+        files         (vec (take (count cpu-counts)
+                                 (for [step-index (range)
+                                       cpu        (range ncpus)]
+                                   (str named-query "_" (inc step-index) "_" cpu))))
+        ;; Select the range of files that contains the range of results we are asking for
+        ;; and remove files that don't actually contain any results
+        nonzero-files (filter identity (map (fn [file count]
+                                              (when-not (zero? count)
+                                                file))
+                                            (subvec files first-file (inc last-file))
+                                            (subvec cpu-counts first-file (inc last-file))))
+        ;; For the first result file, we need to adjust the start and end index according to
+        ;; the number of hits that were found in previous files. For the remaining files, we
+        ;; set the start index to 0, and we might as well set the end index to [number of
+        ;; desired results minus one], since CQP won't actually mind if we ask for results
+        ;; beyond those available.
+        indexes       (cons [first-start (+ first-start nres-1)]
+                            (repeat [0 nres-1]))
+        scripts       (map
+                        (fn [result-file [start end]]
+                          (let [commands [(str "set DataDirectory \"" (fs/tmpdir) \")
+                                          (cwb-corpus-name corpus queries)
+                                          (str "set Context 15 word")
+                                          "set PrintStructures \"s_id\""
+                                          "set LD \"{{\""
+                                          "set RD \"}}\""
+                                          (displayed-attrs-command corpus queries)
+                                          (aligned-languages-command corpus queries)
+                                          (sort-command named-query sort-key)
+                                          (str "cat " result-file " " start " " end)]]
+                            (filter identity (flatten commands))))
+                        nonzero-files
+                        indexes)
+        res-ch        (async/chan)
+        _             (async/pipeline-blocking (count scripts)
+                                               res-ch
+                                               (map #(run-cqp-commands corpus % false))
+                                               (async/to-chan scripts))
+        cwb-res       (<!! (async/into [] res-ch))]
+    [(apply concat (map first cwb-res)) nil]))
 
 (defmethod transform-results :default [_ queries results]
   (when results

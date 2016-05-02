@@ -35,7 +35,7 @@
   already been fetched or that are currently being fetched in another request (note that such
   pages can only be located at the edges of the window, and not as 'holes' within the window,
   since they must have been fetched as part of an earlier window)."
-  [{{:keys [results total fetching-pages sort-key]} :results-view}
+  [{{:keys [results total cpu-counts fetching-pages sort-key]} :results-view}
    {:keys [corpus search] :as m}
    centre-page-no]
   ;; Enclose the whole procedure in a go block. This way, the function will return the channel
@@ -67,11 +67,12 @@
               ;; Calculate the first and last result index (zero-based) to request from the server
               first-result (* page-size (dec (first page-nos)))
               last-result  (dec (* page-size (last page-nos)))
-              results-ch   (http/get "/results" {:query-params {:corpus-id (:id @corpus)
-                                                                :search-id (:id @search)
-                                                                :start     first-result
-                                                                :end       last-result
-                                                                :sort-key  (name @sort-key)}})
+              results-ch   (http/get "/results" {:query-params {:corpus-id   (:id @corpus)
+                                                                :search-id   (:id @search)
+                                                                :start       first-result
+                                                                :end         last-result
+                                                                :cpu-counts (str (vec @cpu-counts))
+                                                                :sort-key    (name @sort-key)}})
               ;; Park until results are available on the core.async channel
               {:keys [status success] req-result :body} (<! results-ch)]
           ;; Remove the pages from the set of pages currently being fetched

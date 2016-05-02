@@ -13,7 +13,7 @@
   (fn [corpus _ _ _ _ _ _ _] (:search_engine corpus)))
 
 (defmulti get-results
-  (fn [corpus _ _ _ _ _] (:search_engine corpus)))
+  (fn [corpus _ _ _ _ _ _] (:search_engine corpus)))
 
 (defmulti transform-results
   "Multimethod for transforming search results in a way that is
@@ -38,20 +38,25 @@
 (defn search-corpus [corpus-id search-id queries metadata-ids step page-size last-count sort-key]
   (let [corpus     (get-corpus {:id corpus-id})
         search-id* (or search-id (:generated_key (create-search! corpus-id queries)))
-        [hits cnt] (run-queries corpus search-id* queries metadata-ids step
-                                page-size last-count sort-key)
+        [hits cnt cnts] (run-queries corpus search-id* queries metadata-ids step
+                                     page-size last-count sort-key)
         results    (transform-results corpus queries hits)
-        count      (if (string? cnt) (Integer/parseInt cnt) cnt)
         s          (search-by-id search-id*)]
-    {:search  s
-     :results results
-     :count   count}))
+    {:search     s
+     :results    results
+     ;; Sum of the number of hits found by the different cpus in this search step
+     :count      cnt
+     ;; Number of hits found by each cpus in this search step
+     :cpu-counts cnts}))
 
-(defn results [corpus-id search-id start end sort-key]
-  (let [corpus  (get-corpus {:id corpus-id})
-        s       (search-by-id search-id)
-        queries (edn/read-string (:queries s))
-        [results _] (get-results corpus s queries start end sort-key)]
+(defn results [corpus-id search-id start end cpu-counts sort-key]
+  (let [corpus      (get-corpus {:id corpus-id})
+        s           (search-by-id search-id)
+        queries     (edn/read-string (:queries s))
+        start*      (Integer/parseInt start)
+        end*        (Integer/parseInt end)
+        cpu-counts* (edn/read-string cpu-counts)
+        [results _] (get-results corpus s queries start* end* cpu-counts* sort-key)]
     (transform-results corpus queries results)))
 
 

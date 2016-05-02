@@ -26,6 +26,7 @@
                                         :view-type          (r/atom :concordance)
                                         :results            (r/atom nil)
                                         :total              (r/atom nil)
+                                        :cpu-counts        (r/atom [])
                                         :page-no            (r/atom 1)
                                         ;; This is the page selected in the result paginator;
                                         ;; it may differ from the one shown in the result table
