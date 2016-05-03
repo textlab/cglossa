@@ -19,7 +19,7 @@
          (str "Showing the first " @total " matches (" npages pages-str "); searching for more...")
          (str "Found " @total " matches (" npages " pages)")))
 
-     (zero? @total)
+     (and (zero? @total) (not @searching?))
      "No matches found"
 
      :else

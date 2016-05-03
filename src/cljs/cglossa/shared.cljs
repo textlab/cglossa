@@ -112,8 +112,8 @@
                                                                    (concat old-results
                                                                            resp-results)))))
                       (reset! total (or resp-count (count resp-results))))
-                    (reset! total resp-count))))))))))
-  (reset! searching? false))
+                    (reset! total resp-count))))))))
+      (reset! searching? false))))
 
 (defn reset-results!
   [{{:keys [results cpu-counts page-no paginator-page-no paginator-text-val]} :results-view}]
