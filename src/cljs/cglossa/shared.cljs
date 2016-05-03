@@ -65,7 +65,7 @@
   model/domain state map. The :default case implements CWB support."
   (fn [{corpus :corpus} _] (:search-engine @corpus)))
 
-(defn- do-search-steps! [{:keys                   [searching?]
+(defn- do-search-steps! [{:keys                              [searching?]
                           {:keys [results total cpu-counts]} :results-view}
                          {:keys [corpus search] :as m}
                          url search-params nsteps]
@@ -85,9 +85,9 @@
               ;; because we have started another search
               [val ch] (async/alts! [cancel-search-ch results-ch] :priority true)]
           (when (= ch results-ch)
-            (let [{:keys [status success] {resp-search      :search
-                                           resp-results     :results
-                                           resp-count       :count
+            (let [{:keys [status success] {resp-search     :search
+                                           resp-results    :results
+                                           resp-count      :count
                                            resp-cpu-counts :cpu-counts} :body} val]
               (if-not success
                 (.log js/console status)
