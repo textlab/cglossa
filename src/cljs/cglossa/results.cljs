@@ -10,7 +10,7 @@
             [cglossa.react-adapters.bootstrap :as b]))
 
 (defn- results-info [{{total :total} :results-view searching? :searching?}]
-  [:div.col-sm-7
+  [:div.col-sm-7 {:style {:margin-bottom 10}}
    (cond
      (pos? @total)
      (let [npages    (-> (/ @total page-size) Math/ceil int)
