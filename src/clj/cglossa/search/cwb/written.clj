@@ -44,7 +44,9 @@
                      ;; No multicpu bounds defined; in that case, we search the whole
                      ;; corpus in one go in the first step and just return if step != 1.
                      (when (= step 1)
-                       [[0 (dec (get-in corpus [:extra-info :size (:code corpus)]))]]))
+                       [[0
+                         (dec (get-in corpus [:extra-info :size
+                                              (str/lower-case (cwb-corpus-name corpus queries))]))]]))
         scripts    (map-indexed
                      (fn [cpu [startpos endpos]]
                        (let [named-query (str (cwb-query-name corpus search-id) "_" step "_" cpu)

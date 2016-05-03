@@ -124,8 +124,11 @@
   (reset! paginator-text-val 1))
 
 (defn search!
-  ([a {:keys [corpus search] :as m}]
-   (search! a m (if (= (:search-engine @corpus) "cwb") 3 1)))
+  ([a {:keys [corpus] :as m}]
+    ;; Do three search steps only for monolingual written corpora (they are technically
+    ;; simpler and also tend to be by far the largest ones)
+   (search! a m (if (and (= (:search-engine @corpus) "cwb")
+                         (= (count (:languages @corpus)) 1)) 3 1)))
   ([{{queries :queries}                     :search-view
      {:keys [show-results? total sort-key]} :results-view
      searching?                             :searching?

@@ -27,7 +27,8 @@
                                      page-size _ sort-key]
   (let [named-query (cwb-query-name corpus search-id)
         startpos    0
-        endpos      (get-in corpus [:extra-info :size (:code corpus)])
+        endpos      (get-in corpus
+                            [:extra-info :size (str/lower-case (cwb-corpus-name corpus queries))])
         commands    [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
                      (cwb-corpus-name corpus queries)
                      (construct-query-commands corpus queries metadata-ids named-query
