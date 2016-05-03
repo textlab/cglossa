@@ -28,7 +28,7 @@
   (let [named-query (cwb-query-name corpus search-id)
         startpos    0
         endpos      (get-in corpus [:extra-info :size (:code corpus)])
-        commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
+        commands    [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
                      (cwb-corpus-name corpus queries)
                      (construct-query-commands corpus queries metadata-ids named-query
                                                search-id startpos endpos
@@ -53,7 +53,7 @@
 
 (defmethod get-results "cwb_speech" [corpus search queries start end _ sort-key]
   (let [named-query (cwb-query-name corpus (:id search))
-        commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
+        commands    [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
                      (cwb-corpus-name corpus queries)
                      (str "set Context 1 sync_time")
                      "set PrintStructures \"who_name\""
@@ -154,7 +154,7 @@
 (defn play-video [corpus-id search-id result-index context-size]
   (let [corpus      (get-corpus {:id corpus-id})
         named-query (cwb-query-name corpus search-id)
-        commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
+        commands    [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
                      (str/upper-case (:code corpus))
                      (str "set Context " context-size " sync_time")
                      "set LD \"{{\""
@@ -173,7 +173,7 @@
 
 (defmethod geo-distr-queries "cwb_speech" [corpus search-id queries metadata-ids]
   (let [named-query (cwb-query-name corpus search-id)
-        commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
+        commands    [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
                      (cwb-corpus-name corpus queries)
                      (construct-query-commands corpus queries metadata-ids named-query search-id
                                                :s-tag "sync_time")

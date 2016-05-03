@@ -48,7 +48,7 @@
         scripts    (map-indexed
                      (fn [cpu [startpos endpos]]
                        (let [named-query (str (cwb-query-name corpus search-id) "_" step "_" cpu)
-                             commands    [(str "set DataDirectory \"" (fs/tmpdir) \")
+                             commands    [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
                                           (cwb-corpus-name corpus queries)
                                           (construct-query-commands corpus queries metadata-ids
                                                                     named-query search-id
@@ -146,7 +146,7 @@
                             (repeat [0 nres-1]))
         scripts       (map
                         (fn [result-file [start end]]
-                          (let [commands [(str "set DataDirectory \"" (fs/tmpdir) \")
+                          (let [commands [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
                                           (cwb-corpus-name corpus queries)
                                           (str "set Context 15 word")
                                           "set PrintStructures \"s_id\""
