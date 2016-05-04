@@ -9,21 +9,27 @@
             [cglossa.search-views.shared :refer [search-inputs]]
             [cglossa.react-adapters.bootstrap :as b]))
 
-(defn- results-info [{{total :total} :results-view searching? :searching?}]
-  [:div.col-sm-7 {:style {:margin-bottom 10}}
-   (cond
-     (pos? @total)
-     (let [npages    (-> (/ @total page-size) Math/ceil int)
-           pages-str (if (= npages 1) " page" " pages")]
-       (if @searching?
-         (str "Showing the first " @total " matches (" npages pages-str "); searching for more...")
-         (str "Found " @total " matches (" npages " pages)")))
+(defn- results-info [{{:keys [total results]} :results-view searching? :searching?}]
+  [:span
+   [:div.col-sm-6 {:style {:margin-bottom 10}}
+    (cond
+      (pos? @total)
+      (let [npages    (-> (/ @total page-size) Math/ceil int)
+            pages-str (if (= npages 1) " page" " pages")]
+        (if @searching?
+          (str "Showing the first " @total " matches (" npages pages-str "); searching for more...")
+          (str "Found " @total " matches (" npages " pages)")))
 
-     (and (zero? @total) (not @searching?))
-     "No matches found"
+      (and (zero? @total) (not @searching?))
+      "No matches found"
 
-     :else
-     (when @searching? "Searching..."))])
+      :else
+      (when @searching? "Searching..."))]
+   [:div.col-sm-1
+    ;; Only show the spinner when we are searching AND have already found some results
+    ;; so as to avoid showing spinners both here and over the result table at the same time
+    ;; (since we show a spinner over the result table until we have found some results)
+    [spinner-overlay {:spin? (and @searching? (seq @results)) :top 10} ]]])
 
 (defn- last-page-no [total]
   (-> (/ total page-size) Math/ceil int))
