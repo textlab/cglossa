@@ -161,12 +161,7 @@
                             (filter identity (flatten commands))))
                         nonzero-files
                         indexes)
-        res-ch        (async/chan)
-        _             (async/pipeline-blocking (count scripts)
-                                               res-ch
-                                               (map #(run-cqp-commands corpus % false))
-                                               (async/to-chan scripts))
-        cwb-res       (<!! (async/into [] res-ch))]
+        cwb-res       (map #(run-cqp-commands corpus % false) scripts)]
     [(apply concat (map first cwb-res)) nil]))
 
 (defmethod transform-results :default [_ queries results]
