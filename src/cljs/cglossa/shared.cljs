@@ -125,10 +125,8 @@
 
 (defn search!
   ([a {:keys [corpus] :as m}]
-    ;; Do three search steps only for monolingual written corpora (they are technically
-    ;; simpler and also tend to be by far the largest ones)
-   (search! a m (if (and (= (:search-engine @corpus) "cwb")
-                         (= (count (:languages @corpus)) 1)) 3 1)))
+    ;; Do three search steps only if multicpu_bounds is defined for this corpus
+   (search! a m (if (:multicpu-bounds @corpus) 3 1)))
   ([{{queries :queries}                     :search-view
      {:keys [show-results? total sort-key]} :results-view
      searching?                             :searching?
