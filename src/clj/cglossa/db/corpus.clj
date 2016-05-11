@@ -44,7 +44,7 @@
   "Calculates the upper boundaries (i.e., corpus positions) for each corpus
    part to be searched by a separate thread in a multicpu machine."
   (let [corpus-size (get-in c [:extra-info :size (:code c)])
-        ncpus      (.availableProcessors (Runtime/getRuntime))
+        ncpus       (.availableProcessors (Runtime/getRuntime))
         ;; Calculate the block size for each cpu by dividing into equal blocks the corpus sizes
         ;; searched in each search step (first 5 mill words, then the following 45 mill words,
         ;; and then the whole corpus)
@@ -78,19 +78,19 @@
                ;; Don't do the extra transformations if we have only requested a few specific
                ;; fields, excluding languages
                (if languages
-                 (let [c*     (as-> c $
-                                    (assoc $ :languages (edn/read-string languages))
-                                    (assoc $ :extra-info (extra-info $))
-                                    (assoc $ :multicpu_bounds (edn/read-string multicpu_bounds))
-                                    (assoc $ :audio? (fs/exists? (str "resources/public/media/"
-                                                                      (:code $) "/audio")))
-                                    (assoc $ :video? (fs/exists? (str "resources/public/media/"
-                                                                      (:code $) "/video")))
-                                    (assoc $ :geo-coord (let [path (str "resources/geo_coord/"
-                                                                        (:code $) ".edn")]
-                                                          (when (fs/exists? path)
-                                                            (edn/read-string (slurp path))))))
-                       mb     (:multicpu_bounds c*)
+                 (let [c*    (as-> c $
+                                   (assoc $ :languages (edn/read-string languages))
+                                   (assoc $ :extra-info (extra-info $))
+                                   (assoc $ :multicpu_bounds (edn/read-string multicpu_bounds))
+                                   (assoc $ :audio? (fs/exists? (str "resources/public/media/"
+                                                                     (:code $) "/audio")))
+                                   (assoc $ :video? (fs/exists? (str "resources/public/media/"
+                                                                     (:code $) "/video")))
+                                   (assoc $ :geo-coord (let [path (str "resources/geo_coord/"
+                                                                       (:code $) ".edn")]
+                                                         (when (fs/exists? path)
+                                                           (edn/read-string (slurp path))))))
+                       mb    (:multicpu_bounds c*)
                        ncpus (.availableProcessors (Runtime/getRuntime))]
                    (if (and
                          ;; This corpus should use multicpu processing...
