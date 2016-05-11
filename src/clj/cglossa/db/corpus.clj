@@ -59,10 +59,14 @@
                            (map last)
                            (map #(Integer/parseInt %))))]
     (mapv (fn [step-block-ends]
-            (vec (keep (fn [block-end]
-                         (let [smaller (take-while #(< % block-end) text-ends)]
-                           (last smaller)))
-                       step-block-ends)))
+            ;; Use 'keep' to remove nils, which occur when corpus texts are bigger than the
+            ;; sizes allocated to each cpu (especially in the first, 5 mill. word, step).
+            ;; Also dedupe the sequence to avoid assigning the same range redundantly to
+            ;; multiple cpus.
+            (vec (dedupe (keep (fn [block-end]
+                                 (let [smaller (take-while #(< % block-end) text-ends)]
+                                   (last smaller)))
+                               step-block-ends))))
           block-ends)))
 
 
