@@ -59,10 +59,10 @@
                            (map last)
                            (map #(Integer/parseInt %))))]
     (mapv (fn [step-block-ends]
-            (mapv (fn [block-end]
-                    (let [smaller (take-while #(< % block-end) text-ends)]
-                      (last smaller)))
-                  step-block-ends))
+            (vec (keep (fn [block-end]
+                         (let [smaller (take-while #(< % block-end) text-ends)]
+                           (last smaller)))
+                       step-block-ends)))
           block-ends)))
 
 

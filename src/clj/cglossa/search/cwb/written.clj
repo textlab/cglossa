@@ -36,7 +36,7 @@
                                                        ;; If first cpu, continue where we left off
                                                        ;; in the previous step
                                                        (inc prev-last-bounds)
-                                                       ;; Otherwise, contiune from the endpos of
+                                                       ;; Otherwise, continue from the endpos of
                                                        ;; the previous cpu
                                                        (inc (nth bounds (dec cpu-index))))]
                                         [startpos endpos]))
