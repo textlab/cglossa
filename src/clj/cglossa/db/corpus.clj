@@ -47,12 +47,14 @@
         ncpus       (.availableProcessors (Runtime/getRuntime))
         ;; Calculate the block size for each cpu by dividing into equal blocks the corpus sizes
         ;; searched in each search step (first 5 mill words, then the following 45 mill words,
-        ;; and then the whole corpus)
+        ;; and then the whole corpus). Make sure to put the corpus size as the final block ending,
+        ;; since it may otherwise get too small due to rounding, excluding the last text from
+        ;; the search process.
         block-sizes (for [total [5000000 45000000 (- corpus-size 50000000)]]
                       (int (Math/ceil (/ (float total) (float ncpus)))))
-        block-ends  [(map #(* (nth block-sizes 0) %) (range 1 (inc ncpus)))
-                     (map #(+ 5000000 (* (nth block-sizes 1) %)) (range 1 (inc ncpus)))
-                     (map #(+ 50000000 (* (nth block-sizes 2) %)) (range 1 (inc ncpus)))]
+        block-ends  [(mapv #(* (nth block-sizes 0) %) (range 1 (inc ncpus)))
+                     (mapv #(+ 5000000 (* (nth block-sizes 1) %)) (range 1 (inc ncpus)))
+                     (conj (mapv #(+ 50000000 (* (nth block-sizes 2) %)) (range 1 ncpus)) corpus-size)]
         text-ends   (conch/with-programs [cwb-s-decode]
                       (->> (cwb-s-decode (:code c) "-S" "text" {:seq true})
                            (map #(str/split % #"\t"))
