@@ -106,7 +106,7 @@
                            ;; ...or the number of parts is different from the number of cpus,
                            ;; indicating that the corpus has been copied from a machine with a
                            ;; different number of cores...
-                           (not= (count (first mb)) ncpus)
+                           (not= (count (last mb)) ncpus)
                            ;; ...or the last bound is different from the corpus size, indicating
                            ;; that the contents of the corpus have changed since we calculated the
                            ;; bounds...
