@@ -1,6 +1,6 @@
 (ns cglossa.db.metadata
-  (:require [korma.core :refer [defentity table belongs-to select select* fields modifier aggregate
-                                where join order limit offset sqlfn]]))
+  (:require [korma.core :refer [defentity table belongs-to select select* fields modifier
+                                subselect where join order limit offset sqlfn raw]]))
 
 (defentity metadata-category (table :metadata_category))
 (defentity metadata-value (table :metadata_value)
@@ -109,3 +109,21 @@
         max-pages (-> (/ total pagesize) Math/ceil int)]
     {:rows      rows
      :max-pages max-pages}))
+
+(defn num-selected-texts [selected-metadata]
+  ;; If we don't get any selected metadata, just return nil, which means that all text
+  ;; were selected.
+  (when (seq selected-metadata)
+    ;; Korma doesn't seem to support any way to express count(distinct...) apart from
+    ;; inserting a raw string.
+    (let [cnt (raw "COUNT(DISTINCT `text_value`) AS cnt")]
+      (-> (select* [metadata-value])
+          (fields cnt)
+          (join :inner [metadata-value-text :j0] (= :j0.metadata_value_id :id))
+          (join-selected-values selected-metadata)
+          (where-selected-values selected-metadata)
+          (where {:metadata_category_id
+                  (subselect metadata-category (fields :id) (where {:code "tid"}))})
+          (select)
+          first
+          :cnt))))

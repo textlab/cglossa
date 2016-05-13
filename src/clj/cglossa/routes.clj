@@ -15,7 +15,8 @@
             [taoensso.timbre :as timbre]
             [cglossa.shared :refer [corpus-connections]]
             [cglossa.db.corpus :refer [get-corpus]]
-            [cglossa.db.metadata :refer [get-metadata-categories get-metadata-values show-texts]]
+            [cglossa.db.metadata :refer [get-metadata-categories get-metadata-values
+                                         show-texts num-selected-texts]]
             [cglossa.search.core :refer [search-corpus results geo-distr]]
             [cglossa.search.cwb.speech :refer [play-video]])
   (:import (java.io ByteArrayOutputStream)))
@@ -85,7 +86,10 @@
   (POST "/texts" [selected-metadata ncats page]
     (let [ncats* (or ncats 1)
           page*  (or page 1)]
-      (transit-response (show-texts selected-metadata ncats* page*)))))
+      (transit-response (show-texts selected-metadata ncats* page*))))
+
+  (POST "/num-texts" [selected-metadata]
+    (transit-response (num-selected-texts selected-metadata))))
 
 (defroutes search-routes
   (POST "/search" [corpus-id search-id queries metadata-ids step page-size last-count sort-key]

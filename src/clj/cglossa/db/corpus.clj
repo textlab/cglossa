@@ -1,12 +1,13 @@
 (ns cglossa.db.corpus
   (:require [clojure.string :as str]
             [korma.db :as kdb]
-            [korma.core :refer [defentity transform select where set-fields]]
+            [korma.core :refer [defentity transform select select* where set-fields
+                                aggregate with]]
             [clojure.edn :as edn]
             [me.raynes.conch :as conch]
             [me.raynes.fs :as fs]
-            [cglossa.shared :refer [core-db]]
-            [cglossa.db.metadata :refer [metadata-category]]
+            [cglossa.shared :refer [core-db corpus-connections]]
+            [cglossa.db.metadata :refer [metadata-category metadata-value]]
             [korma.core :as korma]))
 
 (defn multilingual? [corpus]
@@ -79,6 +80,16 @@
                 (where {:code (:code c)})))
 
 
+(defn- num-texts [c]
+  (kdb/with-db (get @corpus-connections (:id c))
+    (-> (select* metadata-value)
+        (aggregate (count :metadata_value.id) :cnt)
+        (with metadata-category (where {:code "tid"}))
+        select
+        first
+        :cnt)))
+
+
 (defentity corpus
   (transform (fn [{:keys [languages multicpu_bounds] :as c}]
                ;; Don't do the extra transformations if we have only requested a few specific
@@ -88,6 +99,7 @@
                                    (assoc $ :languages (edn/read-string languages))
                                    (assoc $ :extra-info (extra-info $))
                                    (assoc $ :multicpu_bounds (edn/read-string multicpu_bounds))
+                                   (assoc $ :num-texts (num-texts $))
                                    (assoc $ :audio? (fs/exists? (str "resources/public/media/"
                                                                      (:code $) "/audio")))
                                    (assoc $ :video? (fs/exists? (str "resources/public/media/"

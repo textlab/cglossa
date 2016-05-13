@@ -115,6 +115,9 @@
                     (reset! total resp-count))))))))
       (reset! searching? false))))
 
+(defn selected-metadata-ids [search]
+  (->> (:metadata @search) (filter #(second %)) (into {})))
+
 (defn reset-results!
   [{{:keys [results cpu-counts page-no paginator-page-no paginator-text-val]} :results-view}]
   (reset! results nil)
@@ -152,7 +155,7 @@
              url    "/search"
              params {:corpus-id    (:id @corpus)
                      :queries      q*
-                     :metadata-ids (->> (:metadata @search) (filter #(second %)) (into {}))
+                     :metadata-ids (selected-metadata-ids search)
                      :page-size    page-size
                      :sort-key     @sort-key}]
          (reset! show-results? true)

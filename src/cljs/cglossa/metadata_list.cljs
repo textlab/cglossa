@@ -1,11 +1,38 @@
 (ns cglossa.metadata-list
-  (:require [reagent.core :as r :include-macros true]
+  (:require [clojure.string :as str]
+            [reagent.core :as r :include-macros true]
             [cljs.core.async :refer [<!]]
+            [cljs-http.client :as http]
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.select2 :as sel]
-            [cglossa.shared :refer [search!]]
-            [clojure.string :as str])
+            [cglossa.shared :refer [selected-metadata-ids search!]])
   (:require-macros [cljs.core.async.macros :refer [go]]))
+
+(defn- count-selected-texts! [{:keys [num-selected-texts]} {:keys [corpus search]}]
+  (go
+    (let [results-ch (http/post "/num-texts"
+                                {:json-params {:corpus-id         (:id @corpus)
+                                               :selected-metadata (selected-metadata-ids search)}})
+          {:keys [status success body]} (<! results-ch)]
+      (if-not success
+        (.log js/console status)
+        ;; If we get a nil from the server, it means that all texts were selected
+        ;; (i.e., no metadata was selected). Setting the atom to nil makes the list
+        ;; display "All texts selected".
+        (reset! num-selected-texts (when body
+                                     (js/parseInt body)))))))
+
+(defn- metadata-selection-changed [a m]
+  (count-selected-texts! a m)
+  (search! a m))
+
+(defn- text-selection [{:keys [num-selected-texts]} {:keys [corpus]}]
+  (let [sel-texts (if (or (nil? @num-selected-texts)
+                          (= @num-selected-texts (:num-texts @corpus)))
+                    "All "
+                    (str @num-selected-texts " of "))]
+    [:div {:style {:margin-left 15 :color "#676767"}}
+     (str sel-texts (:num-texts @corpus) " texts selected")]))
 
 (defn- metadata-select [a m corpus cat-id search selected open-metadata-cat]
   (r/create-class
@@ -17,8 +44,8 @@
      ;; longer opened automatically after the user closes it.
      (when (= @open-metadata-cat cat-id)
        (fn [c]
-         (sel/handle-event c "select2:select" #(search! a m))
-         (sel/handle-event c "select2:unselect" #(search! a m))
+         (sel/handle-event c "select2:select" #(metadata-selection-changed a m))
+         (sel/handle-event c "select2:unselect" #(metadata-selection-changed a m))
          (sel/handle-event c "select2:close" #(reset! open-metadata-cat nil))
          (sel/trigger-event c "open")))
 
@@ -57,8 +84,9 @@
                                    (swap! search update :metadata dissoc cat-id)
                                    (when (empty? (:metadata @search))
                                      (swap! search dissoc :metadata))
-                                   (search! a m))]
+                                   (metadata-selection-changed a m))]
     [:span
+     [text-selection a m]
      (doall
        (for [cat @metadata-categories
              :let [cat-id   (:id cat)
