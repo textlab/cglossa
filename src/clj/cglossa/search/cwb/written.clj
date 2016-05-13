@@ -128,10 +128,11 @@
                                    (inc file-index)))))
         ncpus         (.availableProcessors (Runtime/getRuntime))
         ;; Generate the names of the files containing saved CQP queries
-        files         (vec (take (count cpu-counts)
-                                 (for [step-index (range)
-                                       cpu        (range ncpus)]
-                                   (str named-query "_" (inc step-index) "_" cpu))))
+        files         (vec (flatten (map-indexed
+                                      (fn [i cpu-bounds]
+                                        (mapv #(str named-query "_" (inc i) "_" %)
+                                              (range (count cpu-bounds))))
+                                      (:multicpu_bounds corpus))))
         ;; Select the range of files that contains the range of results we are asking for
         ;; and remove files that don't actually contain any results
         nonzero-files (filter identity (map (fn [file count]
