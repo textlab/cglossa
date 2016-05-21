@@ -2,7 +2,7 @@
 
 position_cols="\`startpos\`, \`endpos\`"
 language_col=""
-while getopts ":s:m" opt; do
+while getopts ":sm" opt; do
   case $opt in
     s)
       position_cols="\`bounds\`"
@@ -24,7 +24,7 @@ if [ "$#" -ne 3 ] ; then
     exit
 fi
 
-tmpd="${TMPDIR:-/tmp}"
+tmpd="${TMPDIR:-/tmp}/glossa"
 valfile1=${tmpd}/glossa_valtmp.tsv
 valfile2=${tmpd}/metadata_value.tsv
 valfile3=${tmpd}/metadata_value_text.tsv
