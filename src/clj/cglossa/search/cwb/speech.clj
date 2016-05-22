@@ -140,9 +140,11 @@
         overall-starttime (first starttimes)
         overall-endtime   (last endtimes)
         speakers          (map second (re-seq #"<who_name\s+(.+?)>" result*))
-        ;; All line keys within the same result should point to the same media file,
-        ;; so just find the first one.
-        line-key          (second (re-find #"<who_line_key\s+(\d+)>" result*))]
+        ;; If we get at hit at the beginning or end of a session, the context may include
+        ;; material from the session before or after. Hence, we need to make sure that
+        ;; we extract the line key from the segment containing the actual match (marked
+        ;; by double braces).
+        line-key          (second (re-find #"<who_line_key\s+(\d+)>[^<]*\{\{" result*))]
     (let [media-obj-lines (map second (re-seq (if line-key
                                                 #"<who_line_key.+?>(.*?)</who_line_key>"
                                                 #"<who_name.+?>(.*?)</who_name>")
