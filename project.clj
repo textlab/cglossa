@@ -78,6 +78,9 @@
                                             :file-min "resources/public/js/jplayer.min.js"
                                             :provides ["react-jplayer"]
                                             :requires ["js-jplayer" "cljsjs.react" "jquery-ui"]}
+                                           {:file     "resources/public/js/wfplayer.js"
+                                            :provides ["react-wfplayer"]
+                                            :requires ["cljsjs.react"]}
                                            {:file     "resources/public/js/jquery.colorpicker.js"
                                             :file-min "resources/public/js/jquery.colorpicker.min.js"
                                             :requires ["cljsjs.jquery"]
@@ -101,7 +104,8 @@
                                            "resources/public/js/externs/react-spinner.ext.js"
                                            "resources/public/js/externs/bootstrap_tooltip.ext.js"
                                            "resources/public/js/externs/griddle_0.2.15.ext.js"
-                                           "resources/public/js/externs/jplayer.ext.js"]
+                                           "resources/public/js/externs/jplayer.ext.js"
+                                           "resources/public/js/externs/wfplayer.ext.js" ]
                     :pretty-print         true}}}}
 
   :sassc [{:src       "src/scss/style.scss"

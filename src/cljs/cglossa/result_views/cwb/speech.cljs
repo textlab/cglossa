@@ -6,7 +6,8 @@
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.results :refer [concordance-table]]
             [cglossa.result-views.cwb.shared :as shared]
-            react-jplayer)
+            react-jplayer
+            react-wfplayer)
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (defn- show-media-player [index player-type media-type
@@ -184,7 +185,7 @@
                                                    a m)}
         [b/glyphicon {:glyph "step-forward"}]]]
       [b/modalbody (if (= @current-player-type "wfplayer")
-                     [:WFplayer {:media-obj @media-obj}]
+                     [:> js/WFplayer {:media-obj @media-obj}]
                      [:> js/Jplayer {:media-obj  @media-obj
                                      :media-type @current-media-type}])]
       [b/modalfooter
