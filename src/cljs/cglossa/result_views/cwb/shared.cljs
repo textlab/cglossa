@@ -38,16 +38,17 @@
 (defn- find-result-node [result-hash]
   (.get (js/$ (str "#" result-hash)) 0))
 
-(defn- get-result-metadata [e result-showing-metadata metadata-categories corpus-id s-id result-hash]
+(defn- get-result-metadata [e result-showing-metadata metadata-categories corpus-id
+                            text-id result-hash]
   (.preventDefault e)
-  (if-let [metadata (get @metadata-cache s-id)]
+  (if-let [metadata (get @metadata-cache text-id)]
     ;; Use the metadata values from the cache, but set the DOM node to be the one
     ;; for the currently selected result (since the data in the cache may have been
     ;; for a different result with the same s-id).
     (reset! result-showing-metadata (assoc metadata :node (find-result-node result-hash)))
     (go
       (let [{:keys [body]} (<! (http/get "result-metadata" {:query-params {:corpus-id corpus-id
-                                                                           :s-id      s-id}}))
+                                                                           :text-id   text-id}}))
             cat-names (into {} (map (fn [{:keys [id code name]}]
                                       (let [name* (or name (-> code
                                                                (str/replace "_" " ")
@@ -59,7 +60,7 @@
                                 [name text_value]))
                             body)
             metadata  {:node (find-result-node result-hash) :vals vals}]
-        (swap! metadata-cache assoc s-id metadata)
+        (swap! metadata-cache assoc text-id metadata)
         (reset! result-showing-metadata metadata)))))
 
 (defn id-column [{{:keys [result-showing-metadata]} :results-view}
@@ -69,12 +70,15 @@
   ;; defined, we print it in the first column (if we have a non-first language result, we
   ;; will include it in the next column instead).
   (let [s-id        (:s-id result)
+        ;; Remove any "suffixes" from the s-id, since they typcially denote individual sentences,
+        ;; which are irrelevant when fetching metadata.
+        text-id     (str/replace s-id #"\..+" "")
         result-hash (hash result)]
     (when (and (:match result) s-id)
       [:td {:style {:vertical-align "middle"}}
        [:a {:href     ""
             :on-click #(get-result-metadata % result-showing-metadata metadata-categories
-                                            (:id @corpus) s-id result-hash)}
+                                            (:id @corpus) text-id result-hash)}
         [:span {:id result-hash} s-id]]
        (metadata-overlay result-showing-metadata)
        [result-links m result]])))

@@ -130,7 +130,7 @@
           first
           :cnt))))
 
-(defn result-metadata [corpus-id s-id]
+(defn result-metadata [corpus-id text-id]
   (kdb/with-db (get @corpus-connections corpus-id)
     (-> (select* [metadata-value :v1])
         (modifier "DISTINCT")
@@ -140,5 +140,5 @@
         (join :inner [metadata-value :v2] (= :j1.metadata_value_id :v2.id))
         (join :inner [metadata-category :c] (= :v2.metadata_category_id :c.id))
         (where {:c.code        "tid"
-                :v2.text_value s-id})
+                :v2.text_value text-id})
         (select))))

@@ -99,8 +99,8 @@
   (GET "/results" [corpus-id search-id start end cpu-counts sort-key]
     (transit-response (results corpus-id search-id start end cpu-counts sort-key) false))
 
-  (GET "/result-metadata" [corpus-id s-id]
-    (transit-response (result-metadata (Integer/parseInt corpus-id) s-id) false))
+  (GET "/result-metadata" [corpus-id text-id]
+    (transit-response (result-metadata (Integer/parseInt corpus-id) text-id) false))
 
   (GET "/play-video" [corpus-id search-id result-index context-size]
     (transit-response (play-video corpus-id search-id result-index context-size) false))
