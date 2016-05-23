@@ -1,11 +1,15 @@
 (ns cglossa.show-texts
-  (:require [cljs.core.async :refer [<!]]
+  (:require [clojure.string :as str]
+            [cljs.core.async :refer [<!]]
             [reagent.core :as r]
             [cglossa.react-adapters.bootstrap :as b]
             [cljs-http.client :as http]
             griddle)
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:import [goog.dom ViewportSizeMonitor]))
+
+(defn- category-name [{:keys [code name]}]
+  (or name (-> code (str/replace "_" " ") str/capitalize)))
 
 (defn- get-external-data [{:keys [corpus metadata-categories search]}
                           results loading? mxpages cur-page page]
@@ -17,8 +21,10 @@
                                                :page              page}}))
             {:keys [rows max-pages] :as body} (:body response)]
         (if (http/unexceptional-status? (:status response))
-          (let [cat-names (map :name (sort-by :id @metadata-categories))
-                rows*     (map zipmap (repeat cat-names) rows)]
+          (let [rows* (for [row rows]
+                        (into {} (map (fn [cat]
+                                        [(category-name cat) (get row (:id cat))])
+                                      @metadata-categories)))]
             (reset! loading? false)
             (swap! results concat rows*)
             (reset! mxpages max-pages)
@@ -59,7 +65,7 @@
              [b/modaltitle "Corpus texts"]]
             [b/modalbody
              [:> js/Griddle
-              {:columns                    (map :name (sort-by :id @metadata-categories))
+              {:columns                    (map category-name @metadata-categories)
                :use-external               true
                :external-set-page          (fn [page]
                                              (when-not (contains? @fetched-pages page)

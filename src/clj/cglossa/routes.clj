@@ -86,7 +86,7 @@
   (POST "/texts" [selected-metadata ncats page]
     (let [ncats* (or ncats 1)
           page*  (or page 1)]
-      (transit-response (show-texts selected-metadata ncats* page*))))
+      (transit-response (show-texts selected-metadata ncats* page*) false)))
 
   (POST "/num-texts" [selected-metadata]
     (transit-response (num-selected-texts selected-metadata))))

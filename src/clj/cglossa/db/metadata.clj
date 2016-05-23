@@ -94,7 +94,7 @@
         offs      (* (dec page) pagesize)
         lim       pagesize
         res       (-> (select* metadata-value)
-                      (fields :j0.text_id :text_value)
+                      (fields :j0.text_id :metadata_category_id :text_value)
                       (modifier "SQL_CALC_FOUND_ROWS")
                       (join :inner [metadata-value-text :j0] (= :j0.metadata_value_id :id))
                       (join-selected-values selected-metadata)
@@ -106,7 +106,10 @@
                       (select))
         rows      (->> res
                        (partition-by :text_id)
-                       (map #(map :text_value %)))
+                       (map (fn [text]
+                              (into {} (map (fn [value]
+                                              [(:metadata_category_id value) (:text_value value)])
+                                            text)))))
         total     (-> (korma.core/exec-raw "SELECT FOUND_ROWS() AS total" :results) first :total)
         max-pages (-> (/ total pagesize) Math/ceil int)]
     {:rows      rows
