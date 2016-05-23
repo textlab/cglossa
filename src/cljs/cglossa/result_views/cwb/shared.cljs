@@ -8,6 +8,8 @@
             [cglossa.results :refer [result-links]])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
+(def ^:private metadata-cache (atom {}))
+
 (defn- metadata-overlay [result-showing-metadata]
   [b/overlay {:show      (not (nil? @result-showing-metadata))
               :placement "top"
@@ -33,23 +35,32 @@
                      [:div.table-cell val]])
                   (:vals @result-showing-metadata))]]])
 
-(defn- get-result-metadata [e result-showing-metadata metadata-categories corpus-id s-id id-hash]
+(defn- find-result-node [result-hash]
+  (.get (js/$ (str "#" result-hash)) 0))
+
+(defn- get-result-metadata [e result-showing-metadata metadata-categories corpus-id s-id result-hash]
   (.preventDefault e)
-  (go
-    (let [{:keys [body]} (<! (http/get "result-metadata" {:query-params {:corpus-id corpus-id
-                                                                         :s-id      s-id}}))
-          cat-names (into {} (map (fn [{:keys [id code name]}]
-                                    (let [name* (or name (-> code
-                                                             (str/replace "_" " ")
-                                                             str/capitalize))]
-                                      [id name*]))
-                                  @metadata-categories))
-          vals      (keep (fn [{:keys [metadata_category_id text_value]}]
-                            (when-let [name (get cat-names metadata_category_id)]
-                              [name text_value]))
-                          body)
-          node      (.get (js/$ (str "#" id-hash)) 0)]
-      (reset! result-showing-metadata {:node node :vals vals}))))
+  (if-let [metadata (get @metadata-cache s-id)]
+    ;; Use the metadata values from the cache, but set the DOM node to be the one
+    ;; for the currently selected result (since the data in the cache may have been
+    ;; for a different result with the same s-id).
+    (reset! result-showing-metadata (assoc metadata :node (find-result-node result-hash)))
+    (go
+      (let [{:keys [body]} (<! (http/get "result-metadata" {:query-params {:corpus-id corpus-id
+                                                                           :s-id      s-id}}))
+            cat-names (into {} (map (fn [{:keys [id code name]}]
+                                      (let [name* (or name (-> code
+                                                               (str/replace "_" " ")
+                                                               str/capitalize))]
+                                        [id name*]))
+                                    @metadata-categories))
+            vals      (keep (fn [{:keys [metadata_category_id text_value]}]
+                              (when-let [name (get cat-names metadata_category_id)]
+                                [name text_value]))
+                            body)
+            metadata  {:node (find-result-node result-hash) :vals vals}]
+        (swap! metadata-cache assoc s-id metadata)
+        (reset! result-showing-metadata metadata)))))
 
 (defn id-column [{{:keys [result-showing-metadata]} :results-view}
                  {:keys [corpus metadata-categories] :as m} result]
@@ -57,14 +68,14 @@
   ;; search or the first language of a multilingual one. If that is the case, and s-id is
   ;; defined, we print it in the first column (if we have a non-first language result, we
   ;; will include it in the next column instead).
-  (let [s-id    (:s-id result)
-        id-hash (hash result)]
+  (let [s-id        (:s-id result)
+        result-hash (hash result)]
     (when (and (:match result) s-id)
       [:td {:style {:vertical-align "middle"}}
        [:a {:href     ""
             :on-click #(get-result-metadata % result-showing-metadata metadata-categories
-                                            (:id @corpus) s-id id-hash)}
-        [:span {:id id-hash} s-id]]
+                                            (:id @corpus) s-id result-hash)}
+        [:span {:id result-hash} s-id]]
        (metadata-overlay result-showing-metadata)
        [result-links m result]])))
 
