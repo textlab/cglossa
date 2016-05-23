@@ -1,6 +1,8 @@
 (ns cglossa.db.metadata
   (:require [korma.core :refer [defentity table belongs-to select select* fields modifier
-                                subselect where join order limit offset sqlfn raw]]))
+                                subselect where join order limit offset sqlfn raw]]
+            [korma.db :as kdb]
+            [cglossa.shared :refer [corpus-connections]]))
 
 (defentity metadata-category (table :metadata_category))
 (defentity metadata-value (table :metadata_value)
@@ -127,3 +129,15 @@
           (select)
           first
           :cnt))))
+
+(defn result-metadata [corpus-id s-id]
+  (kdb/with-db (get @corpus-connections corpus-id)
+    (-> (select* [metadata-value :v1])
+        (fields :v1.metadata_category_id :v1.text_value)
+        (join :inner [metadata-value-text :j0] (= :j0.metadata_value_id :v1.id))
+        (join :inner [metadata-value-text :j1] (= :j1.text_id :j0.text_id))
+        (join :inner [metadata-value :v2] (= :j1.metadata_value_id :v2.id))
+        (join :inner [metadata-category :c] (= :v2.metadata_category_id :c.id))
+        (where {:c.code        "tid"
+                :v2.text_value s-id})
+        (select))))

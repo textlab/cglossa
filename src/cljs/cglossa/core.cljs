@@ -23,31 +23,32 @@
                     :show-metadata?     (r/atom nil)
                     :num-selected-texts (r/atom nil)
                     :show-texts?        (r/atom false)
-                    :results-view       {:show-results?      (r/atom false)
-                                         :view-type          (r/atom :concordance)
-                                         :results            (r/atom nil)
-                                         :total              (r/atom nil)
-                                         :cpu-counts         (r/atom [])
-                                         :page-no            (r/atom 1)
+                    :results-view       {:show-results?           (r/atom false)
+                                         :view-type               (r/atom :concordance)
+                                         :results                 (r/atom nil)
+                                         :total                   (r/atom nil)
+                                         :cpu-counts              (r/atom [])
+                                         :page-no                 (r/atom 1)
                                          ;; This is the page selected in the result paginator;
                                          ;; it may differ from the one shown in the result table
                                          ;; until the selected page has been fetched from the server
-                                         :paginator-page-no  (r/atom 1)
+                                         :paginator-page-no       (r/atom 1)
                                          ;; This is the value shown in the paginator text input.
                                          ;; It may differ from paginator-page-no while we are
                                          ;; manually editing the value, but will be set equal
                                          ;; to paginator-page-no when we hit Enter after editing
                                          ;; or we select a different page using the paging buttons.
-                                         :paginator-text-val (r/atom 1)
+                                         :paginator-text-val      (r/atom 1)
                                          ;; Set of result pages currently being fetched
-                                         :fetching-pages     (r/atom #{})
-                                         :sort-key           (r/atom :position)
-                                         :freq-attr          (r/atom nil)
-                                         :media              {:showing-media-popup (r/atom false)
-                                                              :media-obj           (r/atom nil)
-                                                              :player-row-index    (r/atom nil)
-                                                              :current-player-type (r/atom nil)
-                                                              :current-media-type  (r/atom nil)}}
+                                         :fetching-pages          (r/atom #{})
+                                         :result-showing-metadata (r/atom nil)
+                                         :sort-key                (r/atom :position)
+                                         :freq-attr               (r/atom nil)
+                                         :media                   {:showing-media-popup (r/atom false)
+                                                                   :media-obj           (r/atom nil)
+                                                                   :player-row-index    (r/atom nil)
+                                                                   :current-player-type (r/atom nil)
+                                                                   :current-media-type  (r/atom nil)}}
                     :search-view        {:view-type (r/atom :simple)
                                          :queries   (r/atom nil)
                                          :query-ids (r/atom nil)}

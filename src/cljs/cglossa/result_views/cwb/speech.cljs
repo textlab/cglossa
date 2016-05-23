@@ -45,7 +45,7 @@
 (defn- orthographic-row [a {:keys [corpus] :as m} result]
   ^{:key (str "ort" (hash result))}
   [:tr
-   (shared/id-column m result)
+   (shared/id-column a m result)
    (shared/text-columns result)])
 
 (defn- phonetic-row [a {:keys [corpus] :as m} result row-index]

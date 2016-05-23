@@ -60,7 +60,7 @@
 (defn- main-row [result index a {:keys [corpus] :as m}]
   ^{:key (hash result)}
   [:tr
-   (shared/id-column m result)
+   (shared/id-column a m result)
    (shared/text-columns result)])
 
 (defn single-result-rows [a m res index]

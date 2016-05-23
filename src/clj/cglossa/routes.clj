@@ -16,7 +16,7 @@
             [cglossa.shared :refer [corpus-connections]]
             [cglossa.db.corpus :refer [get-corpus]]
             [cglossa.db.metadata :refer [get-metadata-categories get-metadata-values
-                                         show-texts num-selected-texts]]
+                                         show-texts num-selected-texts result-metadata]]
             [cglossa.search.core :refer [search-corpus results geo-distr]]
             [cglossa.search.cwb.speech :refer [play-video]])
   (:import (java.io ByteArrayOutputStream)))
@@ -98,6 +98,9 @@
 
   (GET "/results" [corpus-id search-id start end cpu-counts sort-key]
     (transit-response (results corpus-id search-id start end cpu-counts sort-key) false))
+
+  (GET "/result-metadata" [corpus-id s-id]
+    (transit-response (result-metadata (Integer/parseInt corpus-id) s-id) false))
 
   (GET "/play-video" [corpus-id search-id result-index context-size]
     (transit-response (play-video corpus-id search-id result-index context-size) false))
