@@ -19,7 +19,12 @@
                   :border-radius    3,
                   :margin-left      -5,
                   :margin-top       5,
-                  :padding          10}}
+                  :padding          15}}
+    [:div {:style {:text-align "right" :margin-bottom 8}}
+     [b/button {:bs-size  "xsmall"
+                :style    {:margin-top -5 :padding-top 4}
+                :on-click #(reset! result-showing-metadata nil)}
+      [b/glyphicon {:glyph "remove"}]]]
     [:div.table-layout
      (map-indexed (fn [index [cat-name val]]
                     ^{:key index}
@@ -28,7 +33,8 @@
                      [:div.table-cell val]])
                   (:vals @result-showing-metadata))]]])
 
-(defn- get-result-metadata [result-showing-metadata metadata-categories corpus-id s-id id-hash]
+(defn- get-result-metadata [e result-showing-metadata metadata-categories corpus-id s-id id-hash]
+  (.preventDefault e)
   (go
     (let [{:keys [body]} (<! (http/get "result-metadata" {:query-params {:corpus-id corpus-id
                                                                          :s-id      s-id}}))
@@ -55,10 +61,9 @@
         id-hash (hash result)]
     (when (and (:match result) s-id)
       [:td {:style {:vertical-align "middle"}}
-       [:a {:href           ""
-            :on-mouse-enter #(get-result-metadata result-showing-metadata metadata-categories
-                                                  (:id @corpus) s-id id-hash)
-            :on-mouse-leave #(reset! result-showing-metadata nil)}
+       [:a {:href     ""
+            :on-click #(get-result-metadata % result-showing-metadata metadata-categories
+                                            (:id @corpus) s-id id-hash)}
         [:span {:id id-hash} s-id]]
        (metadata-overlay result-showing-metadata)
        [result-links m result]])))
