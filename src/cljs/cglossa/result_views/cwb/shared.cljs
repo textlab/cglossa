@@ -21,7 +21,8 @@
                   :border-radius    3,
                   :margin-left      -5,
                   :margin-top       5,
-                  :padding          15}}
+                  :padding          15
+                  :z-index          1000}}
     [:div {:style {:text-align "right" :margin-bottom 8}}
      [b/button {:bs-size  "xsmall"
                 :style    {:margin-top -5 :padding-top 4}
