@@ -70,6 +70,12 @@
                 [:img {:src "img/speech/waveform.png" :style {:width 12}}]]))]]
      (shared/text-columns result)]))
 
+(defn- translated-row [result]
+  ^{:key (str "trans" (hash result))}
+  [:tr
+   [:td]
+   [:td {:col-span 3} "aaa"]])
+
 (defn- separator-row [result]
   ^{:key (str "sep" (hash result))}
   [:tr {:style {:background-color "#f1f1f1"}}
@@ -130,18 +136,24 @@
                                           fields)
         [phon-pre phon-match phon-post] (map (partial process-field phon-index phon-tip-indexes)
                                              fields)
+        ort-text     (concat
+                       (map #(nth % 2) ort-pre)
+                       (map #(nth % 2) ort-match)
+                       (map #(nth % 2) ort-post))
         res-info     {:ort  {:s-id       s-id
                              :pre-match  ort-pre
                              :match      ort-match
-                             :post-match ort-post}
+                             :post-match ort-post
+                             :full-text  ort-text}
                       :phon {:s-id       s-id
                              :pre-match  phon-pre
                              :match      phon-match
                              :post-match phon-post}}
         orthographic (orthographic-row a m (:ort res-info))
         phonetic     (phonetic-row a m (:phon res-info) index)
+        translated   (translated-row ort-text)
         separator    (separator-row res-info)]
-    (list orthographic phonetic separator)))
+    (list orthographic translated phonetic separator)))
 
 (defmethod concordance-table "cwb_speech"
   [{{:keys [results page-no] {:keys [showing-media-popup
