@@ -65,7 +65,7 @@
         (reset! result-showing-metadata metadata)))))
 
 (defn id-column [{{:keys [result-showing-metadata]} :results-view}
-                 {:keys [corpus metadata-categories] :as m} result]
+                 {:keys [corpus metadata-categories] :as m} result row-index]
   ;; If the 'match' property is defined, we know that we have a result from a monolingual
   ;; search or the first language of a multilingual one. If that is the case, and s-id is
   ;; defined, we print it in the first column (if we have a non-first language result, we
@@ -82,7 +82,7 @@
                                             (:id @corpus) text-id result-hash)}
         [:span {:id result-hash} s-id]]
        (metadata-overlay result-showing-metadata)
-       [result-links m result]])))
+       [result-links a m result row-index]])))
 
 (defn text-columns [result]
   (if (:match result)

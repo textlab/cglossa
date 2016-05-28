@@ -42,10 +42,10 @@
                    match)]
       [s-id [pre* match* post]])))
 
-(defn- orthographic-row [a {:keys [corpus] :as m} result]
+(defn- orthographic-row [a {:keys [corpus] :as m} result row-index]
   ^{:key (str "ort" (hash result))}
   [:tr
-   (shared/id-column a m result)
+   (shared/id-column a m result row-index)
    (shared/text-columns result)])
 
 (defn- phonetic-row [a {:keys [corpus] :as m} result row-index]
@@ -128,7 +128,7 @@
                         (process-token token index displayed-field-index tip-field-indexes))))
                   tokens)))
 
-(defn single-result-rows [a m ort-index phon-index ort-tip-indexes phon-tip-indexes res index]
+(defn single-result-rows [a m ort-index phon-index ort-tip-indexes phon-tip-indexes res row-index]
   "Returns one or more rows representing a single search result."
   (let [line         (first (:text res))
         [s-id fields] (extract-fields line)
@@ -149,8 +149,8 @@
                              :pre-match  phon-pre
                              :match      phon-match
                              :post-match phon-post}}
-        orthographic (orthographic-row a m (:ort res-info))
-        phonetic     (phonetic-row a m (:phon res-info) index)
+        orthographic (orthographic-row a m (:ort res-info) row-index)
+        phonetic     (phonetic-row a m (:phon res-info) row-index)
         translated   (translated-row ort-text)
         separator    (separator-row res-info)]
     (list orthographic translated phonetic separator)))
