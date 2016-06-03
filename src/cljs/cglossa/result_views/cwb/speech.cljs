@@ -75,7 +75,7 @@
     ^{:key (str "trans" row-index)}
     [:tr
      [:td [:a {:href "http://translate.google.com/" :target "_blank"} [:img {:src "img/attr1-2.png"}]]]
-     [:td {:col-span 3} trans]]))
+     [:td {:col-span 3 :style {:color "#737373"}} trans]]))
 
 (defn- separator-row [row-index]
   ^{:key (str "sep" row-index)}
