@@ -64,7 +64,7 @@
         (swap! metadata-cache assoc text-id metadata)
         (reset! result-showing-metadata metadata)))))
 
-(defn id-column [{{:keys [result-showing-metadata]} :results-view}
+(defn id-column [{{:keys [result-showing-metadata]} :results-view :as a}
                  {:keys [corpus metadata-categories] :as m} result row-index]
   ;; If the 'match' property is defined, we know that we have a result from a monolingual
   ;; search or the first language of a multilingual one. If that is the case, and s-id is

@@ -119,12 +119,14 @@
   (->> (:metadata @search) (filter #(second %)) (into {})))
 
 (defn reset-results!
-  [{{:keys [results cpu-counts page-no paginator-page-no paginator-text-val]} :results-view}]
+  [{{:keys [results cpu-counts page-no paginator-page-no
+            paginator-text-val translations]} :results-view}]
   (reset! results nil)
   (reset! cpu-counts [])
   (reset! page-no 1)
   (reset! paginator-page-no 1)
-  (reset! paginator-text-val 1))
+  (reset! paginator-text-val 1)
+  (reset! translations {}))
 
 (defn search!
   ([a {:keys [corpus] :as m}]

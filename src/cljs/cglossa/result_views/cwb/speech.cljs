@@ -43,7 +43,7 @@
       [s-id [pre* match* post]])))
 
 (defn- orthographic-row [a {:keys [corpus] :as m} result row-index]
-  ^{:key (str "ort" (hash result))}
+  ^{:key (str "ort" row-index)}
   [:tr
    (shared/id-column a m result row-index)
    (shared/text-columns result)])
@@ -51,7 +51,7 @@
 (defn- phonetic-row [a {:keys [corpus] :as m} result row-index]
   (let [audio? (:audio? @corpus)
         video? (:video? @corpus)]
-    ^{:key (str "phon" (hash result))}
+    ^{:key (str "phon" row-index)}
     [:tr
      [:td {:style {:vertical-align "middle"}}
       [:nobr
@@ -70,14 +70,15 @@
                 [:img {:src "img/speech/waveform.png" :style {:width 12}}]]))]]
      (shared/text-columns result)]))
 
-(defn- translated-row [result]
-  ^{:key (str "trans" (hash result))}
-  [:tr
-   [:td]
-   [:td {:col-span 3} "aaa"]])
+(defn- translated-row [translations page-no row-index]
+  (when-let [trans (get @translations (str @page-no "_" row-index))]
+    ^{:key (str "trans" row-index)}
+    [:tr
+     [:td [:a {:href "http://translate.google.com/" :target "_blank"} [:img {:src "img/attr1-2.png"}]]]
+     [:td {:col-span 3} trans]]))
 
-(defn- separator-row [result]
-  ^{:key (str "sep" (hash result))}
+(defn- separator-row [row-index]
+  ^{:key (str "sep" row-index)}
   [:tr {:style {:background-color "#f1f1f1"}}
    [:td {:col-span 4 :style {:padding 3}}]])
 
@@ -128,7 +129,8 @@
                         (process-token token index displayed-field-index tip-field-indexes))))
                   tokens)))
 
-(defn single-result-rows [a m ort-index phon-index ort-tip-indexes phon-tip-indexes res row-index]
+(defn single-result-rows [{{:keys [page-no translations]} :results-view :as a} m
+                          ort-index phon-index ort-tip-indexes phon-tip-indexes res row-index]
   "Returns one or more rows representing a single search result."
   (let [line         (first (:text res))
         [s-id fields] (extract-fields line)
@@ -151,8 +153,8 @@
                              :post-match phon-post}}
         orthographic (orthographic-row a m (:ort res-info) row-index)
         phonetic     (phonetic-row a m (:phon res-info) row-index)
-        translated   (translated-row ort-text)
-        separator    (separator-row res-info)]
+        translated   (translated-row translations page-no row-index)
+        separator    (separator-row row-index)]
     (list orthographic translated phonetic separator)))
 
 (defmethod concordance-table "cwb_speech"
