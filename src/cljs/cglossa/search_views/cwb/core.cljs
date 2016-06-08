@@ -38,7 +38,7 @@
       (without-suffix headword-query-suffix-more-words)
       (without-prefix headword-query-prefix)))
 
-(defn- phrase->cqp [phrase phonetic?]
+(defn- phrase->cqp [phrase wrapped-query phonetic?]
   (let [attr       (if phonetic? "phon" "word")
         chinese-ch "[\u4E00-\u9FFF\u3400-\u4DFF\uF900-\uFAFF]"
         ; Surround every Chinese character by space when constructing a cqp query,
@@ -68,10 +68,13 @@
                          ;; ["han", " "], but in ClojureScript (str/split "han " #"\s")
                          ;; only yields ["han"]. Hence, in the CLJS version we need to
                          ;; add the extra element if the query ends in a space.
-                         (if (= \space (last (seq p1))) (str $ " ") $))]
-    (if (str/blank? p2)
+                         (if (= \space (last (seq p1))) (str $ " ") $))
+        p3         (cond->> p2
+                            (:segment-initial? @wrapped-query) (str "<sync>")
+                            (:segment-final? @wrapped-query) (#(str % "</sync>")))]
+    (if (str/blank? p3)
       (str "[" attr "=\".*\" %c]")
-      p2)))
+      p3)))
 
 (defn- focus-text-input [c]
   ;; Use (aget % "type") instead of (.-type %) simply because the latter makes the syntax
@@ -223,6 +226,7 @@
   (let [query           (:query @wrapped-query)
         displayed-query (-> query
                             (->non-headword-query)
+                            (str/replace #"</?sync>" "")
                             ;; Unescape any escaped chars, since we don't want the backslashes
                             ;; to show in the text input
                             (str/replace #"\\(.)" "$1")
@@ -233,7 +237,9 @@
                             (str/replace "__QUOTE__" "\""))
         on-text-changed (fn [event wrapped-query phonetic?]
                           (let [value (.-target.value event)
-                                query (if (= value "") "" (phrase->cqp value phonetic?))]
+                                query (if (= value "")
+                                        ""
+                                        (phrase->cqp value wrapped-query phonetic?))]
                             (swap! wrapped-query assoc :query query)))]
     [single-input-view a m "text" wrapped-query displayed-query show-remove-row-btn?
      true on-text-changed]))

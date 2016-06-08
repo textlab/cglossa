@@ -206,7 +206,14 @@
    [:input {:type      "checkbox"
             :style     {:margin-left -18}
             :checked   (:segment-initial? @wrapped-query)
-            :on-change #(swap! wrapped-query assoc :segment-initial? (.-target.checked %))}]
+            :on-change (fn [e]
+                         (let [query     (:query @wrapped-query)
+                               checked?  (.-target.checked e)
+                               new-query (if checked?
+                                           (str "<sync>" query)
+                                           (str/replace query #"^<sync>" ""))]
+                           (swap! wrapped-query
+                                  assoc :query new-query :segment-initial? checked?)))}]
    " Segment initial"])
 
 (defn segment-final-checkbox [wrapped-query]
@@ -214,7 +221,14 @@
    [:input {:type      "checkbox"
             :style     {:margin-left -18}
             :checked   (:segment-final? @wrapped-query)
-            :on-change #(swap! wrapped-query assoc :segment-final? (.-target.checked %)) }]
+            :on-change (fn [e]
+                         (let [query     (:query @wrapped-query)
+                               checked?  (.-target.checked e)
+                               new-query (if checked?
+                                           (str query "</sync>")
+                                           (str/replace query #"</sync>$" ""))]
+                           (swap! wrapped-query
+                                  assoc :query new-query :segment-final? checked?)))}]
    " Segment final"])
 
 (defn headword-search-checkbox [wrapped-query]
