@@ -201,6 +201,22 @@
                                          "hidden")}}
     [b/glyphicon {:glyph "remove"}]]])
 
+(defn segment-initial-checkbox [wrapped-query]
+  [:label.checkbox-inline {:style {:padding-left 18}}
+   [:input {:type      "checkbox"
+            :style     {:margin-left -18}
+            :checked   (:segment-initial @wrapped-query)
+            :on-change #(swap! wrapped-query assoc :segment-initial (.-target.checked %))
+            }] " Segment initial"])
+
+(defn segment-final-checkbox [wrapped-query]
+  [:label.checkbox-inline {:style {:padding-left 18}}
+   [:input {:type      "checkbox"
+            :style     {:margin-left -18}
+            :checked   (:segment-final @wrapped-query)
+            :on-change #(swap! wrapped-query assoc :segment-final (.-target.checked %))
+            }] " Segment final"])
+
 (defn headword-search-checkbox [wrapped-query]
   [b/input {:type      "checkbox"
             :value     "1"

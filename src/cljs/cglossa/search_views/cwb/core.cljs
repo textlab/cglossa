@@ -5,7 +5,8 @@
             [reagent.dom :as rdom]
             [goog.dom :as dom]
             [cglossa.react-adapters.bootstrap :as b]
-            [cglossa.shared :refer [search! on-key-down remove-row-btn headword-search-checkbox]]
+            [cglossa.shared :refer [search! on-key-down remove-row-btn segment-initial-checkbox
+                                    segment-final-checkbox headword-search-checkbox]]
             [cglossa.search-views.shared :refer [search-inputs has-phonetic?]]
             [cglossa.search-views.cwb.extended.core :refer [extended]]))
 
@@ -195,11 +196,18 @@
               ;; wrapper (or is it possible somehow?), so we create the markup manually instead.
               [:div.checkbox {:style {:display "table-cell"}}
                (when (has-phonetic? @corpus)
-                 [:label {:style {:margin-top 7}}
+                 [:label {:style {:margin-top 7 :padding-left 18}}
                   [:input {:name      "phonetic"
                            :type      "checkbox"
+                           :style     {:margin-left -18}
                            :checked   phonetic?
                            :on-change #(on-phonetic-changed % wrapped-query)}] " Phonetic form"])]]
+             (when (has-phonetic? @corpus)
+               [:div.table-row
+                [:div.table-cell]
+                [:div.table-cell
+                 [segment-initial-checkbox wrapped-query]
+                 [segment-final-checkbox wrapped-query]]])
              (when (:has-headword-search @corpus)
                ^{:key 2}
                [:div.table-row

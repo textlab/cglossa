@@ -86,30 +86,30 @@
   (let [term-val @wrapped-term]
     [:div.table-cell {:style {:min-width 200}}
      [:div.word-checkboxes
-      [:label.checkbox-inline {:style {:padding-left 15}}
+      [:label.checkbox-inline {:style {:padding-left 18}}
        [:input {:type      "checkbox"
-                :style     {:margin-left -15}
+                :style     {:margin-left -18}
                 :checked   (:lemma? term-val)
                 :on-change #(swap! wrapped-term assoc :lemma? (.-target.checked %))
                 }] "Lemma"]
       [:label.checkbox-inline {:style {:padding-left 23}}
        [:input {:type      "checkbox"
-                :style     {:margin-left -15}
+                :style     {:margin-left -18}
                 :title     "Start of word"
                 :checked   (:start? term-val)
                 :on-change #(swap! wrapped-term assoc :start? (.-target.checked %))
                 }] "Start"]
       [:label.checkbox-inline {:style {:padding-left 23}}
        [:input {:type      "checkbox"
-                :style     {:margin-left -15}
+                :style     {:margin-left -18}
                 :title     "End of word"
                 :checked   (:end? term-val)
                 :on-change #(swap! wrapped-term assoc :end? (.-target.checked %))
                 }] "End"]]
      (when has-phon?
-       [:div>label.checkbox-inline {:style {:padding-left 15}}
+       [:div>label.checkbox-inline {:style {:padding-left 18}}
         [:input {:type      "checkbox"
-                 :style     {:margin-left -15}
+                 :style     {:margin-left -18}
                  :checked   (:phonetic? term-val)
                  :on-change #(swap! wrapped-term assoc :phonetic? (.-target.checked %))
                  }] "Phonetic form"])]))
