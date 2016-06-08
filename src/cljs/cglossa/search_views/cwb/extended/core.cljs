@@ -56,13 +56,14 @@
                              (nil? (:features @wrapped-term))
                              (nil? (:corpus-specific-attrs @wrapped-term)))
               :on-click (fn []
-                          ; Append greatest-current-id-plus-one to the
-                          ; query-term-ids vector
+                          ;; Append greatest-current-id-plus-one to the
+                          ;; query-term-ids vector
                           (swap! query-term-ids
                                  #(conj % (inc (apply max %))))
-                          ; Append [] to the CQP query expression
+                          ;; Append [] to the end of the CQP query expression (but before
+                          ;; </sync>, if present)
                           (swap! wrapped-query
-                                 update :query str " []"))}
+                                 update :query str/replace #"(.+?)(</sync>)?$" "$1 []$2"))}
     [b/glyphicon {:glyph "plus"}]]])
 
 
