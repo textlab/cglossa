@@ -194,23 +194,22 @@
               ;; ReactBootstrap doesn't seem to allow several checkboxes within the same
               ;; div.checkbox, since each [input {:type "checkbox"}] generates its own div.checkbox
               ;; wrapper (or is it possible somehow?), so we create the markup manually instead.
-              [:div.checkbox {:style {:display "table-cell"}}
+              [:div.checkbox {:style {:display "table-cell" :padding-top 7}}
                (when (has-phonetic? @corpus)
-                 [:label {:style {:margin-top 7 :padding-left 18}}
-                  [:input {:name      "phonetic"
-                           :type      "checkbox"
-                           :style     {:margin-left -18}
-                           :checked   phonetic?
-                           :on-change #(on-phonetic-changed % wrapped-query)}] " Phonetic form"])]]
-             (when (has-phonetic? @corpus)
-               ^{:key 2}
-               [:div.table-row
-                [:div.table-cell]
-                [:div.table-cell
-                 [segment-initial-checkbox wrapped-query]
-                 [segment-final-checkbox wrapped-query]]])
+                 (list
+                   ^{:key "phon"}
+                   [:label.checkbox-inline {:style {:padding-left 18}}
+                    [:input {:name      "phonetic"
+                             :type      "checkbox"
+                             :style     {:margin-left -18}
+                             :checked   phonetic?
+                             :on-change #(on-phonetic-changed % wrapped-query)}] " Phonetic form"]
+                   ^{:key "seg-init"}
+                   [segment-initial-checkbox wrapped-query]
+                   ^{:key "seg-final"}
+                   [segment-final-checkbox wrapped-query]))]]
              (when (:has-headword-search @corpus)
-               ^{:key 3}
+               ^{:key 2}
                [:div.table-row
                 [:div.table-cell]
                 [:div.table-cell {:style {:padding-left 20}}
