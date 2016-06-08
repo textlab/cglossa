@@ -15,7 +15,7 @@
             [cglossa.search-views.cwb.extended.attributes :refer [menu-button]]))
 
 (defn wrapped-term-changed [wrapped-query terms index query-term-ids lang-config term]
-  (swap! wrapped-query assoc :query (terms->query (assoc terms index term)
+  (swap! wrapped-query assoc :query (terms->query wrapped-query (assoc terms index term)
                                                   query-term-ids lang-config)))
 
 ;;;;;;;;;;;;;;;;

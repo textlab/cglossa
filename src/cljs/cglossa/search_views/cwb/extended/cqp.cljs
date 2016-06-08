@@ -143,42 +143,45 @@
             (split-query query))))
 
 
-(defn terms->query [terms query-term-ids lang-config]
+(defn terms->query [wrapped-query terms query-term-ids lang-config]
   (let [;; Remove ids whose corresponding terms have been set to nil
-        _      (swap! query-term-ids #(vec (keep-indexed (fn [index id]
-                                                           (when (nth terms index) id)) %)))
-        terms* (filter identity terms)                      ; nil means term should be removed
-        parts  (for [{:keys [interval form lemma? phonetic?
-                             start? end? features corpus-specific-attrs]} terms*]
-                 (let [attr   (cond
-                                lemma? "lemma"
-                                phonetic? "phon"
-                                :else "word")
-                       form*  (if (empty? form)
-                                (when (and (empty? features) (empty? corpus-specific-attrs)) ".*")
-                                (cond-> form
-                                        ;; Escape special characters using a regex from
-                                        ;; https://developer.mozilla.org/en-US/docs/Web/JavaScript/
-                                        ;;   Guide/Regular_Expressions
-                                        true (str/replace #"[\.\*\+\?\^\$\{\}\(\)\|\[\]\\]"
-                                                          "\\$&")
-                                        start? (str ".*")
-                                        end? (#(str ".*" %))))
-                       main   (when form*
-                                (str attr "=\"" form* "\" %c"))
-                       feats  (when (seq features)
-                                (str "(" (str/join " | " (map process-pos-map features)) ")"))
-                       extra  (when (seq corpus-specific-attrs)
-                                (str/join " & " (map process-attr-map corpus-specific-attrs)))
-                       [min max] interval
-                       interv (if (or min max)
-                                (str "[]{" (or min 0) "," (or max "") "} ")
-                                "")]
-                   (str interv "[" (str/join " & " (filter identity [main feats extra])) "]")))
-        query* (str/join \space parts)
-        query  (if-let [pos-attr (:pos-attr lang-config)]
-                 (str/replace query* #"\bpos(?=\s*=)" pos-attr)
-                 query*)]
+        _       (swap! query-term-ids #(vec (keep-indexed (fn [index id]
+                                                            (when (nth terms index) id)) %)))
+        terms*  (filter identity terms) ; nil means term should be removed
+        parts   (for [{:keys [interval form lemma? phonetic?
+                              start? end? features corpus-specific-attrs]} terms*]
+                  (let [attr   (cond
+                                 lemma? "lemma"
+                                 phonetic? "phon"
+                                 :else "word")
+                        form*  (if (empty? form)
+                                 (when (and (empty? features) (empty? corpus-specific-attrs)) ".*")
+                                 (cond-> form
+                                         ;; Escape special characters using a regex from
+                                         ;; https://developer.mozilla.org/en-US/docs/Web/JavaScript/
+                                         ;;   Guide/Regular_Expressions
+                                         true (str/replace #"[\.\*\+\?\^\$\{\}\(\)\|\[\]\\]"
+                                                           "\\$&")
+                                         start? (str ".*")
+                                         end? (#(str ".*" %))))
+                        main   (when form*
+                                 (str attr "=\"" form* "\" %c"))
+                        feats  (when (seq features)
+                                 (str "(" (str/join " | " (map process-pos-map features)) ")"))
+                        extra  (when (seq corpus-specific-attrs)
+                                 (str/join " & " (map process-attr-map corpus-specific-attrs)))
+                        [min max] interval
+                        interv (if (or min max)
+                                 (str "[]{" (or min 0) "," (or max "") "} ")
+                                 "")]
+                    (str interv "[" (str/join " & " (filter identity [main feats extra])) "]")))
+        query*  (str/join \space parts)
+        query** (if-let [pos-attr (:pos-attr lang-config)]
+                  (str/replace query* #"\bpos(?=\s*=)" pos-attr)
+                  query*)
+        query   (cond->> query**
+                         (:segment-initial? @wrapped-query) (str "<sync>")
+                         (:segment-final? @wrapped-query) (#(str % "</sync>")))]
     query))
 
 
