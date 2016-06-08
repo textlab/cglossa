@@ -3,7 +3,8 @@
   and menus for easily building complex and grammatically specified queries."
   (:require [clojure.string :as str]
             [reagent.core :as r :include-macros true]
-            [cglossa.shared :refer [on-key-down remove-row-btn headword-search-checkbox]]
+            [cglossa.shared :refer [on-key-down remove-row-btn headword-search-checkbox
+                                    segment-initial-checkbox segment-final-checkbox]]
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.search-views.shared :refer [has-phonetic?]]
             [cglossa.search-views.cwb.extended.shared :refer [language-data language-menu-data
@@ -82,7 +83,7 @@
    [interval-input a m wrapped-term 1] "max"])
 
 
-(defn- checkboxes [wrapped-term has-phon?]
+(defn- checkboxes [wrapped-query wrapped-term has-phon? first? last?]
   (let [term-val @wrapped-term]
     [:div.table-cell {:style {:min-width 200}}
      [:div.word-checkboxes
@@ -92,7 +93,7 @@
                 :checked   (:lemma? term-val)
                 :on-change #(swap! wrapped-term assoc :lemma? (.-target.checked %))
                 }] "Lemma"]
-      [:label.checkbox-inline {:style {:padding-left 23}}
+      [:label.checkbox-inline {:style {:padding-left 26}}
        [:input {:type      "checkbox"
                 :style     {:margin-left -18}
                 :title     "Start of word"
@@ -107,12 +108,19 @@
                 :on-change #(swap! wrapped-term assoc :end? (.-target.checked %))
                 }] "End"]]
      (when has-phon?
-       [:div>label.checkbox-inline {:style {:padding-left 18}}
-        [:input {:type      "checkbox"
-                 :style     {:margin-left -18}
-                 :checked   (:phonetic? term-val)
-                 :on-change #(swap! wrapped-term assoc :phonetic? (.-target.checked %))
-                 }] "Phonetic form"])]))
+       [:div
+        [:label.checkbox-inline {:style {:padding-left 18}}
+         [:input {:type      "checkbox"
+                  :style     {:margin-left -18}
+                  :checked   (:phonetic? term-val)
+                  :on-change #(swap! wrapped-term assoc :phonetic? (.-target.checked %))
+                  }] "Phonetic"]
+        (if (and first? last?)
+          [:div
+           [segment-initial-checkbox wrapped-query]
+           [segment-final-checkbox wrapped-query]]
+          (list (when first? ^{:key "seg-init"} [segment-initial-checkbox wrapped-query])
+                (when last? ^{:key "seg-final"} [segment-final-checkbox wrapped-query])))])]))
 
 
 (defn- tag-descriptions [data wrapped-term path]
@@ -226,7 +234,7 @@
      [:div.table-row
       (when first?
         [:div.table-cell])
-      [checkboxes wrapped-term has-phon?]
+      [checkboxes wrapped-query wrapped-term has-phon? first? last?]
       (when last?
         [:div.table-cell])]
 

@@ -203,13 +203,14 @@
                            :checked   phonetic?
                            :on-change #(on-phonetic-changed % wrapped-query)}] " Phonetic form"])]]
              (when (has-phonetic? @corpus)
+               ^{:key 2}
                [:div.table-row
                 [:div.table-cell]
                 [:div.table-cell
                  [segment-initial-checkbox wrapped-query]
                  [segment-final-checkbox wrapped-query]]])
              (when (:has-headword-search @corpus)
-               ^{:key 2}
+               ^{:key 3}
                [:div.table-row
                 [:div.table-cell]
                 [:div.table-cell {:style {:padding-left 20}}
