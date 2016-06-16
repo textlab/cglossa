@@ -97,7 +97,10 @@
                                            {:file     "resources/public/js/griddle_0.2.15.js"
                                             :file-min "resources/public/js/griddle_0.2.15.min.js"
                                             :provides ["griddle"]
-                                            :requires ["cljsjs.react" "underscore"]}]
+                                            :requires ["cljsjs.react" "underscore"]}
+                                           {:file     "resources/public/js/geo_distribution_map.js"
+                                            :provides ["geo-distribution-map"]
+                                            :requires ["cljsjs.react"]}]
                     :externs              ["resources/public/js/externs/extra.ext.js"
                                            "resources/public/js/externs/react-bootstrap_0.28.1.ext.js"
                                            "resources/public/js/externs/select2.ext.js"
@@ -105,7 +108,8 @@
                                            "resources/public/js/externs/bootstrap_tooltip.ext.js"
                                            "resources/public/js/externs/griddle_0.2.15.ext.js"
                                            "resources/public/js/externs/jplayer.ext.js"
-                                           "resources/public/js/externs/wfplayer.ext.js" ]
+                                           "resources/public/js/externs/wfplayer.ext.js"
+                                           "resources/public/js/externs/geo_distribution_map.ext.js"]
                     :pretty-print         true}}}}
 
   :sassc [{:src       "src/scss/style.scss"

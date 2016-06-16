@@ -7,7 +7,8 @@
             [cglossa.shared :refer [page-size spinner-overlay search! top-toolbar
                                     cleanup-result reset-results!]]
             [cglossa.search-views.shared :refer [search-inputs]]
-            [cglossa.react-adapters.bootstrap :as b]))
+            [cglossa.react-adapters.bootstrap :as b]
+            geo-distribution-map))
 
 (defn- results-info [{{:keys [total results]} :results-view searching? :searching?}]
   [:span
@@ -29,7 +30,7 @@
     ;; Only show the spinner when we are searching AND have already found some results
     ;; so as to avoid showing spinners both here and over the result table at the same time
     ;; (since we show a spinner over the result table until we have found some results)
-    [spinner-overlay {:spin? (and @searching? (seq @results)) :top 10} ]]])
+    [spinner-overlay {:spin? (and @searching? (seq @results)) :top 10}]]])
 
 (defn- last-page-no [total]
   (-> (/ total page-size) Math/ceil int))
@@ -73,12 +74,12 @@
               ;; Calculate the first and last result index (zero-based) to request from the server
               first-result (* page-size (dec (first page-nos)))
               last-result  (dec (* page-size (last page-nos)))
-              results-ch   (http/get "/results" {:query-params {:corpus-id   (:id @corpus)
-                                                                :search-id   (:id @search)
-                                                                :start       first-result
-                                                                :end         last-result
+              results-ch   (http/get "/results" {:query-params {:corpus-id  (:id @corpus)
+                                                                :search-id  (:id @search)
+                                                                :start      first-result
+                                                                :end        last-result
                                                                 :cpu-counts (str (vec @cpu-counts))
-                                                                :sort-key    (name @sort-key)}})
+                                                                :sort-key   (name @sort-key)}})
               ;; Park until results are available on the core.async channel
               {:keys [status success] req-result :body} (<! results-ch)]
           ;; Remove the pages from the set of pages currently being fetched
@@ -261,8 +262,14 @@
     [:div.col-sm-12
      [pagination a m]]]])
 
-(defn- geo-map [a m]
-  [:div.container-fluid "Map"])
+(defn- geo-map [a m view-type]
+  [:div
+   ;; react-bootstrap renders and mounts the contents of all tabs immediately (i.e., no
+   ;; lazy rendering), but instantiating a Google Map while its container is hidden doesn't
+   ;; work. Hence, we don't render the GeoDistributionMap component unless the use has
+   ;; actually selected the geo-map tab.
+   (when (= @view-type "geo-map")
+     [:> js/GeoDistributionMap {:initLat 64 :initLon 3 :initZoom 4 :width 640 :height 460}])])
 
 (defn results [{:keys                       [searching? num-resets]
                 {:keys [view-type results]} :results-view :as a} m]
@@ -279,5 +286,5 @@
      [b/tab {:title "Concordance" :event-key :concordance}
       [concordances a m]]
      [b/tab {:title "Map" :event-key :geo-map}
-      [geo-map a m]]
+      [geo-map a m view-type]]
      [b/tab {:title "Statistics" :event-key :statistics :disabled true}]]]])
