@@ -262,14 +262,32 @@
     [:div.col-sm-12
      [pagination a m]]]])
 
+(defn- geo-map-colorpicker [selected-colorpicker color]
+  [:button.btn.btn-xs.colorpicker
+   {:style    {:background-color (name color)
+               :border-color (if (#{:white :red :orange :yellow} color) "black" "red")
+               :border-width     (if (= @selected-colorpicker color) "4px" "1px")}
+    :on-click #(reset! selected-colorpicker color)}])
+
 (defn- geo-map [a m view-type]
-  [:div
-   ;; react-bootstrap renders and mounts the contents of all tabs immediately (i.e., no
-   ;; lazy rendering), but instantiating a Google Map while its container is hidden doesn't
-   ;; work. Hence, we don't render the GeoDistributionMap component unless the use has
-   ;; actually selected the geo-map tab.
-   (when (= @view-type "geo-map")
-     [:> js/GeoDistributionMap {:initLat 64 :initLon 3 :initZoom 4 :width 640 :height 460}])])
+  (r/with-let
+    [selected-colorpicker (r/atom nil)]
+    ;; react-bootstrap renders and mounts the contents of all tabs immediately (i.e., no
+    ;; lazy rendering), but instantiating a Google Map while its container is hidden doesn't
+    ;; work. Hence, we don't render the GeoDistributionMap component unless the use has
+    ;; actually selected the geo-map tab.
+    (when (= @view-type "geo-map")
+      [:div.geo-map
+       [:div {:style {:padding 5}}
+        [geo-map-colorpicker selected-colorpicker :white]
+        [geo-map-colorpicker selected-colorpicker :red]
+        [geo-map-colorpicker selected-colorpicker :orange]
+        [geo-map-colorpicker selected-colorpicker :yellow]
+        [geo-map-colorpicker selected-colorpicker :green]
+        [geo-map-colorpicker selected-colorpicker :blue]
+        [geo-map-colorpicker selected-colorpicker :purple]
+        [geo-map-colorpicker selected-colorpicker :black]]
+       [:> js/GeoDistributionMap {:initLat 64 :initLon 3 :initZoom 4 :width 640 :height 460}]])))
 
 (defn results [{:keys                       [searching? num-resets]
                 {:keys [view-type results]} :results-view :as a} m]
