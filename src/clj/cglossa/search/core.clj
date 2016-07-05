@@ -23,7 +23,7 @@
 (defmulti geo-distr-queries
   "Multimethod for running a query and returning geographical distribution of
    results."
-  (fn [corpus _ _ _] (:search-engine corpus)))
+  (fn [corpus _ _ _] (:search_engine corpus)))
 
 (defn- create-search! [corpus-id queries]
   (kdb/with-db core-db

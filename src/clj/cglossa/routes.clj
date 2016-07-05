@@ -105,5 +105,5 @@
   (GET "/play-video" [corpus-id search-id result-index context-size]
     (transit-response (play-video corpus-id search-id result-index context-size) false))
 
-  (GET "/geo-distr" [corpus-id search-id queries metadata-ids]
-    (transit-response (geo-distr corpus-id search-id queries metadata-ids))))
+  (POST "/geo-distr" [corpus-id search-id queries metadata-ids]
+    (transit-response (geo-distr corpus-id search-id queries metadata-ids) false)))

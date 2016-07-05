@@ -128,6 +128,18 @@
   (reset! paginator-text-val 1)
   (reset! translations {}))
 
+(defn queries->param [corpus queries]
+  (let [q (if (= (-> corpus :languages first :code) "zh")
+            ;; For Chinese: If the tone number is missing, add a pattern
+            ;; that matches all tones
+            (for [query queries]
+              (update query :query
+                      str/replace #"\bphon=\"([^0-9\"]+)\"" "phon=\"$1[1-4]?\""))
+            ;; For other languages, leave the queries unmodified
+            queries)]
+    (for [qu q]
+      (update qu :query str/replace "\"__QUOTE__\"" "'\"'"))))
+
 (defn search!
   ([a {:keys [corpus] :as m}]
     ;; Do three search steps only if multicpu_bounds is defined for this corpus
@@ -144,19 +156,10 @@
                 (not= first-query "\"\""))
        ;; Start by cancelling any already ongoing search.
        (async/offer! cancel-search-ch true)
-       (let [q      (if (= (-> @corpus :languages first :code) "zh")
-                      ;; For Chinese: If the tone number is missing, add a pattern
-                      ;; that matches all tones
-                      (for [query @queries]
-                        (update query :query
-                                str/replace #"\bphon=\"([^0-9\"]+)\"" "phon=\"$1[1-4]?\""))
-                      ;; For other languages, leave the queries unmodified
-                      @queries)
-             q*     (for [qu q]
-                      (update qu :query str/replace "\"__QUOTE__\"" "'\"'"))
+       (let [q      (queries->param @corpus @queries)
              url    "/search"
              params {:corpus-id    (:id @corpus)
-                     :queries      q*
+                     :queries      q
                      :metadata-ids (selected-metadata-ids search)
                      :page-size    page-size
                      :sort-key     @sort-key}]
