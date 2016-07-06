@@ -27,12 +27,13 @@
   (search! a m))
 
 (defn- text-selection [{:keys [num-selected-texts]} {:keys [corpus]}]
-  (let [sel-texts (if (or (nil? @num-selected-texts)
+  (let [tid-type  (if (= (:search-engine @corpus) "cwb_speech") "informants" "texts")
+        sel-texts (if (or (nil? @num-selected-texts)
                           (= @num-selected-texts (:num-texts @corpus)))
                     "All "
                     (str @num-selected-texts " of "))]
     [:div {:style {:margin-left 15 :color "#676767"}}
-     (str sel-texts (:num-texts @corpus) " texts selected")]))
+     (str sel-texts (:num-texts @corpus) " " tid-type " selected")]))
 
 (defn- metadata-select [a m corpus cat-id search selected open-metadata-cat]
   (r/create-class
