@@ -8,8 +8,8 @@
                                          geo-distr-queries]]
             [cglossa.search.cwb.shared :refer [cwb-query-name cwb-corpus-name run-cqp-commands
                                                construct-query-commands position-fields
-                                               displayed-attrs-command aligned-languages-command
-                                               sort-command]]))
+                                               order-position-fields displayed-attrs-command
+                                               aligned-languages-command sort-command]]))
 
 (defentity media-file (table :media_file) (entity-fields :basename))
 
@@ -24,6 +24,9 @@
   (korma/raw (str "replace(replace(`bounds`, '-', '\t'), ':', '\n') INTO OUTFILE '"
                   positions-filename "' FIELDS ESCAPED BY ''")))
 
+(defmethod order-position-fields "cwb_speech" [sql _]
+  ;; We cannot order bounds in speech corpora, since they are hardcoded as sequences in the DB...
+  sql)
 
 (defmethod run-queries "cwb_speech" [corpus search-id queries metadata-ids _
                                      page-size _ sort-key]

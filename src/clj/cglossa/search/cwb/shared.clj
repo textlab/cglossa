@@ -49,6 +49,10 @@
   "The database fields that contain corpus positions for texts."
   (fn [corpus _] (:search_engine corpus)))
 
+(defmulti order-position-fields
+  "Ordering of the database fields that contain corpus positions for texts."
+  (fn [_ corpus] (:search_engine corpus)))
+
 (defn- join-metadata
   "Adds a join with the metadata_value_text table for each metadata category
   for which we have selected one or more values."
@@ -118,6 +122,7 @@
           (where-metadata metadata-ids)
           (where-language corpus queries)
           (where-limits corpus startpos endpos)
+          (order-position-fields corpus)
           (select))
       (catch SQLException e
         (when-not (.contains (str e) "ResultSet is from UPDATE")

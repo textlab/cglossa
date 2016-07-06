@@ -4,15 +4,19 @@
             [clojure.edn :as edn]
             [clojure.core.async :as async :refer [<!!]]
             [me.raynes.fs :as fs]
-            [korma.core :as korma :refer [where]]
+            [korma.core :as korma :refer [where order]]
             [cglossa.search.core :refer [run-queries get-results transform-results]]
             [cglossa.search.cwb.shared :refer [cwb-query-name cwb-corpus-name run-cqp-commands
-                                               construct-query-commands position-fields where-limits
+                                               construct-query-commands position-fields
+                                               order-position-fields where-limits
                                                displayed-attrs-command aligned-languages-command
                                                sort-command]]))
 
 (defmethod position-fields :default [_ positions-filename]
   (korma/raw (str "startpos, endpos INTO OUTFILE '" positions-filename "'")))
+
+(defmethod order-position-fields :default [sql corpus]
+  (order sql :startpos))
 
 (defmethod where-limits "cwb" [sql _ startpos endpos]
   (cond-> sql
