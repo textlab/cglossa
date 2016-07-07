@@ -299,7 +299,8 @@
        [:> js/GeoDistributionMap {:initLat 64 :initLon 3 :initZoom 4 :width 640 :height 460}]])))
 
 (defn results [{:keys                       [searching? num-resets]
-                {:keys [view-type results]} :results-view :as a} m]
+                {:keys [view-type results]} :results-view :as a}
+               {:keys [corpus] :as m}]
   [:div
    [:div.row
     [top-toolbar a m]
@@ -312,6 +313,7 @@
              :on-select  #(reset! view-type %)}
      [b/tab {:title "Concordance" :event-key :concordance}
       [concordances a m]]
-     [b/tab {:title "Map" :event-key :geo-map}
-      [geo-map a m view-type]]
+     (when (:geo-coord @corpus)
+       [b/tab {:title "Map" :event-key :geo-map}
+        [geo-map a m view-type]])
      [b/tab {:title "Statistics" :event-key :statistics :disabled true}]]]])
