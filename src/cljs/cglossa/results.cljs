@@ -272,12 +272,14 @@
 
 (defn- geo-map [{{:keys [queries]} :search-view} {:keys [corpus search]} view-type]
   (r/with-let
-    [selected-colorpicker (r/atom nil)]
+    [geo-map-rendered?    (atom false)
+     selected-colorpicker (r/atom nil)]
     ;; react-bootstrap renders and mounts the contents of all tabs immediately (i.e., no
     ;; lazy rendering), but instantiating a Google Map while its container is hidden doesn't
     ;; work. Hence, we don't render the GeoDistributionMap component unless the use has
-    ;; actually selected the geo-map tab.
-    (when (= @view-type "geo-map")
+    ;; actually selected the geo-map tab at least once.
+    (when (or @geo-map-rendered? (= @view-type "geo-map"))
+      (reset! geo-map-rendered? true)
       (let [q          (queries->param corpus @queries)
             results-ch (http/post "/geo-distr"
                                   {:json-params {:corpus-id    (:id @corpus)
@@ -286,14 +288,14 @@
                                                  :metadata-ids (selected-metadata-ids search)}})])
       [:div.geo-map
        [:div {:style {:padding 5}}
-        [geo-map-colorpicker selected-colorpicker :white]
         [geo-map-colorpicker selected-colorpicker :red]
         [geo-map-colorpicker selected-colorpicker :orange]
         [geo-map-colorpicker selected-colorpicker :yellow]
         [geo-map-colorpicker selected-colorpicker :green]
         [geo-map-colorpicker selected-colorpicker :blue]
         [geo-map-colorpicker selected-colorpicker :purple]
-        [geo-map-colorpicker selected-colorpicker :black]]
+        [geo-map-colorpicker selected-colorpicker :black]
+        [geo-map-colorpicker selected-colorpicker :white]]
        [:> js/GeoDistributionMap {:initLat 64 :initLon 3 :initZoom 4 :width 640 :height 460}]])))
 
 (defn results [{:keys                       [searching? num-resets]
