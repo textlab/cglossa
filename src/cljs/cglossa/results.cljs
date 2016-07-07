@@ -5,7 +5,8 @@
             [cljs-http.client :as http]
             [cljs.core.async :refer [<!]]
             [cglossa.shared :refer [page-size spinner-overlay search! top-toolbar
-                                    cleanup-result reset-results! queries->param]]
+                                    selected-metadata-ids cleanup-result reset-results!
+                                    queries->param]]
             [cglossa.search-views.shared :refer [search-inputs]]
             [cglossa.react-adapters.bootstrap :as b]
             geo-distribution-map))
@@ -278,10 +279,11 @@
     ;; actually selected the geo-map tab.
     (when (= @view-type "geo-map")
       (let [q          (queries->param corpus @queries)
-            results-ch (http/post "/geo-distr" {:json-params {:corpus-id (:id @corpus)
-                                                              :search-id (:id @search)
-                                                              :queries q
-                                                              }})])
+            results-ch (http/post "/geo-distr"
+                                  {:json-params {:corpus-id    (:id @corpus)
+                                                 :search-id    (:id @search)
+                                                 :queries      q
+                                                 :metadata-ids (selected-metadata-ids search)}})])
       [:div.geo-map
        [:div {:style {:padding 5}}
         [geo-map-colorpicker selected-colorpicker :white]

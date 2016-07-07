@@ -179,47 +179,61 @@
 
 
 (defmethod geo-distr-queries "cwb_speech" [corpus search-id queries metadata-ids]
-  (let [named-query (cwb-query-name corpus search-id)
-        startpos    0
-        endpos      (corpus-size corpus queries)
-        ;; Ask CQP for a table of phonetic form, informant code, frequency
-        commands    [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
-                     (cwb-corpus-name corpus queries)
-                     (construct-query-commands corpus queries metadata-ids named-query search-id
-                                               startpos endpos
-                                               :s-tag "sync_time")
-                     (str "save " named-query)
-                     "group Last match who_name by match phon"]
-        cwb-res     (run-cqp-commands corpus (filter identity (flatten commands)) false)
+  (let [named-query  (cwb-query-name corpus search-id)
+        startpos     0
+        endpos       (corpus-size corpus queries)
+        ;; Ask CQP for a table of phonetic form, informant code, and frequency. The result
+        ;; will be ordered by decreasing frequency.
+        commands     [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
+                      (cwb-corpus-name corpus queries)
+                      (construct-query-commands corpus queries metadata-ids named-query search-id
+                                                startpos endpos
+                                                :s-tag "sync_time")
+                      (str "save " named-query)
+                      "group Last match who_name by match phon"]
+        cwb-res      (run-cqp-commands corpus (filter identity (flatten commands)) false)
         ;; Get pairs of informant code and place name from MySQL
-        sql         (str "select distinct v1.text_value informant, v2.text_value place "
-                         "from metadata_value v1 "
-                         "inner join metadata_category c1 on v1.metadata_category_id = c1.id "
-                         "inner join metadata_value_text j1 on j1.metadata_value_id = v1.id "
-                         "inner join metadata_value_text j2 on j2.text_id = j1.text_id "
-                         "inner join metadata_value v2 on j2.metadata_value_id = v2.id "
-                         "inner join metadata_category c2 on v2.metadata_category_id = c2.id "
-                         "where c1.code = 'tid' and c2.code = 'place'")
+        sql          (str "select distinct v1.text_value informant, v2.text_value place "
+                          "from metadata_value v1 "
+                          "inner join metadata_category c1 on v1.metadata_category_id = c1.id "
+                          "inner join metadata_value_text j1 on j1.metadata_value_id = v1.id "
+                          "inner join metadata_value_text j2 on j2.text_id = j1.text_id "
+                          "inner join metadata_value v2 on j2.metadata_value_id = v2.id "
+                          "inner join metadata_category c2 on v2.metadata_category_id = c2.id "
+                          "where c1.code = 'tid' and c2.code = 'place'")
         ;; Create a hash map from informant code to place names
-        places      (as-> sql $
-                          (korma/exec-raw $ :results)
-                          (reduce (fn [m {:keys [informant place]}]
-                                    (assoc m informant place))
-                                  {}
-                                  $))
-        res         (->> cwb-res
-                         first          ; The first element contains the actual results
-                         rest           ; The first line is only decoration; throw it away
-                         (map #(str/split % #"\s+"))
+        places       (as-> sql $
+                           (korma/exec-raw $ :results)
+                           (reduce (fn [m {:keys [informant place]}]
+                                     (assoc m informant place))
+                                   {}
+                                   $))
+        reduce-freqs (fn [lines]
+                       ;; Keep the previous form in a volatile because when consecutive
+                       ;; entries in the frequency list have the same form (but obviously
+                       ;; different informants), the form is left blank.
+                       (let [prev-form (volatile! nil)]
                          (reduce (fn [m [form informant freq]]
-                                   (let [place (get places informant)
+                                   (let [form* (if (str/blank? form)
+                                                 @prev-form
+                                                 (do
+                                                   (vreset! prev-form form)
+                                                   form))
+                                         place (get places informant)
                                          freq* (Integer/parseInt freq)]
                                      (if place
-                                       (update-in m [form place] (fn [acc-freq]
-                                                                   (println [form informant freq*])
-                                                                   (if (nil? acc-freq)
-                                                                     freq*
-                                                                     (+ acc-freq freq*))))
+                                       (update-in m [form* place] (fn [acc-freq]
+                                                                    (println
+                                                                      [form* informant freq*])
+                                                                    (if (nil? acc-freq)
+                                                                      freq*
+                                                                      (+ acc-freq freq*))))
                                        m)))
-                                 {}))]
+                                 {}
+                                 lines)))
+        res          (->> cwb-res
+                          first         ; The first element contains the actual results
+                          rest          ; The first line is only decoration; throw it away
+                          (map #(str/split % #"\s+"))
+                          reduce-freqs)]
     res))
