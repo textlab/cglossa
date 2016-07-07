@@ -178,19 +178,13 @@
       (map (fn [lines] {:text lines}) (partition num-langs results)))))
 
 
-(defmethod geo-distr-queries "cwb_speech" [corpus search-id queries metadata-ids]
+(defmethod geo-distr-queries "cwb_speech" [corpus search-id metadata-ids]
   (let [named-query  (cwb-query-name corpus search-id)
-        startpos     0
-        endpos       (corpus-size corpus queries)
         ;; Ask CQP for a table of phonetic form, informant code, and frequency. The result
         ;; will be ordered by decreasing frequency.
         commands     [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
-                      (cwb-corpus-name corpus queries)
-                      (construct-query-commands corpus queries metadata-ids named-query search-id
-                                                startpos endpos
-                                                :s-tag "sync_time")
-                      (str "save " named-query)
-                      "group Last match who_name by match phon"]
+                      (cwb-corpus-name corpus nil)
+                      (str "group " named-query " match who_name by match phon")]
         cwb-res      (run-cqp-commands corpus (filter identity (flatten commands)) false)
         ;; Get pairs of informant code and place name from MySQL
         sql          (str "select distinct v1.text_value informant, v2.text_value place "

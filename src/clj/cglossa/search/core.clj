@@ -23,7 +23,7 @@
 (defmulti geo-distr-queries
   "Multimethod for running a query and returning geographical distribution of
    results."
-  (fn [corpus _ _ _] (:search_engine corpus)))
+  (fn [corpus _ _] (:search_engine corpus)))
 
 (defn- create-search! [corpus-id queries]
   (kdb/with-db core-db
@@ -60,10 +60,9 @@
     (transform-results corpus queries results)))
 
 
-(defn geo-distr [corpus-id search-id queries metadata-ids]
+(defn geo-distr [corpus-id search-id metadata-ids]
   (let [corpus     (get-corpus {:id corpus-id})
-        search-id* (or search-id (:generated_key (create-search! corpus-id queries)))
-        results    (geo-distr-queries corpus search-id* queries metadata-ids)
-        s          (search-by-id search-id*)]
+        results    (geo-distr-queries corpus search-id metadata-ids)
+        s          (search-by-id search-id)]
     {:search  s
      :results results}))

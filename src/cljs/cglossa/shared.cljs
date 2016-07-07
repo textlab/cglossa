@@ -173,7 +173,6 @@
              (http/post "/geo-distr"
                         {:json-params {:corpus-id    corpus-id
                                        :search-id    (:id @search)
-                                       :queries      q
                                        :metadata-ids sel-metadata}}))))))))
 
 (defn showing-metadata? [{:keys                   [show-metadata? narrow-view?]
