@@ -152,19 +152,29 @@
                 (not= first-query "\"\""))
        ;; Start by cancelling any already ongoing search.
        (async/offer! cancel-search-ch true)
-       (let [q      (queries->param @corpus @queries)
-             url    "/search"
-             params {:corpus-id    (:id @corpus)
-                     :queries      q
-                     :metadata-ids (selected-metadata-ids search)
-                     :page-size    page-size
-                     :sort-key     @sort-key}]
+       (let [q            (queries->param @corpus @queries)
+             url          "/search"
+             corpus-id    (:id @corpus)
+             sel-metadata (selected-metadata-ids search)
+             params       {:corpus-id    corpus-id
+                           :queries      q
+                           :metadata-ids sel-metadata
+                           :page-size    page-size
+                           :sort-key     @sort-key}]
          (reset! show-results? true)
          (reset! searching? true)
          (reset! total nil)
          (reset! sort-key :position)
          (reset-results! a)
-         (do-search-steps! a m url params nsteps))))))
+         (go
+           ;; Wait for the search to finish before fetching geo-map data
+           (<! (do-search-steps! a m url params nsteps))
+           (when (:geo-coord @corpus)
+             (http/post "/geo-distr"
+                        {:json-params {:corpus-id    corpus-id
+                                       :search-id    (:id @search)
+                                       :queries      q
+                                       :metadata-ids sel-metadata}}))))))))
 
 (defn showing-metadata? [{:keys                   [show-metadata? narrow-view?]
                           {:keys [show-results?]} :results-view}

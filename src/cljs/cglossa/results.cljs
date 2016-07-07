@@ -280,12 +280,6 @@
     ;; actually selected the geo-map tab at least once.
     (when (or @geo-map-rendered? (= @view-type "geo-map"))
       (reset! geo-map-rendered? true)
-      (let [q          (queries->param corpus @queries)
-            results-ch (http/post "/geo-distr"
-                                  {:json-params {:corpus-id    (:id @corpus)
-                                                 :search-id    (:id @search)
-                                                 :queries      q
-                                                 :metadata-ids (selected-metadata-ids search)}})])
       [:div.geo-map
        [:div {:style {:padding 5}}
         [geo-map-colorpicker selected-color :red]
