@@ -69,51 +69,47 @@
                           {:keys [results total cpu-counts]} :results-view}
                          {:keys [corpus search] :as m}
                          url search-params nsteps]
-  (let [sizes       (get-in @corpus [:extra-info :size])
-        corpus-size (or (get sizes (keyword (:code @corpus)))
-                        (get sizes (keyword (str (:code @corpus) "_"
-                                                 (-> search-params :queries first :lang)))))]
-    (go
-      (dotimes [step nsteps]
-        (let [json-params (cond-> search-params
-                                  true (assoc :step (inc step))
-                                  @total (assoc :last-count @total)
-                                  (:id @search) (assoc :search-id (:id @search)))
-              ;; Fire off a search query
-              results-ch  (http/post url {:json-params json-params})
-              ;; Wait for either the results of the query or a message to cancel the query
-              ;; because we have started another search
-              [val ch] (async/alts! [cancel-search-ch results-ch] :priority true)]
-          (when (= ch results-ch)
-            (let [{:keys [status success] {resp-search     :search
-                                           resp-results    :results
-                                           resp-count      :count
-                                           resp-cpu-counts :cpu-counts} :body} val]
-              (if-not success
-                (.log js/console status)
-                (do
-                  (swap! search merge resp-search)
-                  ;; Add the number of hits found by each cpu core in this search step
-                  (swap! cpu-counts concat resp-cpu-counts)
-                  ;; Only the first request actually returns results; the others just save the
-                  ;; results on the server to be fetched on demand and return an empty result list
-                  ;; (but a non-zero resp-count), unless the first result did not find enough
-                  ;; results to fill up two result pages - in that case, later requests will
-                  ;; continue filling them. Thus, we set the results if we either receive a
-                  ;; non-empty list of results or a resp-count of zero (meaning that there were
-                  ;; actually no matches).
-                  (if (or (seq resp-results) (zero? resp-count))
-                    (let [old-results (apply concat (map second @results))]
-                      (reset! results (into {} (map (fn [page-index res]
-                                                      [(inc page-index)
-                                                       (map (partial cleanup-result m) res)])
-                                                    (range)
-                                                    (partition-all page-size
-                                                                   (concat old-results
-                                                                           resp-results)))))
-                      (reset! total (or resp-count (count resp-results))))
-                    (reset! total resp-count))))))))
-      (reset! searching? false))))
+  (go
+    (dotimes [step nsteps]
+      (let [json-params (cond-> search-params
+                                true (assoc :step (inc step))
+                                @total (assoc :last-count @total)
+                                (:id @search) (assoc :search-id (:id @search)))
+            ;; Fire off a search query
+            results-ch  (http/post url {:json-params json-params})
+            ;; Wait for either the results of the query or a message to cancel the query
+            ;; because we have started another search
+            [val ch] (async/alts! [cancel-search-ch results-ch] :priority true)]
+        (when (= ch results-ch)
+          (let [{:keys [status success] {resp-search     :search
+                                         resp-results    :results
+                                         resp-count      :count
+                                         resp-cpu-counts :cpu-counts} :body} val]
+            (if-not success
+              (.log js/console status)
+              (do
+                (swap! search merge resp-search)
+                ;; Add the number of hits found by each cpu core in this search step
+                (swap! cpu-counts concat resp-cpu-counts)
+                ;; Only the first request actually returns results; the others just save the
+                ;; results on the server to be fetched on demand and return an empty result list
+                ;; (but a non-zero resp-count), unless the first result did not find enough
+                ;; results to fill up two result pages - in that case, later requests will
+                ;; continue filling them. Thus, we set the results if we either receive a
+                ;; non-empty list of results or a resp-count of zero (meaning that there were
+                ;; actually no matches).
+                (if (or (seq resp-results) (zero? resp-count))
+                  (let [old-results (apply concat (map second @results))]
+                    (reset! results (into {} (map (fn [page-index res]
+                                                    [(inc page-index)
+                                                     (map (partial cleanup-result m) res)])
+                                                  (range)
+                                                  (partition-all page-size
+                                                                 (concat old-results
+                                                                         resp-results)))))
+                    (reset! total (or resp-count (count resp-results))))
+                  (reset! total resp-count))))))))
+    (reset! searching? false)))
 
 (defn selected-metadata-ids [search]
   (->> (:metadata @search) (filter #(second %)) (into {})))
