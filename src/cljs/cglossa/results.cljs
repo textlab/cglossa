@@ -263,17 +263,17 @@
     [:div.col-sm-12
      [pagination a m]]]])
 
-(defn- geo-map-colorpicker [selected-colorpicker color]
+(defn- geo-map-colorpicker [selected-color color]
   [:button.btn.btn-xs.colorpicker
    {:style    {:background-color (name color)
                :border-color     (if (#{:white :red :orange :yellow} color) "black" "red")
-               :border-width     (if (= @selected-colorpicker color) "4px" "1px")}
-    :on-click #(reset! selected-colorpicker color)}])
+               :border-width     (if (= @selected-color color) "4px" "1px")}
+    :on-click #(reset! selected-color color)}])
 
-(defn- geo-map [{{:keys [queries]} :search-view} {:keys [corpus search]} view-type]
+(defn- geo-map [{{:keys [queries]} :search-view {{:keys [selected-color]} :geo-map} :results-view}
+                {:keys [corpus search]} view-type]
   (r/with-let
-    [geo-map-rendered?    (atom false)
-     selected-colorpicker (r/atom nil)]
+    [geo-map-rendered? (atom false)]
     ;; react-bootstrap renders and mounts the contents of all tabs immediately (i.e., no
     ;; lazy rendering), but instantiating a Google Map while its container is hidden doesn't
     ;; work. Hence, we don't render the GeoDistributionMap component unless the use has
@@ -288,14 +288,14 @@
                                                  :metadata-ids (selected-metadata-ids search)}})])
       [:div.geo-map
        [:div {:style {:padding 5}}
-        [geo-map-colorpicker selected-colorpicker :red]
-        [geo-map-colorpicker selected-colorpicker :orange]
-        [geo-map-colorpicker selected-colorpicker :yellow]
-        [geo-map-colorpicker selected-colorpicker :green]
-        [geo-map-colorpicker selected-colorpicker :blue]
-        [geo-map-colorpicker selected-colorpicker :purple]
-        [geo-map-colorpicker selected-colorpicker :black]
-        [geo-map-colorpicker selected-colorpicker :white]]
+        [geo-map-colorpicker selected-color :red]
+        [geo-map-colorpicker selected-color :orange]
+        [geo-map-colorpicker selected-color :yellow]
+        [geo-map-colorpicker selected-color :green]
+        [geo-map-colorpicker selected-color :blue]
+        [geo-map-colorpicker selected-color :purple]
+        [geo-map-colorpicker selected-color :black]
+        [geo-map-colorpicker selected-color :white]]
        [:> js/GeoDistributionMap {:initLat 64 :initLon 3 :initZoom 4 :width 640 :height 460}]])))
 
 (defn results [{:keys                       [searching? num-resets]
