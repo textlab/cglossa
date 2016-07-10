@@ -16,6 +16,8 @@
 ;; actually be found), we subtract this margin to be on the safe side.
 (def result-margin 200)
 
+(def geo-map-colors [:yellow :green :blue :purple :black :white :red :orange])
+
 ;; Adapt https://github.com/chenglou/react-spinner to Reagent
 (def spinner (r/adapt-react-class js/Spinner))
 
@@ -116,13 +118,18 @@
 
 (defn reset-results!
   [{{:keys [results cpu-counts page-no paginator-page-no
-            paginator-text-val translations]} :results-view}]
+            paginator-text-val fetching-pages translations]
+     {:keys [geo-data colored-phons selected-color]} :geo-map} :results-view}]
   (reset! results nil)
   (reset! cpu-counts [])
   (reset! page-no 1)
   (reset! paginator-page-no 1)
   (reset! paginator-text-val 1)
-  (reset! translations {}))
+  (reset! fetching-pages #{})
+  (reset! translations {})
+  (reset! geo-data  {})
+  (reset! colored-phons (zipmap geo-map-colors (repeat #{})))
+  (reset! selected-color :yellow))
 
 (defn queries->param [corpus queries]
   (let [q (if (= (-> corpus :languages first :code) "zh")

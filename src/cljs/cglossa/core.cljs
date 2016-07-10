@@ -8,7 +8,7 @@
             [devtools.core :as devtools]
             [cglossa.search-engines]    ; just to pull in implementations
             [cglossa.corpora.core]      ; just to pull in implementations
-            [cglossa.shared :refer [reset-queries!]]
+            [cglossa.shared :refer [reset-queries! reset-results!]]
             [cglossa.app :refer [app]])
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:import [goog Throttle]))
@@ -27,31 +27,32 @@
                                          :view-type               (r/atom :concordance)
                                          :results                 (r/atom nil)
                                          :total                   (r/atom nil)
-                                         :cpu-counts              (r/atom [])
-                                         :page-no                 (r/atom 1)
+                                         :cpu-counts              (r/atom nil)
+                                         :page-no                 (r/atom nil)
                                          ;; This is the page selected in the result paginator;
                                          ;; it may differ from the one shown in the result table
                                          ;; until the selected page has been fetched from the server
-                                         :paginator-page-no       (r/atom 1)
+                                         :paginator-page-no       (r/atom nil)
                                          ;; This is the value shown in the paginator text input.
                                          ;; It may differ from paginator-page-no while we are
                                          ;; manually editing the value, but will be set equal
                                          ;; to paginator-page-no when we hit Enter after editing
                                          ;; or we select a different page using the paging buttons.
-                                         :paginator-text-val      (r/atom 1)
+                                         :paginator-text-val      (r/atom nil)
                                          ;; Set of result pages currently being fetched
-                                         :fetching-pages          (r/atom #{})
+                                         :fetching-pages          (r/atom nil)
                                          :result-showing-metadata (r/atom nil)
                                          :sort-key                (r/atom :position)
                                          :freq-attr               (r/atom nil)
-                                         :translations            (r/atom {})
+                                         :translations            (r/atom nil)
                                          :media                   {:showing-media-popup (r/atom false)
                                                                    :media-obj           (r/atom nil)
                                                                    :player-row-index    (r/atom nil)
                                                                    :current-player-type (r/atom nil)
                                                                    :current-media-type  (r/atom nil)}
-                                         :geo-map                 {:selected-color (r/atom :yellow)
-                                                                   :geo-data       (r/atom {})}}
+                                         :geo-map                 {:geo-data       (r/atom nil)
+                                                                   :colored-phons  (r/atom nil)
+                                                                   :selected-color (r/atom nil)}}
                     :search-view        {:view-type (r/atom :simple)
                                          :queries   (r/atom nil)
                                          :query-ids (r/atom nil)}
@@ -83,7 +84,8 @@
   (if-let [corpus (second (re-find #"corpus=(\w+)" (.-location.search js/window)))]
     (go
       (<! (get-models "/corpus" {:code corpus}))
-      (reset-queries! app-state model-state))
+      (reset-queries! app-state model-state)
+      (reset-results! app-state))
     (js/alert "Please provide a corpus in the query string (on the form corpus=mycorpus)")))
 
 ;; Don't re-init model state on hot reload

@@ -4,7 +4,7 @@
             [reagent.core :as r]
             [cljs-http.client :as http]
             [cljs.core.async :refer [<!]]
-            [cglossa.shared :refer [page-size spinner-overlay search! top-toolbar
+            [cglossa.shared :refer [page-size geo-map-colors spinner-overlay search! top-toolbar
                                     selected-metadata-ids cleanup-result reset-results!
                                     queries->param]]
             [cglossa.search-views.shared :refer [search-inputs]]
@@ -270,7 +270,8 @@
                :border-width     (if (= @selected-color color) "4px" "1px")}
     :on-click #(reset! selected-color color)}])
 
-(defn- geo-map [{{{:keys [selected-color geo-data]} :geo-map} :results-view} view-type]
+(defn- geo-map [{{{:keys [geo-data colored-phons selected-color]} :geo-map} :results-view}
+                view-type]
   (r/with-let
     [geo-map-rendered? (atom false)]
     ;; react-bootstrap renders and mounts the contents of all tabs immediately (i.e., no
@@ -281,20 +282,24 @@
       (reset! geo-map-rendered? true)
       [:div.geo-map {:style {:margin-top 4}}
        [:div {:style {:padding "5px 5px 5px 0" :margin-right 4 :float "left"}}
-        [geo-map-colorpicker selected-color :yellow]
-        [geo-map-colorpicker selected-color :green]
-        [geo-map-colorpicker selected-color :blue]
-        [geo-map-colorpicker selected-color :purple]
-        [geo-map-colorpicker selected-color :black]
-        [geo-map-colorpicker selected-color :white]
-        [geo-map-colorpicker selected-color :red]
-        [geo-map-colorpicker selected-color :orange]]
+        (for [color geo-map-colors]
+          ^{:key color} [geo-map-colorpicker selected-color color])]
        [:div {:style {:padding "5px 5px 5px 0" :float "left"}}
-        (for [form (keys @geo-data)]
-          ^{:key form} [b/button {:bs-size "xsmall"
-                                  :class-name "phon-button"
-                                  :data-toggle "tooltip"
-                                  :title "hei"} form])]
+        (doall (for [phon (keys @geo-data)]
+                 (let [[c _] (first (filter #(get (second %) phon) @colored-phons))
+                       color    (when (get #{:green :blue :purple :black :red} c) "white")
+                       bg-color (when c (name c))]
+                   ^{:key phon}
+                   [b/button {:bs-size    "xsmall"
+                              :class-name "phon-button"
+                              ;:data-toggle "tooltip"
+                              ;:title       "hei"
+                              :style      {:color            color
+                                           :background-color bg-color
+                                           :background-image "none"
+                                           :border-color     bg-color
+                                           :text-shadow      "0 -1px 0 rgba(0,0,0,.2)"}}
+                    phon])))]
        [:div {:style {:clear "both"}}
         [:> js/GeoDistributionMap {:initLat 64 :initLon 3 :initZoom 4 :width 640 :height 460}]]])))
 
