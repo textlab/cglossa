@@ -50,7 +50,8 @@
                                                                    :player-row-index    (r/atom nil)
                                                                    :current-player-type (r/atom nil)
                                                                    :current-media-type  (r/atom nil)}
-                                         :geo-map                 {:selected-color (r/atom :red)}}
+                                         :geo-map                 {:selected-color (r/atom :yellow)
+                                                                   :geo-data       (r/atom {})}}
                     :search-view        {:view-type (r/atom :simple)
                                          :queries   (r/atom nil)
                                          :query-ids (r/atom nil)}

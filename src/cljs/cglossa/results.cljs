@@ -270,8 +270,7 @@
                :border-width     (if (= @selected-color color) "4px" "1px")}
     :on-click #(reset! selected-color color)}])
 
-(defn- geo-map [{{:keys [queries]} :search-view {{:keys [selected-color]} :geo-map} :results-view}
-                {:keys [corpus search]} view-type]
+(defn- geo-map [{{{:keys [selected-color geo-data]} :geo-map} :results-view} view-type]
   (r/with-let
     [geo-map-rendered? (atom false)]
     ;; react-bootstrap renders and mounts the contents of all tabs immediately (i.e., no
@@ -280,17 +279,24 @@
     ;; actually selected the geo-map tab at least once.
     (when (or @geo-map-rendered? (= @view-type "geo-map"))
       (reset! geo-map-rendered? true)
-      [:div.geo-map
-       [:div {:style {:padding 5}}
-        [geo-map-colorpicker selected-color :red]
-        [geo-map-colorpicker selected-color :orange]
+      [:div.geo-map {:style {:margin-top 4}}
+       [:div {:style {:padding "5px 5px 5px 0" :margin-right 4 :float "left"}}
         [geo-map-colorpicker selected-color :yellow]
         [geo-map-colorpicker selected-color :green]
         [geo-map-colorpicker selected-color :blue]
         [geo-map-colorpicker selected-color :purple]
         [geo-map-colorpicker selected-color :black]
-        [geo-map-colorpicker selected-color :white]]
-       [:> js/GeoDistributionMap {:initLat 64 :initLon 3 :initZoom 4 :width 640 :height 460}]])))
+        [geo-map-colorpicker selected-color :white]
+        [geo-map-colorpicker selected-color :red]
+        [geo-map-colorpicker selected-color :orange]]
+       [:div {:style {:padding "5px 5px 5px 0" :float "left"}}
+        (for [form (keys @geo-data)]
+          ^{:key form} [b/button {:bs-size "xsmall"
+                                  :class-name "phon-button"
+                                  :data-toggle "tooltip"
+                                  :title "hei"} form])]
+       [:div {:style {:clear "both"}}
+        [:> js/GeoDistributionMap {:initLat 64 :initLon 3 :initZoom 4 :width 640 :height 460}]]])))
 
 (defn results [{:keys                       [searching? num-resets]
                 {:keys [view-type results]} :results-view :as a}
@@ -309,5 +315,5 @@
       [concordances a m]]
      (when (:geo-coord @corpus)
        [b/tab {:title "Map" :event-key :geo-map}
-        [geo-map a m view-type]])
+        [geo-map a view-type]])
      [b/tab {:title "Statistics" :event-key :statistics :disabled true}]]]])

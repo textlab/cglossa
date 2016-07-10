@@ -140,10 +140,10 @@
   ([a {:keys [corpus] :as m}]
     ;; Do three search steps only if multicpu_bounds is defined for this corpus
    (search! a m (if (:multicpu-bounds @corpus) 3 1)))
-  ([{{queries :queries}                     :search-view
-     {:keys [show-results? total sort-key]} :results-view
-     searching?                             :searching?
-     :as                                    a}
+  ([{{queries :queries}                                                 :search-view
+     {:keys [show-results? total sort-key] {:keys [geo-data]} :geo-map} :results-view
+     searching?                                                         :searching?
+     :as                                                                a}
     {:keys [corpus search] :as m}
     nsteps]
    (let [first-query (:query (first @queries))]
@@ -170,10 +170,12 @@
            ;; Wait for the search to finish before fetching geo-map data
            (<! (do-search-steps! a m url params nsteps))
            (when (:geo-coord @corpus)
-             (http/post "/geo-distr"
-                        {:json-params {:corpus-id    corpus-id
-                                       :search-id    (:id @search)
-                                       :metadata-ids sel-metadata}}))))))))
+             (let [geo-results-ch (http/post "/geo-distr"
+                                             {:json-params {:corpus-id    corpus-id
+                                                            :search-id    (:id @search)
+                                                            :metadata-ids sel-metadata}})
+                   {{geo-results :results} :body} (<! geo-results-ch)]
+               (reset! geo-data geo-results)))))))))
 
 (defn showing-metadata? [{:keys                   [show-metadata? narrow-view?]
                           {:keys [show-results?]} :results-view}
