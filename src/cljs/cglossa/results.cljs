@@ -271,6 +271,7 @@
     :on-click #(reset! selected-color color)}])
 
 (defn- geo-map [{{{:keys [geo-data colored-phons selected-color]} :geo-map} :results-view}
+                {:keys [corpus]}
                 view-type]
   (r/with-let
     [geo-map-rendered? (atom false)]
@@ -287,21 +288,42 @@
        [:div {:style {:padding "5px 5px 5px 0" :float "left"}}
         (doall (for [phon (keys @geo-data)]
                  (let [[c _] (first (filter #(get (second %) phon) @colored-phons))
-                       color    (when (get #{:green :blue :purple :black :red} c) "white")
-                       bg-color (when c (name c))]
+                       dark-colors #{:green :blue :purple :black :red}
+                       style       (when c
+                                     {:color            (if (get dark-colors c) "white" "black")
+                                      :background-color (name c)
+                                      :background-image "none"
+                                      :text-shadow      "0 -1px 0 rgba(0,0,0,.2)"})]
                    ^{:key phon}
                    [b/button {:bs-size    "xsmall"
                               :class-name "phon-button"
                               ;:data-toggle "tooltip"
                               ;:title       "hei"
-                              :style      {:color            color
-                                           :background-color bg-color
-                                           :background-image "none"
-                                           :border-color     bg-color
-                                           :text-shadow      "0 -1px 0 rgba(0,0,0,.2)"}}
+                              :style      style
+                              :on-click   (fn [e]
+                                            (when @selected-color
+                                              (swap! colored-phons update @selected-color
+                                                     (fn [phons]
+                                                       (if (get phons phon)
+                                                         (disj phons phon)
+                                                         (conj phons phon))))))}
                     phon])))]
        [:div {:style {:clear "both"}}
-        [:> js/GeoDistributionMap {:initLat 64 :initLon 3 :initZoom 4 :width 640 :height 460}]]])))
+        (let [all-coords (:geo-coords @corpus)
+              loc-names  (distinct (mapcat (fn [[_ v]] (keys v)) @geo-data))
+              coords     (map (fn [loc-name]
+                                {:name loc-name
+                                 :coords (->> loc-name keyword (get all-coords))})
+                              loc-names)
+              points     (map (fn [{name :name [lat lng] :coords}]
+                                {:latitude lat :longitude lng :label name})
+                              coords)]
+          [:> js/GeoDistributionMap {:initLat  64
+                                     :initLon  3
+                                     :initZoom 4
+                                     :width    640
+                                     :height   460
+                                     :points   points}])]])))
 
 (defn results [{:keys                       [searching? num-resets]
                 {:keys [view-type results]} :results-view :as a}
@@ -318,7 +340,7 @@
              :on-select  #(reset! view-type %)}
      [b/tab {:title "Concordance" :event-key :concordance}
       [concordances a m]]
-     (when (:geo-coord @corpus)
+     (when (:geo-coords @corpus)
        [b/tab {:title "Map" :event-key :geo-map}
-        [geo-map a view-type]])
+        [geo-map a m view-type]])
      [b/tab {:title "Statistics" :event-key :statistics :disabled true}]]]])

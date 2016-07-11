@@ -104,8 +104,8 @@
                                                                      (:code $) "/audio")))
                                    (assoc $ :video? (fs/exists? (str "resources/public/media/"
                                                                      (:code $) "/video")))
-                                   (assoc $ :geo-coord (let [path (str "resources/geo_coord/"
-                                                                       (:code $) ".edn")]
+                                   (assoc $ :geo-coords (let [path (str "resources/geo_coords/"
+                                                                        (:code $) ".edn")]
                                                          (when (fs/exists? path)
                                                            (edn/read-string (slurp path))))))
                        mb    (:multicpu_bounds c*)

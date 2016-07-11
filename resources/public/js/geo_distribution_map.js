@@ -68,7 +68,7 @@ var GeoDistributionMap = React.createClass({
         position: location,
         map: map,
         title: point.label,
-        icon: point.icon || 'assets/rglossa/speech/red_dot.png'
+        icon: point.icon || 'img/speech/red_dot.png'
       });
 
       markers.push( marker );

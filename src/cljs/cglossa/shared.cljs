@@ -176,7 +176,7 @@
          (go
            ;; Wait for the search to finish before fetching geo-map data
            (<! (do-search-steps! a m url params nsteps))
-           (when (:geo-coord @corpus)
+           (when (:geo-coords @corpus)
              (let [geo-results-ch (http/post "/geo-distr"
                                              {:json-params {:corpus-id    corpus-id
                                                             :search-id    (:id @search)
