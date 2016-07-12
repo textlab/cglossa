@@ -309,15 +309,33 @@
                                                          (conj phons phon))))))}
                     phon])))]
        [:div {:style {:clear "both"}}
-        (let [all-coords (:geo-coords @corpus)
-              loc-names  (distinct (mapcat (fn [[_ v]] (keys v)) @geo-data))
-              coords     (map (fn [loc-name]
-                                {:name loc-name
-                                 :coords (->> loc-name keyword (get all-coords))})
-                              loc-names)
-              points     (map (fn [{name :name [lat lng] :coords}]
-                                {:latitude lat :longitude lng :label name})
-                              coords)]
+        (let [all-coords      (:geo-coords @corpus)
+              loc-names       (distinct (mapcat (fn [[_ v]] (keys v)) @geo-data))
+              coords          (map (fn [loc-name]
+                                     {:name   loc-name
+                                      :coords (->> loc-name keyword (get all-coords))})
+                                   loc-names)
+              ;; These are the small red dots that mark all locations where hits were found
+              small-dots      (map (fn [{name :name [lat lng] :coords}]
+                                     {:latitude lat :longitude lng :label name})
+                                   coords)
+              ;; Now find, for each colour in the colour picker, those locations where we
+              ;; found one or more of the phonetic forms selected for that colour, and create
+              ;; coloured markers for them.
+              selected-points (apply
+                                concat
+                                (for [[color phons] @colored-phons
+                                      phon (seq phons)
+                                      :let [location-freqs     (get @geo-data phon)
+                                            selected-locations (set (keys location-freqs))
+                                            selected-coords    (filter #(get selected-locations
+                                                                             (:label %))
+                                                                       small-dots)]]
+                                  (map (fn [coord-map]
+                                         (assoc coord-map
+                                           :icon (str "img/speech/mm_20_" (name color) ".png")))
+                                       selected-coords)))
+              points          (concat small-dots selected-points)]
           [:> js/GeoDistributionMap {:initLat  64
                                      :initLon  3
                                      :initZoom 4
