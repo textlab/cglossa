@@ -217,8 +217,6 @@
                                          freq* (Integer/parseInt freq)]
                                      (if place
                                        (update-in m [form* place] (fn [acc-freq]
-                                                                    (println
-                                                                      [form* informant freq*])
                                                                     (if (nil? acc-freq)
                                                                       freq*
                                                                       (+ acc-freq freq*))))
