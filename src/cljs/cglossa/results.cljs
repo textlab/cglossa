@@ -300,13 +300,19 @@
                               ;:data-toggle "tooltip"
                               ;:title       "hei"
                               :style      style
-                              :on-click   (fn [e]
-                                            (when @selected-color
+                              :on-click   (fn [_]
+                                            ;; If the button already has a colour, remove it
+                                            ;; (regardless of whether another colour picker has
+                                            ;; been selected or not, this colour should be removed)
+                                            (when c
+                                              (swap! colored-phons update c disj phon))
+                                            ;; If a colour picker has been selected and if differs
+                                            ;; from the current colour of the button, set it to
+                                            ;; be the new button colour.
+                                            (when (and @selected-color (not= @selected-color c))
                                               (swap! colored-phons update @selected-color
                                                      (fn [phons]
-                                                       (if (get phons phon)
-                                                         (disj phons phon)
-                                                         (conj phons phon))))))}
+                                                       (conj phons phon)))))}
                     phon])))]
        [:div {:style {:clear "both"}}
         (let [all-coords      (:geo-coords @corpus)
