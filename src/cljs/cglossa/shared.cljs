@@ -1,7 +1,6 @@
 (ns cglossa.shared
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [clojure.string :as str]
-            [clojure.set :as set]
             [cljs.core.async :as async :refer [<!]]
             [cljs-http.client :as http]
             react-spinner
