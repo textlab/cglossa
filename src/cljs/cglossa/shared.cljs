@@ -68,7 +68,7 @@
 
 (defn- do-search-steps! [{:keys                              [searching?]
                           {:keys [results total cpu-counts]} :results-view}
-                         {:keys [corpus search] :as m}
+                         {:keys [search] :as m}
                          url search-params nsteps]
   (go
     (dotimes [step nsteps]
