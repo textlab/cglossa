@@ -144,7 +144,7 @@
   (let [first-query-lang      (-> queries first :lang)
         corpus-lang           (->> corpus
                                    :languages
-                                   (filter #(= (:code %) (keyword first-query-lang)))
+                                   (filter #(= (:code %) first-query-lang))
                                    first)
         displayed-attrs       (get-in corpus-lang [:config :displayed-attrs])
         corpus-specific-attrs (->> corpus-lang
