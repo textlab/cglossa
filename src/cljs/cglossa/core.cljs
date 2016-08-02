@@ -85,7 +85,7 @@
     (go
       (<! (get-models "/corpus" {:code corpus}))
       (reset-queries! app-state model-state)
-      (reset-results! app-state))
+      (reset-results! app-state model-state))
     (js/alert "Please provide a corpus in the query string (on the form corpus=mycorpus)")))
 
 ;; Don't re-init model state on hot reload

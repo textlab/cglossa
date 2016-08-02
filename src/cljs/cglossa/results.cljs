@@ -101,7 +101,7 @@
   (let [sk        @sort-key
         on-select (fn [_ event-key]
                     (reset! sort-key (keyword event-key))
-                    (reset-results! a)
+                    (reset-results! a m)
                     (fetch-result-window! a m 1))]
     [b/dropdownbutton {:id       "sort-button"
                        :title    "Sort"

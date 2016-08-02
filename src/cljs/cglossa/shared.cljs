@@ -116,9 +116,11 @@
   (->> (:metadata @search) (filter #(second %)) (into {})))
 
 (defn reset-results!
-  [{{:keys [results cpu-counts page-no paginator-page-no
+  [{{:keys [queries]} :search-view
+    {:keys [results cpu-counts page-no paginator-page-no
             paginator-text-val fetching-pages translations]
-     {:keys [geo-data colored-phons selected-color]} :geo-map} :results-view}]
+     {:keys [geo-data colored-phons selected-color]} :geo-map} :results-view}
+   {:keys [search]}]
   (reset! results nil)
   (reset! cpu-counts [])
   (reset! page-no 1)
@@ -127,8 +129,10 @@
   (reset! fetching-pages #{})
   (reset! translations {})
   (reset! geo-data  {})
-  (reset! colored-phons (zipmap geo-map-colors (repeat #{})))
-  (reset! selected-color :yellow))
+  ;; Don't remove selected map colours if we are just filtering an existing search
+  (when (not= (:queries @search) (str @queries))
+    (reset! colored-phons (zipmap geo-map-colors (repeat #{})))
+    (reset! selected-color :yellow)))
 
 (defn queries->param [corpus queries]
   (let [q (if (= (-> corpus :languages first :code) "zh")
@@ -171,7 +175,7 @@
          (reset! searching? true)
          (reset! total nil)
          (reset! sort-key :position)
-         (reset-results! a)
+         (reset-results! a m)
          (go
            ;; Wait for the search to finish before fetching geo-map data
            (<! (do-search-steps! a m url params nsteps))
