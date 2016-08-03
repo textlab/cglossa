@@ -67,6 +67,7 @@
   (fn [{corpus :corpus} _] (:search-engine @corpus)))
 
 (defn- do-search-steps! [{:keys                              [searching?]
+                          {:keys [queries]}                  :search-view
                           {:keys [results total cpu-counts]} :results-view}
                          {:keys [search] :as m}
                          url search-params nsteps]
@@ -75,7 +76,12 @@
       (let [json-params (cond-> search-params
                                 true (assoc :step (inc step))
                                 @total (assoc :last-count @total)
-                                (:id @search) (assoc :search-id (:id @search)))
+                                ;; If the currently specified queries differ from the ones on
+                                ;; the search that was last received from the server, leave the
+                                ;; ID blank in order to generate a new search; otherwise regard
+                                ;; this request as a refinement of the latest search and hence
+                                ;; keep its ID.
+                                (= (:queries @search) (str @queries)) (assoc :search-id (:id @search)))
             ;; Fire off a search query
             results-ch  (http/post url {:json-params json-params})
             ;; Wait for either the results of the query or a message to cancel the query
