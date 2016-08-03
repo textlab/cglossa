@@ -293,26 +293,36 @@
                                      {:color            (if (get dark-colors c) "white" "black")
                                       :background-color (name c)
                                       :background-image "none"
-                                      :text-shadow      "0 -1px 0 rgba(0,0,0,.2)"})]
+                                      :text-shadow      "0 -1px 0 rgba(0,0,0,.2)"})
+                       total       (reduce #(+ %1 (second %2)) 0 (get @geo-data phon))
+                       btn-tooltip (apply str (conj
+                                                (mapv (fn [[location num]]
+                                                        (str location ": " num "; "))
+                                                      (reverse (sort-by second
+                                                                        (get @geo-data phon))))
+                                                "<br><b>Total: " total "</b>"))]
                    ^{:key phon}
-                   [b/button {:bs-size    "xsmall"
-                              :class-name "phon-button"
-                              ;:data-toggle "tooltip"
-                              ;:title       "hei"
-                              :style      style
-                              :on-click   (fn [_]
-                                            ;; If the button already has a colour, remove it
-                                            ;; (regardless of whether another colour picker has
-                                            ;; been selected or not, this colour should be removed)
-                                            (when c
-                                              (swap! colored-phons update c disj phon))
-                                            ;; If a colour picker has been selected and if differs
-                                            ;; from the current colour of the button, set it to
-                                            ;; be the new button colour.
-                                            (when (and @selected-color (not= @selected-color c))
-                                              (swap! colored-phons update @selected-color
-                                                     (fn [phons]
-                                                       (conj phons phon)))))}
+                   [b/button {:bs-size     "xsmall"
+                              :class-name  "phon-button"
+                              :data-toggle "tooltip"
+                              :title       btn-tooltip
+                              :data-html   true
+                              :style       style
+                              :on-click    (fn [e]
+                                             ;; Blur button to prevent tooltip from sticking
+                                             (.blur (js/$ (.-target e)))
+                                             ;; If the button already has a colour, remove it
+                                             ;; (regardless of whether another colour picker has
+                                             ;; been selected or not, this colour should be removed)
+                                             (when c
+                                               (swap! colored-phons update c disj phon))
+                                             ;; If a colour picker has been selected and if differs
+                                             ;; from the current colour of the button, set it to
+                                             ;; be the new button colour.
+                                             (when (and @selected-color (not= @selected-color c))
+                                               (swap! colored-phons update @selected-color
+                                                      (fn [phons]
+                                                        (conj phons phon)))))}
                     phon])))]
        [:div {:style {:clear "both"}}
         (let [all-coords      (:geo-coords @corpus)
