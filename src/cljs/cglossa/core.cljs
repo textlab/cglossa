@@ -68,7 +68,7 @@
 (def on-resize-throttle (Throttle. #(reset! (:narrow-view? app-state) (narrow-view?)) 200))
 (.addEventListener js/window "resize" #(.fire on-resize-throttle))
 
-(.tooltip (js/$ "body") #js {:selector "[data-toggle='tooltip']"})
+(.tooltip (js/$ "body") #js {:selector "[data-toggle='tooltip']" :delay #js {:show 300 :hide 0}})
 
 (defn- get-models
   ([url] (get-models url {}))
