@@ -116,10 +116,11 @@
   (->> (:metadata @search) (filter #(second %)) (into {})))
 
 (defn reset-results!
-  [{{:keys [queries]} :search-view
-    {:keys [results cpu-counts page-no paginator-page-no
-            paginator-text-val fetching-pages translations]
-     {:keys [geo-data colored-phons selected-color]} :geo-map} :results-view}
+  [{{:keys [queries]}                   :search-view
+    {:keys                    [results cpu-counts page-no paginator-page-no
+                               paginator-text-val fetching-pages translations]
+     {:keys [geo-data colored-phons
+             selected-color]} :geo-map} :results-view}
    {:keys [search]}]
   (reset! results nil)
   (reset! cpu-counts [])
@@ -128,7 +129,7 @@
   (reset! paginator-text-val 1)
   (reset! fetching-pages #{})
   (reset! translations {})
-  (reset! geo-data  {})
+  (reset! geo-data {})
   ;; Don't remove selected map colours if we are just filtering an existing search
   (when (not= (:queries @search) (str @queries))
     (reset! colored-phons (zipmap geo-map-colors (repeat #{})))
