@@ -327,13 +327,34 @@
        [:div {:style {:clear "both"}}
         (let [all-coords      (:geo-coords @corpus)
               loc-names       (distinct (mapcat (fn [[_ v]] (keys v)) @geo-data))
+              ;; Convert the hash map with frequency distribution over locations per phon
+              ;; to one with the frequency distribution over phons per locations
+              loc-phon-freqs  (->> @geo-data
+                                   (mapcat (fn [[phon loc-freqs]]
+                                             (map (fn [[loc freq]]
+                                                    [loc phon freq])
+                                                  loc-freqs)))
+                                   (group-by first)
+                                   (map (fn [[loc loc-phon-freqs]]
+                                          [loc (into {} (map (fn [[_ phon freq]]
+                                                               [phon freq])
+                                                             loc-phon-freqs))]))
+                                   (into {}))
               coords          (map (fn [loc-name]
                                      {:name   loc-name
-                                      :coords (->> loc-name keyword (get all-coords))})
+                                      :coords (->> loc-name keyword (get all-coords))
+                                      :phons  (->> loc-name
+                                                   (get loc-phon-freqs)
+                                                   (map (fn [[phon freq]]
+                                                          (str phon ": " freq)))
+                                                   (str/join "; "))})
                                    loc-names)
               ;; These are the small red dots that mark all locations where hits were found
-              small-dots      (map (fn [{name :name [lat lng] :coords}]
-                                     {:latitude lat :longitude lng :label name})
+              small-dots      (map (fn [{name :name [lat lng] :coords phons :phons}]
+                                     {:latitude  lat
+                                      :longitude lng
+                                      :name      name
+                                      :label     (str name ": " phons)})
                                    coords)
               ;; Now find, for each colour in the colour picker, those locations where we
               ;; found one or more of the phonetic forms selected for that colour, and create
@@ -345,7 +366,7 @@
                                       :let [location-freqs     (get @geo-data phon)
                                             selected-locations (set (keys location-freqs))
                                             selected-coords    (filter #(get selected-locations
-                                                                             (:label %))
+                                                                             (:name %))
                                                                        small-dots)]]
                                   (map (fn [coord-map]
                                          (assoc coord-map
