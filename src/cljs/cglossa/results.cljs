@@ -286,7 +286,7 @@
         (for [color geo-map-colors]
           ^{:key color} [geo-map-colorpicker selected-color color])]
        [:div {:style {:padding "5px 5px 5px 0" :float "left"}}
-        (doall (for [phon (keys @geo-data)]
+        (doall (for [phon (sort (keys @geo-data))]
                  (let [[c _] (first (filter #(get (second %) phon) @colored-phons))
                        dark-colors #{:green :blue :purple :black :red}
                        style       (when c
