@@ -11,7 +11,7 @@
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (defn- show-media-player [index player-type media-type
-                          {{:keys [page-no] {:keys [showing-media-popup
+                          {{:keys [page-no] {:keys [showing-media-popup?
                                                     media-obj
                                                     player-row-index
                                                     current-player-type
@@ -23,7 +23,7 @@
                                                                   :search-id    (:id @search)
                                                                   :result-index result-index
                                                                   :context-size 7}}))]
-      (reset! showing-media-popup true)
+      (reset! showing-media-popup? true)
       (reset! media-obj (get-in response [:body :media-obj]))
       (reset! player-row-index index)
       (reset! current-player-type player-type)
@@ -158,7 +158,7 @@
     (list orthographic translated phonetic separator)))
 
 (defmethod concordance-table "cwb_speech"
-  [{{:keys [results page-no] {:keys [showing-media-popup
+  [{{:keys [results page-no] {:keys [showing-media-popup?
                                      media-obj
                                      player-row-index
                                      current-player-type
@@ -166,13 +166,13 @@
    {:keys [corpus] :as m}]
   (let [res         (get @results @page-no)
         hide-player (fn []
-                      (reset! showing-media-popup false)
+                      (reset! showing-media-popup? false)
                       (reset! player-row-index nil)
                       (reset! current-player-type nil)
                       (reset! current-media-type nil))]
     [:span
      [b/modal {:class-name "media-popup"
-               :show       @showing-media-popup
+               :show       @showing-media-popup?
                :on-hide    hide-player
                :on-enter   (fn [node]
                              ;; Set the width of the popup to almost that of the window

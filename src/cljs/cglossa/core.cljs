@@ -45,11 +45,11 @@
                                          :sort-key                (r/atom :position)
                                          :freq-attr               (r/atom nil)
                                          :translations            (r/atom nil)
-                                         :media                   {:showing-media-popup (r/atom false)
-                                                                   :media-obj           (r/atom nil)
-                                                                   :player-row-index    (r/atom nil)
-                                                                   :current-player-type (r/atom nil)
-                                                                   :current-media-type  (r/atom nil)}
+                                         :media                   {:showing-media-popup? (r/atom false)
+                                                                   :media-obj            (r/atom nil)
+                                                                   :player-row-index     (r/atom nil)
+                                                                   :current-player-type  (r/atom nil)
+                                                                   :current-media-type   (r/atom nil)}
                                          :geo-map                 {:geo-data       (r/atom nil)
                                                                    :colored-phons  (r/atom nil)
                                                                    :selected-color (r/atom nil)}}
