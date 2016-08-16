@@ -61,8 +61,8 @@
 
 
 (defn geo-distr [corpus-id search-id metadata-ids]
-  (let [corpus     (get-corpus {:id corpus-id})
-        results    (geo-distr-queries corpus search-id metadata-ids)
-        s          (search-by-id search-id)]
+  (let [corpus  (get-corpus {:id corpus-id})
+        results (geo-distr-queries corpus search-id metadata-ids)
+        s       (search-by-id search-id)]
     {:search  s
      :results results}))
