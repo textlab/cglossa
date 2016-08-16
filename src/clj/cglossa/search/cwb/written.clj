@@ -130,7 +130,6 @@
                             (recur new-sum
                                    (next counts)
                                    (inc file-index)))))
-        ncpus         (.availableProcessors (Runtime/getRuntime))
         ;; Generate the names of the files containing saved CQP queries
         files         (vec (flatten (map-indexed
                                       (fn [i cpu-bounds]
