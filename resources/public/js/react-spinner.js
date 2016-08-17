@@ -1,35 +1,27 @@
 // https://github.com/chenglou/react-spinner/blob/master/index.js
 
-(function(window, React) {
-  var Spinner = React.createClass({displayName: "Spinner",
-    render: function() {
-      var bars = [];
-      var props = this.props;
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-      for (var i = 0; i < 12; i++) {
-        var barStyle = {};
-        barStyle.WebkitAnimationDelay = barStyle.animationDelay =
-          (i - 12) / 10 + 's';
+window.Spinner = React.createClass({
+  displayName: 'Spinner',
 
-        barStyle.WebkitTransform = barStyle.transform =
-          'rotate(' + (i * 30) + 'deg) translate(146%)';
+  render: function render() {
+    var bars = [];
+    var props = this.props;
 
-        bars.push(
-          React.createElement("div", {style: barStyle, className: "react-spinner_bar", key: i})
-        );
-      }
+    for (var i = 0; i < 12; i++) {
+      var barStyle = {};
+      barStyle.WebkitAnimationDelay = barStyle.animationDelay = (i - 12) / 10 + 's';
 
-      return (
-        React.createElement("div", React.__spread({},  props, {className: (props.className || '') + ' react-spinner'}), 
-          bars
-        )
-      );
+      barStyle.WebkitTransform = barStyle.transform = 'rotate(' + i * 30 + 'deg) translate(146%)';
+
+      bars.push(React.createElement('div', { style: barStyle, className: 'react-spinner_bar', key: i }));
     }
-  });
 
-  if (typeof module === 'undefined') {
-    window.Spinner = Spinner;
-  } else {
-    module.exports = Spinner;
+    return React.createElement(
+      'div',
+      _extends({}, props, { className: (props.className || '') + ' react-spinner' }),
+      bars
+    );
   }
-})((typeof window !== 'undefined' ? window : {}), (typeof require === 'function' ? require('react') : React));
+});
