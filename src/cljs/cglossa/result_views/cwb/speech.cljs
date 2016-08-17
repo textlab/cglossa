@@ -2,6 +2,7 @@
   (:require [clojure.string :as str]
             [cljs.core.async :refer [<!]]
             [cljs-http.client :as http]
+            [reagent.core :as r]
             [cglossa.shared :refer [page-size]]
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.results :refer [concordance-table]]
@@ -164,60 +165,60 @@
                                      current-player-type
                                      current-media-type]} :media} :results-view :as a}
    {:keys [corpus] :as m}]
-  (let [res         (get @results @page-no)
-        hide-player (fn []
-                      (reset! showing-media-popup? false)
-                      (reset! player-row-index nil)
-                      (reset! current-player-type nil)
-                      (reset! current-media-type nil))]
-    [:span
-     [b/modal {:class-name "media-popup"
-               :show       @showing-media-popup?
-               :on-hide    hide-player
-               :on-enter   (fn [node]
-                             ;; Set the width of the popup to almost that of the window
-                             (.width (.find (js/$ node) ".modal-dialog")
-                                     (- (.-innerWidth js/window) 40)))}
-      [b/modalheader {:close-button true}
-       [b/button {:bs-size     "small"
-                  :data-toggle "tooltip"
-                  :title       "Previous result"
-                  :disabled    (zero? @player-row-index)
-                  :on-click    #(show-media-player (dec @player-row-index)
-                                                   @current-player-type
-                                                   @current-media-type
-                                                   a m)}
-        [b/glyphicon {:glyph "step-backward"}]]
-       [b/button {:bs-size     "small"
-                  :data-toggle "tooltip"
-                  :title       "Next result"
-                  :style       {:margin-left 10}
-                  :disabled    (= (inc @player-row-index) (count res))
-                  :on-click    #(show-media-player (inc @player-row-index)
-                                                   @current-player-type
-                                                   @current-media-type
-                                                   a m)}
-        [b/glyphicon {:glyph "step-forward"}]]]
-      [b/modalbody (if (= @current-player-type "wfplayer")
-                     [:> js/WFplayer {:media-obj @media-obj}]
-                     [:> js/Jplayer {:media-obj  @media-obj
-                                     :media-type @current-media-type}])]
-      [b/modalfooter
-       [b/button {:on-click hide-player} "Close"]]]
-     [:div.row>div.col-sm-12.search-result-table-container
-      [b/table {:bordered true}
-       [:tbody
-        (let [attrs             (-> @corpus :languages first :config :displayed-attrs)
-              ort-index         0       ; orthographic form is always the first attribute
-              ;; We need to inc phon-index and lemma-index since the first attribute ('word') is
-              ;; not in the list because it is shown by default by CQP
-              phon-index        (first (keep-indexed #(when (= %2 :phon) (inc %1)) attrs))
-              lemma-index       (first (keep-indexed #(when (= %2 :lemma) (inc %1)) attrs))
-              remaining-indexes (remove #(#{ort-index phon-index lemma-index} %)
-                                        (range (count attrs)))
-              ort-tip-indexes   (into [phon-index lemma-index] remaining-indexes)
-              phon-tip-indexes  (into [ort-index lemma-index] remaining-indexes)]
-          (doall (map (partial single-result-rows a m
-                               ort-index phon-index ort-tip-indexes phon-tip-indexes)
-                      res
-                      (range (count res)))))]]]]))
+  (r/with-let [hide-player (fn []
+                             (reset! showing-media-popup? false)
+                             (reset! player-row-index nil)
+                             (reset! current-player-type nil)
+                             (reset! current-media-type nil))]
+    (let [res (get @results @page-no)]
+      [:span
+       [b/modal {:class-name "media-popup"
+                 :show       @showing-media-popup?
+                 :on-hide    hide-player
+                 :on-enter   (fn [node]
+                               ;; Set the width of the popup to almost that of the window
+                               (.width (.find (js/$ node) ".modal-dialog")
+                                       (- (.-innerWidth js/window) 40)))}
+        [b/modalheader {:close-button true}
+         [b/button {:bs-size     "small"
+                    :data-toggle "tooltip"
+                    :title       "Previous result"
+                    :disabled    (zero? @player-row-index)
+                    :on-click    #(show-media-player (dec @player-row-index)
+                                                     @current-player-type
+                                                     @current-media-type
+                                                     a m)}
+          [b/glyphicon {:glyph "step-backward"}]]
+         [b/button {:bs-size     "small"
+                    :data-toggle "tooltip"
+                    :title       "Next result"
+                    :style       {:margin-left 10}
+                    :disabled    (= (inc @player-row-index) (count res))
+                    :on-click    #(show-media-player (inc @player-row-index)
+                                                     @current-player-type
+                                                     @current-media-type
+                                                     a m)}
+          [b/glyphicon {:glyph "step-forward"}]]]
+        [b/modalbody (if (= @current-player-type "wfplayer")
+                       [:> js/WFplayer {:media-obj @media-obj}]
+                       [:> js/Jplayer {:media-obj  @media-obj
+                                       :media-type @current-media-type}])]
+        [b/modalfooter
+         [b/button {:on-click hide-player} "Close"]]]
+       [:div.row>div.col-sm-12.search-result-table-container
+        [b/table {:bordered true}
+         [:tbody
+          (let [attrs             (-> @corpus :languages first :config :displayed-attrs)
+                ort-index         0     ; orthographic form is always the first attribute
+                ;; We need to inc phon-index and lemma-index since the first attribute ('word') is
+                ;; not in the list because it is shown by default by CQP
+                phon-index        (first (keep-indexed #(when (= %2 :phon) (inc %1)) attrs))
+                lemma-index       (first (keep-indexed #(when (= %2 :lemma) (inc %1)) attrs))
+                remaining-indexes (remove #(#{ort-index phon-index lemma-index} %)
+                                          (range (count attrs)))
+                ort-tip-indexes   (into [phon-index lemma-index] remaining-indexes)
+                phon-tip-indexes  (into [ort-index lemma-index] remaining-indexes)]
+            (doall (map (partial single-result-rows a m
+                                 ort-index phon-index ort-tip-indexes phon-tip-indexes)
+                        res
+                        (range (count res)))))]]]])))
