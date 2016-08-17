@@ -389,7 +389,8 @@
     [results-info a]]
    ^{:key @num-resets} [search-inputs a m] ; See comments in cglossa.start
    [spinner-overlay {:spin? (and @searching? (empty? @results)) :width 45 :height 45 :top 75}
-    [b/tabs {:style      {:margin-top 15}
+    [b/tabs {:id         "result-tabs"
+             :style      {:margin-top 15}
              :animation  false
              :active-key @view-type
              :on-select  #(reset! view-type %)}

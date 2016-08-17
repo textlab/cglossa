@@ -24,27 +24,32 @@
 
 (defn- text-input [a m wrapped-query wrapped-term index show-remove-term-btn? show-attr-popup?]
   [:div.table-cell
-   [b/input {:type          "text"
-             :bs-size       "small"
-             :style         {:font-size 14
-                             :width     108}
-             :button-before (r/as-element (menu-button a m wrapped-query wrapped-term index
-                                                       show-attr-popup?))
-             :button-after  (when show-remove-term-btn?
-                              (r/as-element [b/button {:title    "Remove search word"
-                                                       :on-click #(reset! wrapped-term nil)}
-                                             [b/glyphicon {:glyph "minus"}]]))
-             :default-value (if (:form @wrapped-term)
-                              (-> (:form @wrapped-term)
-                                  (str/replace "__QUOTE__" "\"")
-                                  (str/replace #"^\.\*$" ""))
-                              "")
-             :on-change     #(swap! wrapped-term assoc :form
-                                    ;; Replace literal quotes with __QUOTE__ to prevent them from
-                                    ;; confusing our regexes later on
-                                    (str/replace (.-target.value %)
-                                                 "\"" "__QUOTE__"))
-             :on-key-down   #(on-key-down % a m)}]])
+   [b/inputgroup
+    [b/inputgroup-button (menu-button a m wrapped-query wrapped-term index
+                                      show-attr-popup?)]
+    [b/formcontrol
+     {:type          "text"
+      :bs-size       "small"
+      :style         {:font-size 14
+                      :width     108
+                      :height    30}
+      :default-value (if (:form @wrapped-term)
+                       (-> (:form @wrapped-term)
+                           (str/replace "__QUOTE__" "\"")
+                           (str/replace #"^\.\*$" ""))
+                       "")
+      :on-change     #(swap! wrapped-term assoc :form
+                             ;; Replace literal quotes with __QUOTE__ to prevent them from
+                             ;; confusing our regexes later on
+                             (str/replace (.-target.value %)
+                                          "\"" "__QUOTE__"))
+      :on-key-down   #(on-key-down % a m)}]
+    (when show-remove-term-btn?
+      [b/inputgroup-button
+       [b/button {:bs-size  "small"
+                  :title    "Remove search word"
+                  :on-click #(reset! wrapped-term nil)}
+        [b/glyphicon {:glyph "minus"}]]])]])
 
 
 (defn- add-term-btn [wrapped-query wrapped-term query-term-ids]
@@ -68,13 +73,14 @@
 
 
 (defn- interval-input [a m wrapped-term index]
-  [b/input {:type        "text"
-            :bs-size     "small"
-            :class-name  "interval"
-            :value       (get-in @wrapped-term [:interval index])
-            :on-change   #(swap! wrapped-term
-                                 assoc-in [:interval index] (.-target.value %))
-            :on-key-down #(on-key-down % a m)}])
+  [b/formcontrol
+   {:type        "text"
+    :bs-size     "small"
+    :class-name  "interval"
+    :value       (get-in @wrapped-term [:interval index])
+    :on-change   #(swap! wrapped-term
+                         assoc-in [:interval index] (.-target.value %))
+    :on-key-down #(on-key-down % a m)}])
 
 
 (defn interval [a m wrapped-term]

@@ -259,12 +259,13 @@
    " Segment final"])
 
 (defn headword-search-checkbox [wrapped-query]
-  [b/input {:type      "checkbox"
-            :value     "1"
-            :checked   (:headword-search @wrapped-query)
-            :on-change #(swap! wrapped-query assoc :headword-search (.-target.checked %))
-            :id        "headword_search"
-            :name      "headword_search"} " Headword search"])
+  [b/formcontrol
+   {:type      "checkbox"
+    :value     "1"
+    :checked   (:headword-search @wrapped-query)
+    :on-change #(swap! wrapped-query assoc :headword-search (.-target.checked %))
+    :id        "headword_search"
+    :name      "headword_search"} " Headword search"])
 
 (defn top-toolbar [{:keys                            [num-resets show-metadata?]
                     {:keys [queries]}                :search-view

@@ -19,6 +19,7 @@
                  [enlive "1.1.5"]
                  [reagent "0.6.0-alpha"]
                  [cljsjs/jquery "1.9.0-0"]
+                 [cljsjs/react-bootstrap "0.30.2-0"]
                  [environ "1.0.0"]
                  [http-kit "2.1.21-alpha2"]
                  [cljs-http "0.1.35"]
@@ -59,10 +60,7 @@
                     :recompile-dependents false
                     :main                 "cglossa.core"
                     :asset-path           "js/out"
-                    :foreign-libs         [{:file     "resources/public/js/react-bootstrap_0.28.1.min.js"
-                                            :provides ["react-bootstrap"]
-                                            :requires ["cljsjs.react"]}
-                                           {:file     "resources/public/js/jquery-ui.js"
+                    :foreign-libs         [{:file     "resources/public/js/jquery-ui.js"
                                             :file-min "resources/public/js/jquery-ui.min.js"
                                             :provides ["jquery-ui"]
                                             :requires ["cljsjs.jquery"]}
@@ -102,7 +100,6 @@
                                             :provides ["geo-distribution-map"]
                                             :requires ["cljsjs.react"]}]
                     :externs              ["resources/public/js/externs/extra.ext.js"
-                                           "resources/public/js/externs/react-bootstrap_0.28.1.ext.js"
                                            "resources/public/js/externs/select2.ext.js"
                                            "resources/public/js/externs/react-spinner.ext.js"
                                            "resources/public/js/externs/bootstrap_tooltip.ext.js"

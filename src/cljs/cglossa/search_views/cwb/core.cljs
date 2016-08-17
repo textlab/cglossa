@@ -164,11 +164,12 @@
 (defn- language-select [wrapped-query languages queries]
   (let [selected-language     (or (:lang @wrapped-query) (-> languages first :code))
         previously-used-langs (disj (->> @queries (map :lang) set) selected-language)]
-    [b/input {:type          "select"
-              :bs-size       "small"
-              :style         {:width 166}
-              :default-value selected-language
-              :on-change     #(reset! wrapped-query {:query "" :lang (keyword (.-target.value %))})}
+    [b/formcontrol
+     {:type          "select"
+      :bs-size       "small"
+      :style         {:width 166}
+      :default-value selected-language
+      :on-change     #(reset! wrapped-query {:query "" :lang (keyword (.-target.value %))})}
      (for [{:keys [code name]} languages
            :when (not (get previously-used-langs code))]
        [:option {:key code :value code} name])]))
@@ -183,13 +184,14 @@
     [:form.table-display {:style {:margin "10px 0px 15px -35px"}}
      [:div.table-row {:style {:margin-bottom 10}}
       [remove-row-btn show-remove-row-btn? wrapped-query]
-      [b/input {:style            {:width 500}
-                :class-name       "col-sm-12"
-                :group-class-name "table-cell"
-                :type             input-type
-                :default-value    displayed-query
-                :on-change        #(on-text-changed % wrapped-query phonetic?)
-                :on-key-down      #(on-key-down % a m)}]]
+      [b/formcontrol
+       {:style            {:width 500}
+        :class-name       "col-sm-12"
+        :group-class-name "table-cell"
+        :type             input-type
+        :default-value    displayed-query
+        :on-change        #(on-text-changed % wrapped-query phonetic?)
+        :on-key-down      #(on-key-down % a m)}]]
      (when show-checkboxes?
        (list ^{:key 1}
              [:div.table-row

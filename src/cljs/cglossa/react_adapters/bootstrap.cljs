@@ -1,5 +1,5 @@
 (ns cglossa.react-adapters.bootstrap
-  (:require react-bootstrap
+  (:require cljsjs.react-bootstrap
             reagent.core)
   (:require-macros [cglossa.react-adapters.shared :refer [adapt!]]))
 
@@ -16,8 +16,10 @@
         "Dropdown.Menu"
         "Dropdown.Toggle"
         "DropdownButton"
+        "FormControl"
         "Glyphicon"
-        "Input"
+        "InputGroup"
+        "InputGroup.Button"
         "Label"
         "MenuItem"
         "Modal"
