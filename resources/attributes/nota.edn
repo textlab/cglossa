@@ -1,2 +1,4 @@
-[{:displayed-attrs [:lemma :phon :pos, :gender, :num, :type, :defn, :temp, :pers,
-                    :case, :degr, :descr, :nlex, :mood, :voice]}]
+[{:displayed-attrs [[:lemma "Lemma"] [:phon "Phonetic form"] [:pos "Part-of-speech"],
+                    [:gender "Gender"], [:num "Number"], [:type "Type"], [:defn "Definiteness"],
+                    [:temp "Tense"], [:pers "Person"], [:case "Case"], [:degr "Degree"],
+                    [:descr "Description"], [:nlex "Non-lexical"], [:mood "Mood"], [:voice "Voice"]]}]

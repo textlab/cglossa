@@ -11,4 +11,4 @@
   "Determines whether a corpus contains phonetic transcriptions by checking if
    its first (and probably only) language includes 'phon' among its displayed
    attributes."
-  (->> corpus :languages first :config :displayed-attrs (some #{:phon})))
+  (->> corpus :languages first :config :displayed-attrs (map first) (some #{:phon})))

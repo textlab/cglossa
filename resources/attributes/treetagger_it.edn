@@ -1,4 +1,6 @@
-[{:displayed-attrs [:lemma :pos :type :degr_dia :tense_defin :mood_case]}
+[{:displayed-attrs [[:lemma "Lemma"] [:pos "Part of speech"] [:type "Type"]
+                    [:degr_dia "Degree or Voice"] [:tense_defin "Tense or Definiteness"]
+                    [:mood_case "Mood or Case"]]}
  ["abbr" "abbreviation" nil []]
  ["adj" "adjective" nil []]
  ["adv" "adverb" nil []]

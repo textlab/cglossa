@@ -1,4 +1,6 @@
-[{:displayed-attrs [:lemma :pos :type :degr_dia :tense_defin :person_type2 :number]}
+[{:displayed-attrs [[:lemma "Lemma"] [:pos "Part of speech"] [:type "Type"]
+                    [:degr_dia "Degree or Voice"] [:tense_defin "Tense or Definiteness"]
+                    [:person_type2 "Person or extended type info"] [:number "Number"]]}
  ["adj" "adjective" nil
   ["Degree" [[:degr_dia "pos" "positive"]
              [:degr_dia "comp" "comparative"]

@@ -208,7 +208,7 @@
        [:div.row>div.col-sm-12.search-result-table-container
         [b/table {:bordered true}
          [:tbody
-          (let [attrs             (-> @corpus :languages first :config :displayed-attrs)
+          (let [attrs             (->> @corpus :languages first :config :displayed-attrs (map first))
                 ort-index         0     ; orthographic form is always the first attribute
                 ;; We need to inc phon-index and lemma-index since the first attribute ('word') is
                 ;; not in the list because it is shown by default by CQP

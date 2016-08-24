@@ -1,5 +1,7 @@
-[{:displayed-attrs [:lemma :pos :type :degr_dia :tense_defin
-                    :mood_case :person_type2 :number :gender]}
+[{:displayed-attrs [[:lemma "Lemma"] [:pos "Part of speech"] [:type "Type"]
+                    [:degr_dia "Degree or Voice"] [:tense_defin "Tense or Definiteness"]
+                    [:mood_case "Mood or Case"] [:person_type2 "Person or extended type info"]
+                    [:number "Number"] [:gender "Gender"]]}
  ["adj" "adjective" nil
   ["Type" [[:type "ord" "ordinal"]
            [:person_type2 "pcp1" "present participle"]

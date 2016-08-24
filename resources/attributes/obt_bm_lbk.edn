@@ -1,6 +1,8 @@
-[{:displayed-attrs [:lemma :ordkl :type :grad_dia :tid_bestemthet
-                    :modus_kasus :person_type2 :tall :kjonn]
-  :pos-attr "ordkl"}
+[{:displayed-attrs [[:lemma "Lemma"] [:ordkl "Part of speech"] [:type "Type"]
+                    [:grad_dia "Degree or Voice"] [:tid_bestemthet "Tense or Definiteness"]
+                    [:modus_kasus "Mood or Case"] [:person_type2 "Person or extended type info"]
+                    [:tall "Number"] [:kjonn "Gender"]]
+  :pos-attr        "ordkl"}
  ["adj" "adjective" nil
   ["Degree" [[:grad_dia "pos" "positive"]
              [:grad_dia "komp" "comparative"]

@@ -146,7 +146,7 @@
                                    :languages
                                    (filter #(= (:code %) first-query-lang))
                                    first)
-        displayed-attrs       (get-in corpus-lang [:config :displayed-attrs])
+        displayed-attrs       (->> corpus-lang :config :displayed-attrs (map first))
         corpus-specific-attrs (->> corpus-lang
                                    :corpus-specific-attrs
                                    (map first))]

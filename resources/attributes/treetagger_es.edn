@@ -1,4 +1,4 @@
-[{:displayed-attrs [:lemma :pos]}
+[{:displayed-attrs [[:lemma "Lemma"] [:pos "Part of speech"]]}
  ["ACRNM" nil "acronym (ISO, CEI)" []]
  ["ADJ" nil "Adjectives (mayores, mayor)" []]
  ["ADV" nil "Adverbs (muy, demasiado, cómo)" []]
