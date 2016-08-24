@@ -32,6 +32,7 @@
                  [me.raynes/fs "1.4.6"]
                  [cheshire "5.5.0"]
                  [ring-logger-timbre "0.7.5"]
+                 [dk.ative/docjure "1.10.0"]
                  [binaryage/devtools "0.5.0"]]
 
   :plugins [[lein-cljsbuild "1.1.1"]

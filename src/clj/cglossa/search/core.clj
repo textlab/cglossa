@@ -66,3 +66,14 @@
         s       (search-by-id search-id)]
     {:search  s
      :results results}))
+
+(defn download-results [corpus-id search-id cpu-counts format headings?]
+  (let [corpus      (get-corpus {:id corpus-id})
+        s           (search-by-id search-id)
+        queries     (edn/read-string (:queries s))
+        start       0
+        end         100
+        sort-key    "position"
+        cpu-counts* (edn/read-string cpu-counts)
+        [results _] (get-results corpus s queries start end cpu-counts* sort-key)]
+    results))

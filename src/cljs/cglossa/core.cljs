@@ -45,6 +45,7 @@
                                          :sort-key                (r/atom :position)
                                          :freq-attr               (r/atom nil)
                                          :translations            (r/atom nil)
+                                         :showing-download-popup? (r/atom false)
                                          :media                   {:showing-media-popup? (r/atom false)
                                                                    :media-obj            (r/atom nil)
                                                                    :player-row-index     (r/atom nil)

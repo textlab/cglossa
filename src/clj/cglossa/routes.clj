@@ -17,7 +17,7 @@
             [cglossa.db.corpus :refer [get-corpus]]
             [cglossa.db.metadata :refer [get-metadata-categories get-metadata-values
                                          show-texts num-selected-texts result-metadata]]
-            [cglossa.search.core :refer [search-corpus results geo-distr]]
+            [cglossa.search.core :refer [search-corpus results geo-distr download-results]]
             [cglossa.search.cwb.speech :refer [play-video]])
   (:import (java.io ByteArrayOutputStream)))
 
@@ -106,4 +106,7 @@
     (transit-response (play-video corpus-id search-id result-index context-size) false))
 
   (POST "/geo-distr" [corpus-id search-id metadata-ids]
-    (transit-response (geo-distr corpus-id search-id metadata-ids) false)))
+    (transit-response (geo-distr corpus-id search-id metadata-ids) false))
+
+  (GET "/download-results" [corpus-id search-id cpu-counts format headings?]
+    (download-results corpus-id search-id cpu-counts format headings?)))

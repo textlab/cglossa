@@ -123,14 +123,72 @@
      [b/menuitem {:event-key :right-wide, :on-select on-select}
       (when (= sk :right-wide) [b/glyphicon {:glyph "ok"}]) "  By wider right context (10 tokens)"]]))
 
+(defn- download-button [{{:keys [showing-download-popup?]} :results-view}]
+  [b/button {:id       "download-button"
+             :bs-size  "small"
+             :bs-style "default"
+             :on-click #(reset! showing-download-popup? true)}
+   "Download"])
 
-(defn- statistics-button [{{freq-attr :freq-attr} :results-view} m]
-  (let [on-select #(reset! freq-attr (keyword %1))]
-    [b/dropdownbutton {:title "Statistics"}
-     [b/menuitem {:header true} "Frequencies"]
-     [b/menuitem {:event-key :word, :on-select on-select} "Word forms"]
-     [b/menuitem {:event-key :lemma, :on-select on-select} "Lemmas"]
-     [b/menuitem {:event-key :pos, :on-select on-select} "Parts-of-speech"]]))
+(defn- download-popup [{{:keys [cpu-counts showing-download-popup?]} :results-view}
+                       {:keys [corpus search]}]
+  (r/with-let
+    [hide-popup #(reset! showing-download-popup? false)
+     attrs (->> @corpus :languages first :config :displayed-attrs)
+     form-field-vals (r/atom {:format   "excel"
+                              :headers? true
+                              :attrs    (merge {:word true} (zipmap attrs (repeat false)))})
+     attr-boxes (for [[attr attr-name] attrs]
+                  ^{:key attr}
+                  [b/checkbox
+                   {:inline    true
+                    :checked   (get-in @form-field-vals [:attrs attr])
+                    :on-change (fn [e]
+                                 (swap! form-field-vals assoc-in [:attrs attr]
+                                        (.-target.checked e)))}
+                   attr-name])
+     download (fn [{:keys [format headers?]}]
+                (let [results-ch (http/get "/download-results"
+                                           {:query-params {:corpus-id  (:id @corpus)
+                                                           :search-id  (:id @search)
+                                                           :cpu-counts (str (vec @cpu-counts))
+                                                           :format     format
+                                                           :headers?   headers?}})]))]
+    [b/modal {:class-name "download-modal"
+              :show       @showing-download-popup?
+              :on-hide    hide-popup}
+     [b/modalheader {:close-button true}
+      [b/modaltitle "Download results"]]
+     [b/modalbody
+      [b/checkbox {:checked   (:headers? @form-field-vals)
+                   :on-change #(swap! form-field-vals assoc :headers? (.-target.checked %))}
+       "Create headers?"]
+      [b/panel {:header "Attributes"}
+       [:form {:on-submit (fn [e]
+                            (.preventDefault e)
+                            (download @form-field-vals))}
+
+        [b/formgroup
+         [b/checkbox
+          {:inline    true
+           :checked   true
+           :style     {:margin-left 10}
+           :on-change (fn [e]
+                        (swap! form-field-vals assoc-in [:attrs "word"]
+                               (.-target.value e)))}
+          "Word form"]
+         attr-boxes]]]]
+     [b/modalfooter
+      [b/button {:bs-style "success" :on-click download} "Download"]
+      [b/button {:on-click hide-popup} "Close"]]]))
+
+#_(defn- statistics-button [{{freq-attr :freq-attr} :results-view} m]
+    (let [on-select #(reset! freq-attr (keyword %1))]
+      [b/dropdownbutton {:title "Statistics"}
+       [b/menuitem {:header true} "Frequencies"]
+       [b/menuitem {:event-key :word, :on-select on-select} "Word forms"]
+       [b/menuitem {:event-key :lemma, :on-select on-select} "Lemmas"]
+       [b/menuitem {:event-key :pos, :on-select on-select} "Parts-of-speech"]]))
 
 
 (defn- pagination [{{:keys [results total page-no paginator-page-no
@@ -236,6 +294,8 @@
    [:div.col-sm-12
     [b/buttontoolbar
      [sort-button a m]
+     [download-button a m]
+     [download-popup a m]
      [pagination a m]]]])
 
 (defmulti result-links
