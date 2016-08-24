@@ -259,9 +259,8 @@
    " Segment final"])
 
 (defn headword-search-checkbox [wrapped-query]
-  [b/formcontrol
-   {:type      "checkbox"
-    :value     "1"
+  [b/checkbox
+   {:value     "1"
     :checked   (:headword-search @wrapped-query)
     :on-change #(swap! wrapped-query assoc :headword-search (.-target.checked %))
     :id        "headword_search"

@@ -12,6 +12,7 @@
 (adapt! "ReactBootstrap."
         "Button"
         "ButtonToolbar"
+        "Checkbox"
         "Dropdown"
         "Dropdown.Menu"
         "Dropdown.Toggle"
