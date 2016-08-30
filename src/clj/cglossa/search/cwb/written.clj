@@ -98,6 +98,21 @@
                       (reduce + 0 cnts))]
     [hits cnt cnts]))
 
+;; For written CWB corpora that don't use multicore processing (e.g. multilingual corpora)
+(defmethod get-results ["cwb" nil] [corpus search queries start end _ sort-key]
+  (let [named-query (str (cwb-query-name corpus (:id search)) "_1_0")
+        commands    [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
+                     (cwb-corpus-name corpus queries)
+                     (str "set Context 15 word")
+                     "set PrintStructures \"s_id\""
+                     "set LD \"{{\""
+                     "set RD \"}}\""
+                     (displayed-attrs-command corpus queries)
+                     (aligned-languages-command corpus queries)
+                     (sort-command named-query sort-key)
+                     (str "cat " named-query " " start " " end)]]
+    (run-cqp-commands corpus (flatten commands) false)))
+
 (defmethod get-results :default [corpus search queries start end cpu-counts sort-key]
   (let [named-query   (cwb-query-name corpus (:id search))
         nres-1        (- end start)

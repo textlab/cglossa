@@ -56,7 +56,7 @@
     [hits cnt [cnt]]))
 
 
-(defmethod get-results "cwb_speech" [corpus search queries start end _ sort-key]
+(defmethod get-results ["cwb_speech" nil] [corpus search queries start end _ sort-key]
   (let [named-query (cwb-query-name corpus (:id search))
         commands    [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
                      (cwb-corpus-name corpus queries)

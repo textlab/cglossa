@@ -13,7 +13,7 @@
   (fn [corpus _ _ _ _ _ _ _] (:search_engine corpus)))
 
 (defmulti get-results
-  (fn [corpus _ _ _ _ _ _] (:search_engine corpus)))
+  (fn [corpus _ _ _ _ _ _] [(:search_engine corpus) (seq (:multicpu_bounds corpus))]))
 
 (defmulti transform-results
   "Multimethod for transforming search results in a way that is
