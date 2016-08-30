@@ -294,8 +294,8 @@
    [:div.col-sm-12
     [b/buttontoolbar
      [sort-button a m]
-     [download-button a m]
-     [download-popup a m]
+     #_[download-button a m]
+     #_[download-popup a m]
      [pagination a m]]]])
 
 (defmulti result-links
