@@ -6,7 +6,7 @@
             [cglossa.shared :refer [on-key-down remove-row-btn headword-search-checkbox
                                     segment-initial-checkbox segment-final-checkbox]]
             [cglossa.react-adapters.bootstrap :as b]
-            [cglossa.search-views.shared :refer [has-phonetic?]]
+            [cglossa.search-views.shared :refer [has-phonetic? has-original?]]
             [cglossa.search-views.cwb.extended.shared :refer [language-data language-menu-data
                                                               language-config
                                                               language-corpus-specific-attrs]]
@@ -90,7 +90,7 @@
    [interval-input a m wrapped-term 1] "max"])
 
 
-(defn- checkboxes [wrapped-query wrapped-term has-phon? first? last?]
+(defn- checkboxes [wrapped-query wrapped-term has-phon? has-orig? first? last?]
   (let [term-val @wrapped-term]
     [:div.table-cell {:style {:min-width 200}}
      [:div.word-checkboxes
@@ -127,7 +127,15 @@
            [segment-initial-checkbox wrapped-query]
            [segment-final-checkbox wrapped-query]]
           (list (when first? ^{:key "seg-init"} [segment-initial-checkbox wrapped-query])
-                (when last? ^{:key "seg-final"} [segment-final-checkbox wrapped-query])))])]))
+                (when last? ^{:key "seg-final"} [segment-final-checkbox wrapped-query])))])
+     (when has-orig?
+       [:div
+        [:label.checkbox-inline {:style {:padding-left 18}}
+         [:input {:type      "checkbox"
+                  :style     {:margin-left -18}
+                  :checked   (:original? term-val)
+                  :on-change #(swap! wrapped-term assoc :original? (.-target.checked %))
+                  }] "Original"]])]))
 
 
 (defn- tag-descriptions [data wrapped-term path]
@@ -227,7 +235,7 @@
 
 
 (defn multiword-term [a m wrapped-query wrapped-term query-term-ids
-                      index first? last? has-phon? show-remove-row-btn?
+                      index first? last? has-phon? has-orig? show-remove-row-btn?
                       show-remove-term-btn?]
   (r/with-let [show-attr-popup? (r/atom false)]
     [:div.table-cell>div.multiword-term>div.control-group
@@ -241,7 +249,7 @@
      [:div.table-row
       (when first?
         [:div.table-cell])
-      [checkboxes wrapped-query wrapped-term has-phon? first? last?]
+      [checkboxes wrapped-query wrapped-term has-phon? has-orig? first? last?]
       (when last?
         [:div.table-cell])]
 
@@ -305,8 +313,8 @@
                                      [interval a m wrapped-term corpus])
                                    ^{:key (str "term" term-id)}
                                    [multiword-term a m wrapped-query wrapped-term query-term-ids
-                                    index first? last? (has-phonetic? @corpus) show-remove-row-btn?
-                                    show-remove-term-btn?])))
+                                    index first? last? (has-phonetic? @corpus) (has-original? @corpus)
+                                    show-remove-row-btn? show-remove-term-btn?])))
                          terms))]
          (when (:has-headword-search @corpus)
            [:div.table-row

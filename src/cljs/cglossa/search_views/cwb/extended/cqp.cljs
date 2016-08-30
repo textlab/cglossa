@@ -67,13 +67,14 @@
                                 (str/replace #"(.+?)(?:\.\*)?$" "$1")))
           (= name "lemma") (assoc :lemma? true)
           (= name "phon") (assoc :phonetic? true)
+          (= name "orig") (assoc :original? true)
           (re-find #".+\.\*$" val) (assoc :start? true)
           (re-find #"^\.\*.+" val) (assoc :end? true)))
 
 
 (defn- handle-attribute-value [terms part interval corpus-specific-attrs-regex]
   (let [term (as-> {:interval @interval} $
-                   (if-let [[_ name val] (re-find #"(word|lemma|phon)\s*=\s*\"(.+?)\""
+                   (if-let [[_ name val] (re-find #"(word|lemma|phon|orig)\s*=\s*\"(.+?)\""
                                                   (last part))]
                      (process-form $ name val)
                      $)
@@ -148,11 +149,12 @@
         _       (swap! query-term-ids #(vec (keep-indexed (fn [index id]
                                                             (when (nth terms index) id)) %)))
         terms*  (filter identity terms) ; nil means term should be removed
-        parts   (for [{:keys [interval form lemma? phonetic?
+        parts   (for [{:keys [interval form lemma? phonetic? original?
                               start? end? features corpus-specific-attrs]} terms*]
                   (let [attr   (cond
                                  lemma? "lemma"
                                  phonetic? "phon"
+                                 original? "orig"
                                  :else "word")
                         form*  (if (empty? form)
                                  (when (and (empty? features) (empty? corpus-specific-attrs)) ".*")

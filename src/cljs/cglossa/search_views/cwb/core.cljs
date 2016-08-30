@@ -7,7 +7,7 @@
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.shared :refer [search! on-key-down remove-row-btn segment-initial-checkbox
                                     segment-final-checkbox headword-search-checkbox]]
-            [cglossa.search-views.shared :refer [search-inputs has-phonetic?]]
+            [cglossa.search-views.shared :refer [search-inputs has-phonetic? has-original?]]
             [cglossa.search-views.cwb.extended.core :refer [extended]]))
 
 (def ^:private headword-query-prefix "<headword>")
@@ -38,8 +38,11 @@
       (without-suffix headword-query-suffix-more-words)
       (without-prefix headword-query-prefix)))
 
-(defn- phrase->cqp [phrase wrapped-query phonetic?]
-  (let [attr       (if phonetic? "phon" "word")
+(defn- phrase->cqp [phrase wrapped-query phonetic? original?]
+  (let [attr       (cond
+                     phonetic? "phon"
+                     original? "orig"
+                     :else "word")
         chinese-ch "[\u4E00-\u9FFF\u3400-\u4DFF\uF900-\uFAFF]"
         ; Surround every Chinese character by space when constructing a cqp query,
         ; to treat it as if it was an individual word:
@@ -110,15 +113,21 @@
 ; Event handlers
 ;;;;;;;;;;;;;;;;;
 
-(defn- on-phonetic-changed [event wrapped-query]
+(defn- attr-checkbox-changed [event wrapped-query attr]
   (let [q        (:query @wrapped-query)
         checked? (.-target.checked event)
         query    (if checked?
                    (if (str/blank? q)
-                     "[phon=\".*\" %c]"
-                     (str/replace q "word=" "phon="))
-                   (str/replace q "phon=" "word="))]
+                     (str "[" attr "=\".*\" %c]")
+                     (str/replace q "word=" (str attr "=")))
+                   (str/replace q (str attr "=") "word="))]
     (swap! wrapped-query assoc :query query)))
+
+(defn- on-phonetic-changed [event wrapped-query]
+  (attr-checkbox-changed event wrapped-query "phon"))
+
+(defn- on-original-changed [event wrapped-query]
+  (attr-checkbox-changed event wrapped-query "orig"))
 
 ;;;;;;;;;;;;;
 ; Components
@@ -180,7 +189,8 @@
   [a {:keys [corpus] :as m} input-type wrapped-query displayed-query
    show-remove-row-btn? show-checkboxes? on-text-changed]
   (let [query     (:query @wrapped-query)
-        phonetic? (not= -1 (.indexOf query "phon="))]
+        phonetic? (not= -1 (.indexOf query "phon="))
+        original? (not= -1 (.indexOf query "orig="))]
     [:form.table-display {:style {:margin "10px 0px 15px -35px"}}
      [:div.table-row {:style {:margin-bottom 10}}
       [remove-row-btn show-remove-row-btn? wrapped-query]
@@ -190,7 +200,7 @@
         :group-class-name "table-cell"
         :type             input-type
         :default-value    displayed-query
-        :on-change        #(on-text-changed % wrapped-query phonetic?)
+        :on-change        #(on-text-changed % wrapped-query phonetic? original?)
         :on-key-down      #(on-key-down % a m)}]]
      (when show-checkboxes?
        (list ^{:key 1}
@@ -212,7 +222,16 @@
                    ^{:key "seg-init"}
                    [segment-initial-checkbox wrapped-query]
                    ^{:key "seg-final"}
-                   [segment-final-checkbox wrapped-query]))]]
+                   [segment-final-checkbox wrapped-query]))
+               (when (has-original? @corpus)
+                 (list
+                   ^{:key "orig"}
+                   [:label.checkbox-inline {:style {:padding-left 18}}
+                    [:input {:name      "original"
+                             :type      "checkbox"
+                             :style     {:margin-left -18}
+                             :checked   original?
+                             :on-change #(on-original-changed % wrapped-query)}] " Original form"]))]]
              (when (:has-headword-search @corpus)
                ^{:key 2}
                [:div.table-row
@@ -237,11 +256,11 @@
                             (str/replace #"\s*\[\]\s*" " .* ")
                             (str/replace #"^\s*\.\*\s*$" "")
                             (str/replace "__QUOTE__" "\""))
-        on-text-changed (fn [event wrapped-query phonetic?]
+        on-text-changed (fn [event wrapped-query phonetic? original?]
                           (let [value (.-target.value event)
                                 query (if (= value "")
                                         ""
-                                        (phrase->cqp value wrapped-query phonetic?))]
+                                        (phrase->cqp value wrapped-query phonetic? original?))]
                             (swap! wrapped-query assoc :query query)))]
     [single-input-view a m "text" wrapped-query displayed-query show-remove-row-btn?
      true on-text-changed]))
