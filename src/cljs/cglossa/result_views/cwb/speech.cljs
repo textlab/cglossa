@@ -83,21 +83,6 @@
   [:tr {:style {:background-color "#f1f1f1"}}
    [:td {:col-span 4 :style {:padding 3}}]])
 
-(defn- extra-row [result attr {:keys [corpus]}]
-  (let [sound?       (:has-sound @corpus)
-        video?       (:has-video @corpus)
-        match        (first (filter (fn [_ v] (:is-match v))
-                                    (get-in result [:media-obj :divs :annotation])))
-        row-contents (str/join " " (for [[_ v] (:line match)]
-                                     (get v attr)))]
-    [:tr
-     (when (:s-id result)
-       [:td])
-     (when (or sound? video?)
-       [:td.span1])
-     [:td {:col-span 3}
-      row-contents]]))
-
 (defn- process-token [token index displayed-field-index tip-field-indexes]
   (when-not (str/blank? token)
     (let [attrs     (str/split token #"/")

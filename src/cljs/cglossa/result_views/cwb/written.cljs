@@ -29,18 +29,6 @@
                           ^{:key index} [:span token " "]))
                       $)))
 
-(defn- monolingual-or-first-multilingual [res]
-  (let [m (re-find #"<(\w+_(?:id|name))(.*?)>(.*)\{\{(.+?)\}\}(.*?)</\1>$" (:text res))]
-    ;; There will only be a surrounding structural attribute if the corpus has some
-    ;; kind of s-unit segmentation
-    (if m
-      (let [[_ _ s-id pre match post] m]
-        [(str/trim s-id) [pre match post]])
-      ;; Try again without the surrounding structural attribute
-      (let [m (re-find #"(.*)\{\{(.+?)\}\}(.*)" (:text res))
-            [_ pre match post] m]
-        ["" [pre match post]]))))
-
 (defn- non-first-multilingual [index line]
   ;; Extract the IDs of all s-units (typically sentences)
   ;; and put them in front of their respective s-units.
