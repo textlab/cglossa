@@ -70,5 +70,5 @@
    "Tense" [[:tense_defin "inf" "infinitive"]
             [:tense_defin "pres" "present tense"]
             [:tense_defin "past" "past tense"]]
-   "Type" [[:tense_defin "pcp2" "past participle"]
+   "Type" [[:person_type2 "pcp2" "past participle"]
            [:type "noconj" "no inflection"]]]]]
