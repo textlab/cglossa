@@ -95,8 +95,14 @@
                    (if-let [exprs (when corpus-specific-attrs-regex
                                     (re-seq corpus-specific-attrs-regex (last part)))]
                      (reduce (fn [t [_ attr vals]]
-                               (assoc-in t [:corpus-specific-attrs attr]
-                                         (set (str/split vals #"\|"))))
+                               ;; If the attribute is "word" or "orig", we only allow values
+                               ;; starting with && to be treated as corpus-specific values
+                               ;; (other values are just ordinary word forms to search for)
+                               (if (or (nil? (#{"word" "orig"} attr))
+                                       (re-find #"^&&" vals))
+                                 (assoc-in t [:corpus-specific-attrs attr]
+                                           (set (str/split vals #"\|")))
+                                 t))
                              $
                              exprs)
                      $))]
