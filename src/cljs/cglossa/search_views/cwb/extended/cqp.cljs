@@ -74,10 +74,15 @@
 
 (defn- handle-attribute-value [terms part interval corpus-specific-attrs-regex]
   (let [term (as-> {:interval @interval} $
-                   (if-let [[_ name val] (re-find #"(word|lemma|phon|orig)\s*=\s*\"(.+?)\""
-                                                  (last part))]
-                     (process-form $ name val)
-                     $)
+                   (let [[_ name val] (re-find #"(word|lemma|phon|orig)\s*=\s*\"(.+?)\""
+                                               (last part))]
+                     ;; If the attribute value starts with &&, it should be a special code
+                     ;; (e.g. for marking errors in text, inserted as "tokens" to ensure alignment
+                     ;; between original and corrected text) and should not be shown in the text
+                     ;; input box
+                     (if (and name (not (str/starts-with? val "&&")))
+                       (process-form $ name val)
+                       $))
                    (if-let [pos-exprs (re-seq #"\(pos=\"(.+?)\"(.*?)\)" (last part))]
                      (reduce (fn [t [_ pos rest]]
                                ;; Allow attribute values to contain Norwegian chars, -, <, > and /
@@ -99,7 +104,7 @@
                                ;; starting with && to be treated as corpus-specific values
                                ;; (other values are just ordinary word forms to search for)
                                (if (or (nil? (#{"word" "orig"} attr))
-                                       (re-find #"^&&" vals))
+                                       (str/starts-with? vals "&&"))
                                  (assoc-in t [:corpus-specific-attrs attr]
                                            (set (str/split vals #"\|")))
                                  t))
