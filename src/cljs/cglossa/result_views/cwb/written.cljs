@@ -75,7 +75,8 @@
                          :post-match orig-post}}
         main     (main-row a m (:word res-info) index)
         orig     (when orig-index
-                   [(original-row a m (:orig res-info) index)])
+                   [(original-row a m (:orig res-info) index)
+                    (shared/separator-row index)])
         others   (map-indexed non-first-multilingual other-lines)]
     ;; Assume that we have EITHER an attribute with original text OR several other langage rows
     (cons main (or orig others))))

@@ -78,11 +78,6 @@
      [:td [:a {:href "http://translate.google.com/" :target "_blank"} [:img {:src "img/attr1-2.png"}]]]
      [:td {:col-span 3 :style {:color "#737373"}} trans]]))
 
-(defn- separator-row [row-index]
-  ^{:key (str "sep" row-index)}
-  [:tr {:style {:background-color "#f1f1f1"}}
-   [:td {:col-span 4 :style {:padding 3}}]])
-
 (defn- process-token [token index displayed-field-index tip-field-indexes]
   (when-not (str/blank? token)
     (let [attrs     (str/split token #"/")
@@ -140,7 +135,7 @@
         orthographic (orthographic-row a m (:ort res-info) row-index)
         phonetic     (phonetic-row a m (:phon res-info) row-index)
         translated   (translated-row translations page-no row-index)
-        separator    (separator-row row-index)]
+        separator    (shared/separator-row row-index)]
     (list orthographic translated phonetic separator)))
 
 (defmethod concordance-table "cwb_speech"

@@ -97,3 +97,10 @@
     ;; text in a single following column.
     (list [:td]
           [:td.aligned-text {:col-span 3} (:pre-match result)])))
+
+(defn separator-row [row-index]
+  "When we show several rows for each search results, this separator row can be used to
+  more clearly separate individual search results."
+  ^{:key (str "sep" row-index)}
+  [:tr {:style {:background-color "#f1f1f1"}}
+   [:td {:col-span 4 :style {:padding 3}}]])
