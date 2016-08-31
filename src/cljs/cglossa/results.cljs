@@ -459,4 +459,4 @@
      (when (:geo-coords @corpus)
        [b/tab {:title "Map" :event-key :geo-map}
         [geo-map a m view-type]])
-     [b/tab {:title "Statistics" :event-key :statistics :disabled true}]]]])
+     #_[b/tab {:title "Statistics" :event-key :statistics :disabled true}]]]])
