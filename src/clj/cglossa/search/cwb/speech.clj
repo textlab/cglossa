@@ -13,10 +13,6 @@
 
 (defentity media-file (table :media_file) (entity-fields :basename))
 
-;; TODO: Fetch these from the definition of the tag set for the tagger that is being used
-(def ^:private display-attrs [:lemma :phon :pos :gender :num :type :defn
-                              :temp :pers :case :degr :descr :nlex :mood :voice])
-
 (defn- corpus-size [corpus queries]
   (get-in corpus [:extra-info :size (str/lower-case (cwb-corpus-name corpus queries))]))
 
@@ -91,14 +87,14 @@
     [(repeat num-speakers start) (repeat num-speakers end)]))
 
 
-(defn- build-annotation [index line speaker starttime endtime]
+(defn- build-annotation [displayed-attrs index line speaker starttime endtime]
   (let [match? (boolean (re-find #"\{\{" line))
         line*  (str/replace line #"\{\{|\}\}" "")
         tokens (str/split line* #"\s+")]
     [index {:speaker speaker
             :line    (into {} (map-indexed (fn [index token]
                                              (let [attr-values (str/split token #"/")]
-                                               [index (zipmap (cons "word" display-attrs)
+                                               [index (zipmap (cons "word" displayed-attrs)
                                                               attr-values)]))
                                            tokens))
             :from    starttime
@@ -109,7 +105,8 @@
 (defn- create-media-object
   "Creates the data structure that is needed by jPlayer for a single search result."
   [overall-starttime overall-endtime starttimes endtimes lines speakers corpus line-key]
-  (let [annotations         (into {} (map build-annotation
+  (let [displayed-attrs     (->> corpus :languages first :config :displayed-attrs (map first))
+        annotations         (into {} (map (partial build-annotation displayed-attrs)
                                           (range) lines speakers
                                           starttimes endtimes))
         matching-line-index (first (keep-indexed #(when (re-find #"\{\{" %2) %1) lines))
@@ -175,7 +172,22 @@
 (defmethod transform-results "cwb_speech" [_ queries results]
   (when results
     (let [num-langs (->> queries (map :lang) set count)]
-      (map (fn [lines] {:text lines}) (partition num-langs results)))))
+      (map
+        (fn [lines]
+          (let [ls (map
+                     (fn [line]
+                       ;; Get rid of spaces in multiword expressions. Replace two or
+                       ;; three spaces depending on how many underscores we find in the
+                       ;; lemma (provided we have lemmas - otherwise the regexes won't match
+                       ;; anyway).
+                       (-> line
+                           (str/replace #" ([^/\s]+) ([^/\s]+) ([^/\s]+)(/[^/\s]+_[^/\s]+_[^/\s]+/)"
+                                        " $1_$2_$3$4")
+                           (str/replace #" ([^/\s]+) ([^/\s]+)(/[^/\s]+_[^/\s]+/)"
+                                        " $1_$2$3")))
+                     lines)]
+            {:text ls}))
+        (partition num-langs results)))))
 
 
 (defmethod geo-distr-queries "cwb_speech" [corpus search-id metadata-ids]

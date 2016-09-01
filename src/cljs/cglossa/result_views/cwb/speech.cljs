@@ -71,12 +71,11 @@
                 [:img {:src "img/speech/waveform.png" :style {:width 12}}]]))]]
      (shared/text-columns result)]))
 
-(defn- translated-row [translations page-no row-index]
-  (when-let [trans (get @translations (str @page-no "_" row-index))]
-    ^{:key (str "trans" row-index)}
-    [:tr
-     [:td [:a {:href "http://translate.google.com/" :target "_blank"} [:img {:src "img/attr1-2.png"}]]]
-     [:td {:col-span 3 :style {:color "#737373"}} trans]]))
+(defn- translated-row [translation row-index]
+  ^{:key (str "trans" row-index)}
+  [:tr
+   [:td [:a {:href "http://translate.google.com/" :target "_blank"} [:img {:src "img/attr1-2.png"}]]]
+   [:td {:col-span 3 :style {:color "#737373"}} translation]])
 
 (defn- process-token [token index displayed-field-index tip-field-indexes]
   (when-not (str/blank? token)
@@ -117,8 +116,9 @@
         [s-id fields] (extract-fields line)
         [ort-pre ort-match ort-post] (map (partial process-field ort-index ort-tip-indexes)
                                           fields)
-        [phon-pre phon-match phon-post] (map (partial process-field phon-index phon-tip-indexes)
-                                             fields)
+        [phon-pre phon-match phon-post] (when phon-index
+                                          (map (partial process-field phon-index phon-tip-indexes)
+                                               fields))
         ort-text     (concat
                        (map #(nth % 2) ort-pre)
                        (map #(nth % 2) ort-match)
@@ -133,10 +133,15 @@
                              :match      phon-match
                              :post-match phon-post}}
         orthographic (orthographic-row a m (:ort res-info) row-index)
-        phonetic     (phonetic-row a m (:phon res-info) row-index)
-        translated   (translated-row translations page-no row-index)
-        separator    (shared/separator-row row-index)]
-    (list orthographic translated phonetic separator)))
+        phonetic     (when phon-index
+                       (phonetic-row a m (:phon res-info) row-index))
+        trans        (get @translations (str @page-no "_" row-index))
+        translated   (when trans
+                       (translated-row trans row-index))
+        ;; Show the separator row only if there is more than one other row for this result
+        separator    (when (or phon-index trans)
+                       (shared/separator-row row-index))]
+    (filter identity (list orthographic translated phonetic separator))))
 
 (defmethod concordance-table "cwb_speech"
   [{{:keys [results page-no] {:keys [showing-media-popup?
@@ -196,7 +201,8 @@
                 lemma-index       (first (keep-indexed #(when (= %2 :lemma) (inc %1)) attrs))
                 remaining-indexes (remove #(#{ort-index phon-index lemma-index} %)
                                           (range (count attrs)))
-                ort-tip-indexes   (into [phon-index lemma-index] remaining-indexes)
+                ort-tip-indexes   (filter identity
+                                          (into [phon-index lemma-index] remaining-indexes))
                 phon-tip-indexes  (into [ort-index lemma-index] remaining-indexes)]
             (doall (map (partial single-result-rows a m
                                  ort-index phon-index ort-tip-indexes phon-tip-indexes)
