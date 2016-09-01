@@ -43,10 +43,34 @@
                    match)]
       [s-id [pre* match* post]])))
 
-(defn- orthographic-row [a {:keys [corpus] :as m} result row-index]
+(defn- audio-video-links [a m audio? video? row-index]
+  [:nobr
+   (when video?
+     [b/button {:bs-size  "xsmall" :title "Show video"
+                :on-click #(show-media-player row-index "jplayer" "video" a m)}
+      [b/glyphicon {:glyph "film"}]])
+   (when audio?
+     (list ^{:key :audio-btn}
+           [b/button {:bs-size  "xsmall" :title "Play audio" :style {:margin-left 2}
+                      :on-click #(show-media-player row-index "jplayer" "audio" a m)}
+            [b/glyphicon {:glyph "volume-up"}]]
+           ^{:key :waveform-btn}
+           [b/button {:bs-size  "xsmall" :title "Show waveform" :style {:margin-left 2}
+                      :on-click #(show-media-player row-index "wfplayer" "audio" a m)}
+            [:img {:src "img/speech/waveform.png" :style {:width 12}}]]))])
+
+(defn- orthographic-row [a {:keys [corpus] :as m} result row-index show-audio-video?]
   ^{:key (str "ort" row-index)}
   [:tr
-   (shared/id-column a m result row-index)
+   [:td {:style {:text-align "center" :vertical-align "middle"}}
+    (shared/id-column a m result row-index)
+    (when show-audio-video?
+      ;; If we don't have a phonetic transcription, we need to show the audio and video
+      ;; links in the orthographic row instead
+      (let [audio? (:audio? @corpus)
+            video? (:video? @corpus)]
+        [:div {:style {:margin-top 5}}
+         [audio-video-links a m audio? video? row-index]]))]
    (shared/text-columns result)])
 
 (defn- phonetic-row [a {:keys [corpus] :as m} result row-index]
@@ -54,21 +78,8 @@
         video? (:video? @corpus)]
     ^{:key (str "phon" row-index)}
     [:tr
-     [:td {:style {:vertical-align "middle"}}
-      [:nobr
-       (when video?
-         [b/button {:bs-size  "xsmall" :title "Show video"
-                    :on-click #(show-media-player row-index "jplayer" "video" a m)}
-          [b/glyphicon {:glyph "film"}]])
-       (when audio?
-         (list ^{:key :audio-btn}
-               [b/button {:bs-size  "xsmall" :title "Play audio" :style {:margin-left 2}
-                          :on-click #(show-media-player row-index "jplayer" "audio" a m)}
-                [b/glyphicon {:glyph "volume-up"}]]
-               ^{:key :waveform-btn}
-               [b/button {:bs-size  "xsmall" :title "Show waveform" :style {:margin-left 2}
-                          :on-click #(show-media-player row-index "wfplayer" "audio" a m)}
-                [:img {:src "img/speech/waveform.png" :style {:width 12}}]]))]]
+     [:td {:style {:text-align "center" :vertical-align "middle"}}
+      [audio-video-links a m audio? video? row-index]]
      (shared/text-columns result)]))
 
 (defn- translated-row [translation row-index]
@@ -132,7 +143,7 @@
                              :pre-match  phon-pre
                              :match      phon-match
                              :post-match phon-post}}
-        orthographic (orthographic-row a m (:ort res-info) row-index)
+        orthographic (orthographic-row a m (:ort res-info) row-index (nil? phon-index))
         phonetic     (when phon-index
                        (phonetic-row a m (:phon res-info) row-index))
         trans        (get @translations (str @page-no "_" row-index))

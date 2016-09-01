@@ -76,7 +76,7 @@
         text-id     (str/replace s-id #"\..+" "")
         result-hash (hash result)]
     (when (and (:match result) s-id)
-      [:td {:style {:vertical-align "middle"}}
+      [:div
        [:a {:href     ""
             :on-click #(get-result-metadata % result-showing-metadata metadata-categories
                                             (:id @corpus) text-id result-hash)}
