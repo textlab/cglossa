@@ -49,7 +49,8 @@
 (defn- main-row [a {:keys [corpus] :as m} result index]
   ^{:key (hash result)}
   [:tr
-   (shared/id-column a m result index)
+   [:td {:style {:text-align "center" :vertical-align "middle"}}
+    (shared/id-column a m result index)]
    (shared/text-columns result)])
 
 (defn- original-row [a {:keys [corpus] :as m} result index]
