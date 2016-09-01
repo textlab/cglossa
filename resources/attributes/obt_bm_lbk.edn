@@ -54,8 +54,8 @@
  ["v" "verb" nil
   ["Voice" [[:grad_dia "pass" "passive"]]
    "Mood" [[:modus_kasus "imp" "imperative"]]
-   "Tense" [[:tid_bestemthet "inf" "infinitive"]
-            [:tid_bestemthet "pres" "present tense"]
+   "Tense" [[:tid_bestemthet "pres" "present tense"]
             [:tid_bestemthet "past" "past tense"]]
-   "Type" [[:type "perf-part-v" "past participle"]
+   "Type" [[:tid_bestemthet "inf" "infinitive"]
+           [:type "perf-part-v" "past participle"]
            [:type "ubøy" "no inflection"]]]]]
