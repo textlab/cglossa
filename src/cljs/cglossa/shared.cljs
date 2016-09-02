@@ -157,10 +157,11 @@
   ([a {:keys [corpus] :as m}]
     ;; Do three search steps only if multicpu_bounds is defined for this corpus
    (search! a m (if (:multicpu-bounds @corpus) 3 1)))
-  ([{{queries :queries}                                                 :search-view
-     {:keys [show-results? total sort-key] {:keys [geo-data]} :geo-map} :results-view
-     searching?                                                         :searching?
-     :as                                                                a}
+  ([{{queries :queries}                                   :search-view
+     {:keys [total sort-key] {:keys [geo-data]} :geo-map} :results-view
+     searching?                                           :searching?
+     show-results?                                        :show-results?
+     :as                                                  a}
     {:keys [corpus search] :as m}
     nsteps]
    (let [first-query (:query (first @queries))]
@@ -194,8 +195,7 @@
                    {{geo-results :results} :body} (<! geo-results-ch)]
                (reset! geo-data geo-results)))))))))
 
-(defn showing-metadata? [{:keys                   [show-metadata? narrow-view?]
-                          {:keys [show-results?]} :results-view}
+(defn showing-metadata? [{:keys [show-results? show-metadata? narrow-view?]}
                          {:keys [metadata-categories]}]
   (cond
     ;; Don't show metadata if the corpus doesn't have any (duh!)
@@ -266,10 +266,10 @@
     :id        "headword_search"
     :name      "headword_search"} " Headword search"])
 
-(defn top-toolbar [{:keys                            [num-resets show-metadata?]
-                    {:keys [queries]}                :search-view
-                    {:keys [show-results? sort-key]} :results-view
-                    :as                              a}
+(defn top-toolbar [{:keys              [num-resets show-results? show-metadata?]
+                    {:keys [queries]}  :search-view
+                    {:keys [sort-key]} :results-view
+                    :as                a}
                    {:keys [search metadata-categories] :as m}]
   [:div.col-sm-5
    [b/buttontoolbar {:style {:margin-bottom 20}}

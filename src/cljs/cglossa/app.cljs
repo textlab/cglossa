@@ -8,24 +8,27 @@
             [cglossa.show-texts :refer [show-texts-modal]]
             [cglossa.react-adapters.bootstrap :as b]))
 
-(defn- header []
+(defn- header [corpus-name]
   [b/navbar
-   [:div.container-fluid
-    [:div.navbar-header>span.navbar-brand "Glossa"]
-    [:img.navbar-right.hidden-xs {:src "img/logo.png" :style {:margin-top 13}}]
-    [:img.navbar-right.hidden-xs {:src "img/clarino_duo-219.png" :style {:width 80 :margin-top 15}}]]])
+   [b/navbar-brand "Glossa"]
+   [b/navbar-text corpus-name]
+   [:img.navbar-right.hidden-xs {:src "img/logo.png" :style {:margin-top 13}}]
+   [:img.navbar-right.hidden-xs {:src "img/clarino_duo-219.png" :style {:width 80 :margin-top 15}}]])
 
-(defn- main-area [{{:keys [show-results?]} :results-view :as a} m]
+(defn- main-area [{:keys [show-results?] :as a} m]
   [:div.container-fluid {:style {:padding-left 50}}
    [:div.row>div#main-content.col-sm-12 {:style {:min-width 560}}
     (if @show-results?
       [results a m]
       [start a m])]])
 
-(defn app [{:keys [show-texts?] :as a} {:keys [corpus] :as m}]
+(defn app [{:keys [show-results? show-texts?] :as a} {:keys [corpus] :as m}]
   (let [width (if (showing-metadata? a m) 170 0)]
     [:div
-     [header]
+     [header (when @show-results?
+               ;; Only show corpus name in the header when showing results, since
+               ;; it is shown in big letters on the front page
+               (:name @corpus))]
      (when @show-texts?
        [show-texts-modal a m])
      (when @corpus

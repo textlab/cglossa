@@ -30,6 +30,8 @@
         "ModalHeader"
         "ModalTitle"
         "Navbar"
+        "Navbar.Brand"
+        "Navbar.Text"
         "Overlay"
         "OverlayTrigger"
         "Panel"
