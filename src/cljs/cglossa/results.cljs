@@ -138,15 +138,15 @@
      form-field-vals (r/atom {:format   "excel"
                               :headers? true
                               :attrs    (merge {:word true} (zipmap attrs (repeat false)))})
-     attr-boxes (for [[attr attr-name] attrs]
-                  ^{:key attr}
-                  [b/checkbox
-                   {:inline    true
-                    :checked   (get-in @form-field-vals [:attrs attr])
-                    :on-change (fn [e]
-                                 (swap! form-field-vals assoc-in [:attrs attr]
-                                        (.-target.checked e)))}
-                   attr-name])
+     attr-boxes (doall (for [[attr attr-name] attrs]
+                         ^{:key attr}
+                         [b/checkbox
+                          {:inline    true
+                           :checked   (get-in @form-field-vals [:attrs attr])
+                           :on-change (fn [e]
+                                        (swap! form-field-vals assoc-in [:attrs attr]
+                                               (.-target.checked e)))}
+                          attr-name]))
      download (fn [{:keys [format headers?]}]
                 (let [results-ch (http/get "/download-results"
                                            {:query-params {:corpus-id  (:id @corpus)

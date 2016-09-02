@@ -9,7 +9,7 @@
             [cglossa.react-adapters.bootstrap :as b]))
 
 (defn- header [corpus-name]
-  [b/navbar
+  [b/navbar {:fixed-top true}
    [b/navbar-brand "Glossa"]
    [b/navbar-text corpus-name]
    [:img.navbar-right.hidden-xs {:src "img/logo.png" :style {:margin-top 13}}]

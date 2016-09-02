@@ -1,3 +1,7 @@
+body {
+  padding-top: 70px;
+}
+
 .app-footer {
   height: 20px;
   position: fixed;
@@ -11,7 +15,7 @@
   float: right;
 }
 
-.attr-modal {
+.attr-modal, .download-modal {
   .modal-body {
     padding-bottom: 0;
   }
