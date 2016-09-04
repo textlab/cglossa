@@ -13,13 +13,13 @@
 
 (defn- results-info [{{:keys [total results]} :results-view searching? :searching?}]
   [:span
-   [:div.col-sm-6 {:style {:margin-bottom 10}}
+   [:div {:style {:position "absolute" :top 11 :right 0 :width 400 :text-align "right" :color "#555"}}
     (cond
       (pos? @total)
       (let [npages    (-> (/ @total page-size) Math/ceil int)
             pages-str (if (= npages 1) " page" " pages")]
         (if @searching?
-          (str "Showing the first " @total " matches (" npages pages-str "); searching for more...")
+          (str "Showing " @total " matches (" npages pages-str "); searching...")
           (str "Found " @total " matches (" npages " pages)")))
 
       (and (zero? @total) (not @searching?))
@@ -445,8 +445,7 @@
                {:keys [corpus] :as m}]
   [:div
    [:div.row
-    [top-toolbar a m]
-    [results-info a]]
+    [top-toolbar a m]]
    ^{:key @num-resets} [search-inputs a m] ; See comments in cglossa.start
    [spinner-overlay {:spin? (and @searching? (empty? @results)) :width 45 :height 45 :top 75}
     [b/tabs {:id         "result-tabs"
@@ -455,8 +454,10 @@
              :active-key @view-type
              :on-select  #(reset! view-type %)}
      [b/tab {:title "Concordance" :event-key :concordance}
+      [results-info a]
       [concordances a m]]
      (when (:geo-coords @corpus)
        [b/tab {:title "Map" :event-key :geo-map}
+        [results-info a]
         [geo-map a m view-type]])
      #_[b/tab {:title "Statistics" :event-key :statistics :disabled true}]]]])
