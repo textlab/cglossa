@@ -86,7 +86,7 @@
   [{{:keys [results page-no]} :results-view :as a} {:keys [corpus] :as m}]
   (let [res (get @results @page-no)]
     [:div.row>div.col-sm-12.search-result-table-container
-     [b/table {:striped true :bordered true}
+     [b/table {:bordered true}
       [:tbody
        (let [attrs      (->> @corpus :languages first :config :displayed-attrs (map first))
              word-index 0               ; word form is always the first attribute
