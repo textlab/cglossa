@@ -27,7 +27,7 @@
 
       :else
       (when @searching? "Searching..."))]
-   [:div.col-sm-1
+   [:div {:style {:position "absolute" :top 11 :right 0}}
     ;; Only show the spinner when we are searching AND have already found some results
     ;; so as to avoid showing spinners both here and over the result table at the same time
     ;; (since we show a spinner over the result table until we have found some results)
