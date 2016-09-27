@@ -123,10 +123,13 @@
      [b/menuitem {:event-key :right-wide, :on-select on-select}
       (when (= sk :right-wide) [b/glyphicon {:glyph "ok"}]) "  By wider right context (10 tokens)"]]))
 
-(defn- download-button [{{:keys [showing-download-popup?]} :results-view}]
+(defn- download-button [{{:keys [showing-download-popup? total]} :results-view :keys [searching?]}]
   [b/button {:id       "download-button"
              :bs-size  "small"
              :bs-style "default"
+             :disabled (or @searching?
+                           (nil? @total)
+                           (zero? @total))
              :on-click #(reset! showing-download-popup? true)}
    "Download"])
 
@@ -147,13 +150,20 @@
                                         (swap! form-field-vals assoc-in [:attrs attr]
                                                (.-target.checked e)))}
                           attr-name]))
-     download (fn [{:keys [format headers?]}]
-                (let [results-ch (http/get "/download-results"
-                                           {:query-params {:corpus-id  (:id @corpus)
-                                                           :search-id  (:id @search)
-                                                           :cpu-counts (str (vec @cpu-counts))
-                                                           :format     format
-                                                           :headers?   headers?}})]))]
+     download (fn [_]
+                (go
+                  (let [{:keys [format headers? attrs]} @form-field-vals
+                        results-ch (http/post "/download-results"
+                                              {:json-params {:corpus-id  (:id @corpus)
+                                                             :search-id  (:id @search)
+                                                             :cpu-counts (vec @cpu-counts)
+                                                             :format     format
+                                                             :headers?   headers?
+                                                             :attrs      (keep (fn [[k v]]
+                                                                                 (when v k))
+                                                                               attrs)}})
+                        {file-url :body} (<! results-ch)]
+                    (aset js/window "location" file-url))))]
     [b/modal {:class-name "download-modal"
               :show       @showing-download-popup?
               :on-hide    hide-popup}
@@ -294,8 +304,8 @@
    [:div.col-sm-12
     [b/buttontoolbar
      [sort-button a m]
-     #_[download-button a m]
-     #_[download-popup a m]
+     [download-button a m]
+     [download-popup a m]
      [pagination a m]]]])
 
 (defmulti result-links

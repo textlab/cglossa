@@ -65,7 +65,7 @@
                                           "set PrintStructures \"s_id\""
                                           "set LD \"{{\""
                                           "set RD \"}}\""
-                                          (displayed-attrs-command corpus queries)
+                                          (displayed-attrs-command corpus queries nil)
                                           (aligned-languages-command corpus queries)
                                           ;; Always return the number of results, which may be
                                           ;; either total or cut size depending on whether we
@@ -99,7 +99,7 @@
     [hits cnt cnts]))
 
 ;; For written CWB corpora that don't use multicore processing (e.g. multilingual corpora)
-(defmethod get-results ["cwb" nil] [corpus search queries start end _ sort-key]
+(defmethod get-results ["cwb" nil] [corpus search queries start end _ sort-key attrs]
   (let [named-query (str (cwb-query-name corpus (:id search)) "_1_0")
         commands    [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
                      (cwb-corpus-name corpus queries)
@@ -107,13 +107,13 @@
                      "set PrintStructures \"s_id\""
                      "set LD \"{{\""
                      "set RD \"}}\""
-                     (displayed-attrs-command corpus queries)
+                     (displayed-attrs-command corpus queries attrs)
                      (aligned-languages-command corpus queries)
                      (sort-command named-query sort-key)
                      (str "cat " named-query " " start " " end)]]
     (run-cqp-commands corpus (flatten commands) false)))
 
-(defmethod get-results :default [corpus search queries start end cpu-counts sort-key]
+(defmethod get-results :default [corpus search queries start end cpu-counts sort-key attrs]
   (let [named-query   (cwb-query-name corpus (:id search))
         nres-1        (- end start)
         [first-file first-start] (reduce-kv
@@ -173,7 +173,7 @@
                                           "set PrintStructures \"s_id\""
                                           "set LD \"{{\""
                                           "set RD \"}}\""
-                                          (displayed-attrs-command corpus queries)
+                                          (displayed-attrs-command corpus queries attrs)
                                           (aligned-languages-command corpus queries)
                                           (sort-command named-query sort-key)
                                           (str "cat " result-file " " start " " end)]]

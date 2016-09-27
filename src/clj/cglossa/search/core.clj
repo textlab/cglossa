@@ -1,9 +1,10 @@
 (ns cglossa.search.core
   (:require [korma.db :as kdb]
             [korma.core :refer [defentity table select where insert values]]
+            [clojure.edn :as edn]
             [cglossa.shared :refer [core-db]]
             [cglossa.db.corpus :refer [get-corpus]]
-            [clojure.edn :as edn]))
+            [cglossa.search.download :as download]))
 
 (defentity search)
 
@@ -13,7 +14,7 @@
   (fn [corpus _ _ _ _ _ _ _] (:search_engine corpus)))
 
 (defmulti get-results
-  (fn [corpus _ _ _ _ _ _] [(:search_engine corpus) (seq (:multicpu_bounds corpus))]))
+  (fn [corpus _ _ _ _ _ _ _] [(:search_engine corpus) (seq (:multicpu_bounds corpus))]))
 
 (defmulti transform-results
   "Multimethod for transforming search results in a way that is
@@ -56,7 +57,7 @@
         start*      (Integer/parseInt start)
         end*        (Integer/parseInt end)
         cpu-counts* (edn/read-string cpu-counts)
-        [results _] (get-results corpus s queries start* end* cpu-counts* sort-key)]
+        [results _] (get-results corpus s queries start* end* cpu-counts* sort-key nil)]
     (transform-results corpus queries results)))
 
 
@@ -67,13 +68,12 @@
     {:search  s
      :results results}))
 
-(defn download-results [corpus-id search-id cpu-counts format headings?]
-  (let [corpus      (get-corpus {:id corpus-id})
-        s           (search-by-id search-id)
-        queries     (edn/read-string (:queries s))
-        start       0
-        end         100
-        sort-key    "position"
-        cpu-counts* (edn/read-string cpu-counts)
-        [results _] (get-results corpus s queries start end cpu-counts* sort-key)]
-    results))
+(defn download-results [corpus-id search-id cpu-counts format headings? attrs]
+  (let [corpus   (get-corpus {:id corpus-id})
+        s        (search-by-id search-id)
+        queries  (edn/read-string (:queries s))
+        start    0
+        end      100
+        sort-key "position"
+        [results _] (get-results corpus s queries start end cpu-counts sort-key attrs)]
+    (download/excel-file search-id results)))

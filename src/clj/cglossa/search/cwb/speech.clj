@@ -39,7 +39,7 @@
                      "set PrintStructures \"who_name\""
                      "set LD \"{{\""
                      "set RD \"}}\""
-                     (displayed-attrs-command corpus queries)
+                     (displayed-attrs-command corpus queries nil)
                      "show +who_name"
                      ;; Return the total number of search results...
                      "size Last"
@@ -52,7 +52,7 @@
     [hits cnt [cnt]]))
 
 
-(defmethod get-results ["cwb_speech" nil] [corpus search queries start end _ sort-key]
+(defmethod get-results ["cwb_speech" nil] [corpus search queries start end _ sort-key attrs]
   (let [named-query (cwb-query-name corpus (:id search))
         commands    [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
                      (cwb-corpus-name corpus queries)
@@ -60,7 +60,7 @@
                      "set PrintStructures \"who_name\""
                      "set LD \"{{\""
                      "set RD \"}}\""
-                     (displayed-attrs-command corpus queries)
+                     (displayed-attrs-command corpus queries attrs)
                      (sort-command named-query sort-key)
                      (str "cat " named-query " " start " " end)]]
     (run-cqp-commands corpus (flatten commands) false)))

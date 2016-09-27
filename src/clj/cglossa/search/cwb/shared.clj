@@ -137,22 +137,24 @@
                         (dec corpus-size))]
       (spit positions-filename (str startpos \tab endpos* \newline)))))
 
-(defn displayed-attrs-command [corpus queries]
+(defn displayed-attrs-command [corpus queries attrs]
   ;; NOTE: CWB doesn't seem to allow different attributes to be specified for each aligned
   ;; query(?), so for now at least we just ask for the attributes of the tagger used for
   ;; the first query
-  (let [first-query-lang      (-> queries first :lang)
-        corpus-lang           (->> corpus
-                                   :languages
-                                   (filter #(= (:code %) first-query-lang))
-                                   first)
-        displayed-attrs       (->> corpus-lang :config :displayed-attrs (map first))
-        corpus-specific-attrs (->> corpus-lang
-                                   :corpus-specific-attrs
-                                   (map first))]
-    (when (seq displayed-attrs)
-      (str "show " (str/join " " (map #(str "+" (name %)) (concat displayed-attrs
-                                                                  corpus-specific-attrs)))))))
+  (if attrs
+    (str "show " (str/join " " (map #(str "+" (name %)) attrs)))
+    (let [first-query-lang      (-> queries first :lang)
+          corpus-lang           (->> corpus
+                                     :languages
+                                     (filter #(= (:code %) first-query-lang))
+                                     first)
+          displayed-attrs       (->> corpus-lang :config :displayed-attrs (map first))
+          corpus-specific-attrs (->> corpus-lang
+                                     :corpus-specific-attrs
+                                     (map first))]
+      (when (seq displayed-attrs)
+        (str "show " (str/join " " (map #(str "+" (name %)) (concat displayed-attrs
+                                                                    corpus-specific-attrs))))))))
 
 (defn aligned-languages-command [corpus queries]
   (let [lang-codes           (map :lang queries)
