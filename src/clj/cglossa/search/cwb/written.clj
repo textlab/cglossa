@@ -110,12 +110,14 @@
                      (displayed-attrs-command corpus queries attrs)
                      (aligned-languages-command corpus queries)
                      (sort-command named-query sort-key)
-                     (str "cat " named-query " " start " " end)]]
+                     (str "cat " named-query (when (and start end)
+                                               (str " " start " " end)))]]
     (run-cqp-commands corpus (flatten commands) false)))
 
 (defmethod get-results :default [corpus search queries start end cpu-counts sort-key attrs]
   (let [named-query   (cwb-query-name corpus (:id search))
-        nres-1        (- end start)
+        nres-1        (when (and start end)
+                        (- end start))
         [first-file first-start] (reduce-kv
                                    (fn [sum k v]
                                      (let [new-sum (+ sum v)]
@@ -138,7 +140,7 @@
                           ;; that if we add the current count to the sum, we exceed the end
                           ;; index) or there are no more files, the current file should be the
                           ;; last one we fetch results from.
-                          (if (or (> new-sum end)
+                          (if (or (and end (> new-sum end))
                                   (nil? (next counts)))
                             file-index
                             ;; Otherwise, continue with the next file
@@ -162,9 +164,12 @@
         ;; the number of hits that were found in previous files. For the remaining files, we
         ;; set the start index to 0, and we might as well set the end index to [number of
         ;; desired results minus one], since CQP won't actually mind if we ask for results
-        ;; beyond those available.
-        indexes       (cons [first-start (+ first-start nres-1)]
-                            (repeat [0 nres-1]))
+        ;; beyond those available. If no start and end positions were given, we will return
+        ;; all hits (typically used for exporting results to file etc.)
+        indexes       (if (and start end)
+                        (cons [first-start (+ first-start nres-1)]
+                              (repeat [0 nres-1]))
+                        (repeat [nil nil]))
         scripts       (map
                         (fn [result-file [start end]]
                           (let [commands [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
@@ -176,12 +181,16 @@
                                           (displayed-attrs-command corpus queries attrs)
                                           (aligned-languages-command corpus queries)
                                           (sort-command named-query sort-key)
-                                          (str "cat " result-file " " start " " end)]]
+                                          (str "cat " result-file (when (and start end)
+                                                                    (str " " start " " end)))]]
                             (filter identity (flatten commands))))
                         nonzero-files
                         indexes)
         cwb-res       (map #(run-cqp-commands corpus % false) scripts)]
-    [(apply concat (map first cwb-res)) nil]))
+    ;; Since we asked for 'end' number of results even from the last file, we may have got
+    ;; more than we asked for (when adding up all results from all files), so make sure we
+    ;; only return the desired number of results.
+    [(take (inc nres-1) (apply concat (map first cwb-res))) nil]))
 
 (defmethod transform-results :default [_ queries results]
   (when results

@@ -73,7 +73,7 @@
         s        (search-by-id search-id)
         queries  (edn/read-string (:queries s))
         start    0
-        end      100
+        end      (when (= format "excel") 49999)
         sort-key "position"
         [results _] (get-results corpus s queries start end cpu-counts sort-key attrs)]
     (download/excel-file search-id headers? results)))

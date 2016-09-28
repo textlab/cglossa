@@ -62,7 +62,8 @@
                      "set RD \"}}\""
                      (displayed-attrs-command corpus queries attrs)
                      (sort-command named-query sort-key)
-                     (str "cat " named-query " " start " " end)]]
+                     (str "cat " named-query (when (and start end)
+                                               (str " " start " " end)))]]
     (run-cqp-commands corpus (flatten commands) false)))
 
 
