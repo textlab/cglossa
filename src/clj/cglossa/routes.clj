@@ -108,5 +108,5 @@
   (POST "/geo-distr" [corpus-id search-id metadata-ids]
     (transit-response (geo-distr corpus-id search-id metadata-ids) false))
 
-  (POST "/download-results" [corpus-id search-id cpu-counts format headings? attrs]
-    (download-results corpus-id search-id cpu-counts format headings? attrs)))
+  (POST "/download-results" [corpus-id search-id cpu-counts format headers? attrs]
+    (download-results corpus-id search-id cpu-counts format headers? attrs)))

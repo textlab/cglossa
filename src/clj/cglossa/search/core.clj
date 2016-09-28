@@ -68,7 +68,7 @@
     {:search  s
      :results results}))
 
-(defn download-results [corpus-id search-id cpu-counts format headings? attrs]
+(defn download-results [corpus-id search-id cpu-counts format headers? attrs]
   (let [corpus   (get-corpus {:id corpus-id})
         s        (search-by-id search-id)
         queries  (edn/read-string (:queries s))
@@ -76,4 +76,4 @@
         end      100
         sort-key "position"
         [results _] (get-results corpus s queries start end cpu-counts sort-key attrs)]
-    (download/excel-file search-id results)))
+    (download/excel-file search-id headers? results)))
