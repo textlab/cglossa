@@ -133,7 +133,7 @@
              :on-click #(reset! showing-download-popup? true)}
    "Download"])
 
-(defn- download-popup [{{:keys [cpu-counts showing-download-popup?]} :results-view}
+(defn- download-popup [{{:keys [cpu-counts showing-download-popup? downloading?]} :results-view}
                        {:keys [corpus search]}]
   (r/with-let
     [hide-popup #(reset! showing-download-popup? false)
@@ -151,6 +151,7 @@
                                                (.-target.checked e)))}
                           attr-name]))
      download (fn [_]
+                (reset! downloading? true)
                 (go
                   (let [{:keys [format headers? attrs]} @form-field-vals
                         results-ch (http/post "/download-results"
@@ -163,6 +164,8 @@
                                                                                  (when v k))
                                                                                attrs)}})
                         {file-url :body} (<! results-ch)]
+                    (reset! downloading? false)
+                    (reset! showing-download-popup? false)
                     (aset js/window "location" file-url))))]
     [b/modal {:class-name "download-modal"
               :show       @showing-download-popup?
@@ -189,7 +192,9 @@
           "Word form"]
          attr-boxes]]]]
      [b/modalfooter
-      [b/button {:bs-style "success" :on-click download} "Download"]
+      [:div {:style {:display "inline-block" :margin-right 5}}
+       [spinner-overlay {:spin? @downloading?}
+        [b/button {:bs-style "success" :on-click download :disabled @downloading?} "Download"]]]
       [b/button {:on-click hide-popup} "Close"]]]))
 
 #_(defn- statistics-button [{{freq-attr :freq-attr} :results-view} m]
