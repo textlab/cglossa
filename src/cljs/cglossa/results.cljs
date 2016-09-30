@@ -137,19 +137,10 @@
                        {:keys [corpus search]}]
   (r/with-let
     [hide-popup #(reset! showing-download-popup? false)
-     attrs (->> @corpus :languages first :config :displayed-attrs)
+     attrs (cons [:word "Word form"] (->> @corpus :languages first :config :displayed-attrs))
      form-field-vals (r/atom {:format   "excel"
                               :headers? true
-                              :attrs    (merge {:word true} (zipmap attrs (repeat false)))})
-     attr-boxes (doall (for [[attr attr-name] attrs]
-                         ^{:key attr}
-                         [b/checkbox
-                          {:inline    true
-                           :checked   (get-in @form-field-vals [:attrs attr])
-                           :on-change (fn [e]
-                                        (swap! form-field-vals assoc-in [:attrs attr]
-                                               (.-target.checked e)))}
-                          attr-name]))
+                              :attrs    (zipmap attrs (cons true (repeat false)))})
      download (fn [_]
                 (reset! downloading? true)
                 (go
@@ -161,47 +152,47 @@
                                                              :format     format
                                                              :headers?   headers?
                                                              :attrs      (keep (fn [[k v]]
-                                                                                 (when v k))
+                                                                                 (when v (first k)))
                                                                                attrs)}})
                         {file-url :body} (<! results-ch)]
                     (reset! downloading? false)
                     (reset! showing-download-popup? false)
                     (aset js/window "location" file-url))))]
-    [b/modal {:class-name "download-modal"
-              :show       @showing-download-popup?
-              :on-hide    hide-popup}
-     [b/modalheader {:close-button true}
-      [b/modaltitle "Download results"]]
-     [b/modalbody
-      [:div {:style {:display "inline-block"}}
-       [b/checkbox {:checked   (:headers? @form-field-vals)
-                    :on-change #(swap! form-field-vals assoc :headers? (.-target.checked %))}
-        "Create headers?"]]
-      [:div {:style {:display "inline-block" :margin-left 20}}
-       [b/formgroup
-        [b/formcontrol {:component-class "select"}
-         [:option {:value "excel"} "Excel (max 50,000 results)"]
-         [:option {:value "tsv"} "Tab-separated values (.tsv)"]]]]
-      [b/panel {:header "Attributes"}
-       [:form {:on-submit (fn [e]
-                            (.preventDefault e)
-                            (download @form-field-vals))}
-
-        [b/formgroup
-         [b/checkbox
-          {:inline    true
-           :checked   true
-           :style     {:margin-left 10}
-           :on-change (fn [e]
-                        (swap! form-field-vals assoc-in [:attrs "word"]
-                               (.-target.value e)))}
-          "Word form"]
-         attr-boxes]]]]
-     [b/modalfooter
-      [:div {:style {:display "inline-block" :margin-right 5}}
-       [spinner-overlay {:spin? @downloading?}
-        [b/button {:bs-style "success" :on-click download :disabled @downloading?} "Download"]]]
-      [b/button {:on-click hide-popup} "Close"]]]))
+    (let [attr-boxes (doall (for [[attr-code attr-name :as attr] attrs]
+                              ^{:key attr-code}
+                              [b/checkbox
+                               {:inline    true
+                                :checked   (get-in @form-field-vals [:attrs attr])
+                                :on-change (fn [e]
+                                             (swap! form-field-vals assoc-in [:attrs attr]
+                                                    (.-target.checked e)))}
+                               attr-name]))]
+      [b/modal {:class-name "download-modal"
+                :show       @showing-download-popup?
+                :on-hide    hide-popup}
+       [b/modalheader {:close-button true}
+        [b/modaltitle "Download results"]]
+       [b/modalbody
+        [:div {:style {:display "inline-block"}}
+         [b/checkbox {:checked   (:headers? @form-field-vals)
+                      :on-change #(swap! form-field-vals assoc :headers? (.-target.checked %))}
+          "Create headers?"]]
+        [:div {:style {:display "inline-block" :margin-left 20}}
+         [b/formgroup
+          [b/formcontrol {:component-class "select"}
+           [:option {:value "excel"} "Excel (max 50,000 results)"]
+           [:option {:value "tsv"} "Tab-separated values (.tsv)"]]]]
+        [b/panel {:header "Attributes"}
+         [:form {:on-submit (fn [e]
+                              (.preventDefault e)
+                              (download @form-field-vals))}
+          [b/formgroup
+           attr-boxes]]]]
+       [b/modalfooter
+        [:div {:style {:display "inline-block" :margin-right 5}}
+         [spinner-overlay {:spin? @downloading?}
+          [b/button {:bs-style "success" :on-click download :disabled @downloading?} "Download"]]]
+        [b/button {:on-click hide-popup} "Close"]]])))
 
 #_(defn- statistics-button [{{freq-attr :freq-attr} :results-view} m]
     (let [on-select #(reset! freq-attr (keyword %1))]

@@ -142,7 +142,7 @@
   ;; query(?), so for now at least we just ask for the attributes of the tagger used for
   ;; the first query
   (if attrs
-    (str "show " (str/join " " (map #(str "+" (name %)) attrs)))
+    (str "show -word; show " (str/join " " (map #(str "+" (name %)) attrs)))
     (let [first-query-lang      (-> queries first :lang)
           corpus-lang           (->> corpus
                                      :languages
