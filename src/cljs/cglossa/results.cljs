@@ -173,9 +173,15 @@
      [b/modalheader {:close-button true}
       [b/modaltitle "Download results"]]
      [b/modalbody
-      [b/checkbox {:checked   (:headers? @form-field-vals)
-                   :on-change #(swap! form-field-vals assoc :headers? (.-target.checked %))}
-       "Create headers?"]
+      [:div {:style {:display "inline-block"}}
+       [b/checkbox {:checked   (:headers? @form-field-vals)
+                    :on-change #(swap! form-field-vals assoc :headers? (.-target.checked %))}
+        "Create headers?"]]
+      [:div {:style {:display "inline-block" :margin-left 20}}
+       [b/formgroup
+        [b/formcontrol {:component-class "select"}
+         [:option {:value "excel"} "Excel (max 50,000 results)"]
+         [:option {:value "tsv"} "Tab-separated values (.tsv)"]]]]
       [b/panel {:header "Attributes"}
        [:form {:on-submit (fn [e]
                             (.preventDefault e)
