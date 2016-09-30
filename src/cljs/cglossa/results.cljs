@@ -158,15 +158,18 @@
                     (reset! downloading? false)
                     (reset! showing-download-popup? false)
                     (aset js/window "location" file-url))))]
-    (let [attr-boxes (doall (for [[attr-code attr-name :as attr] attrs]
-                              ^{:key attr-code}
-                              [b/checkbox
-                               {:inline    true
-                                :checked   (get-in @form-field-vals [:attrs attr])
-                                :on-change (fn [e]
-                                             (swap! form-field-vals assoc-in [:attrs attr]
-                                                    (.-target.checked e)))}
-                               attr-name]))]
+    (let [attr-boxes (doall
+                       (map-indexed (fn [index [attr-code attr-name :as attr]]
+                                      ^{:key attr-code}
+                                      [b/checkbox
+                                       {:inline    true
+                                        :style     (when (zero? index) {:margin-left 10})
+                                        :checked   (get-in @form-field-vals [:attrs attr])
+                                        :on-change (fn [e]
+                                                     (swap! form-field-vals assoc-in [:attrs attr]
+                                                            (.-target.checked e)))}
+                                       attr-name])
+                                    attrs))]
       [b/modal {:class-name "download-modal"
                 :show       @showing-download-popup?
                 :on-hide    hide-popup}
