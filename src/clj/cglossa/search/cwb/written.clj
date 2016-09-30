@@ -186,11 +186,15 @@
                             (filter identity (flatten commands))))
                         nonzero-files
                         indexes)
-        cwb-res       (map #(run-cqp-commands corpus % false) scripts)]
-    ;; Since we asked for 'end' number of results even from the last file, we may have got
-    ;; more than we asked for (when adding up all results from all files), so make sure we
-    ;; only return the desired number of results.
-    [(take (inc nres-1) (apply concat (map first cwb-res))) nil]))
+        cwb-res       (map #(run-cqp-commands corpus % false) scripts)
+        all-res       (apply concat (map first cwb-res))
+        ;; Since we asked for 'end' number of results even from the last file, we may have got
+        ;; more than we asked for (when adding up all results from all files), so make sure we
+        ;; only return the desired number of results if it was specified.
+        res           (if nres-1
+                        (take (inc nres-1) all-res)
+                        all-res)]
+    [res nil]))
 
 (defmethod transform-results :default [_ queries results]
   (when results

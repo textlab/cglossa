@@ -75,5 +75,13 @@
         start    0
         end      (when (= format "excel") 49999)
         sort-key "position"
-        [results _] (get-results corpus s queries start end cpu-counts sort-key attrs)]
-    (download/excel-file search-id headers? results)))
+        [results _] (get-results corpus s queries start end cpu-counts sort-key attrs)
+        rows     (for [line results]
+                   ;; Extract corpus position, sentence/utterance ID, left context, match and right
+                   ;; context from the result line
+                   (rest (re-find #"^\s*(\d+):\s*<.+?\s(.+?)>:\s*(.+?)\s*\{\{(.+?)\}\}\s+(.+)"
+                                  line)))]
+    (case format
+      "excel" (download/excel-file search-id headers? rows)
+      "tsv" (download/csv-file :tsv search-id headers? rows)
+      "csv" (download/csv-file :csv search-id headers? rows))))

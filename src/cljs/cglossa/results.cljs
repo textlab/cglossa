@@ -182,9 +182,13 @@
           "Create headers?"]]
         [:div {:style {:display "inline-block" :margin-left 20}}
          [b/formgroup
-          [b/formcontrol {:component-class "select"}
+          [b/formcontrol {:component-class "select"
+                          :value           (get @form-field-vals :format)
+                          :on-change       #(swap! form-field-vals
+                                                   assoc :format (.-target.value %))}
            [:option {:value "excel"} "Excel (max 50,000 results)"]
-           [:option {:value "tsv"} "Tab-separated values (.tsv)"]]]]
+           [:option {:value "tsv"} "Tab-separated values (.tsv)"]
+           [:option {:value "csv"} "Comma-separated values (.csv)"]]]]
         [b/panel {:header "Attributes"}
          [:form {:on-submit (fn [e]
                               (.preventDefault e)

@@ -57,7 +57,7 @@
          "<td><button class=\"btn btn-danger btn-xs\">Delete</td></tr>")))
 
 (defroutes app-routes
-  (resources "/")
+  (resources "/" {:mime-types {"tsv" "text/tab-separated-values"}})
   (GET "/request" [] handle-dump)
   (GET "/" req (page))
   (GET "/admin" req (admin)))
