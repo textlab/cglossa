@@ -5,7 +5,7 @@
             [clojure.edn :as edn]
             [environ.core :refer [env]]
             [compojure.core :refer [GET POST defroutes routes context]]
-            [compojure.route :refer [resources]]
+            [compojure.route :refer [resources files]]
             [korma.db :as kdb]
             [cheshire.core :as cheshire]
             [ring.util.response :as response]
@@ -58,6 +58,7 @@
 
 (defroutes app-routes
   (resources "/" {:mime-types {"tsv" "text/tab-separated-values"}})
+  (files "/" {:mime-types {"tsv" "text/tab-separated-values"}})
   (GET "/request" [] handle-dump)
   (GET "/" req (page))
   (GET "/admin" req (admin)))
