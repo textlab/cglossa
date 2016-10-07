@@ -18,7 +18,7 @@ done
 
 shift $((OPTIND-1))
 if [ "$#" -ne 1 ] ; then
-   echo "Usage: $0 CORPUS_NAME"
+   echo "Usage: $0 [OPTIONS] CORPUS_NAME"
    exit
 fi
 
