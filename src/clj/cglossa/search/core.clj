@@ -79,8 +79,9 @@
         rows     (for [line results]
                    ;; Extract corpus position, sentence/utterance ID, left context, match and right
                    ;; context from the result line
-                   (rest (re-find #"^\s*(\d+):\s*<.+?\s(.+?)>:\s*(.+?)\s*\{\{(.+?)\}\}\s+(.+)"
-                                  line)))]
+                   (or (next (re-find #"^\s*(\d+):\s*<.+?\s(.+?)>:\s*(.+?)\s*\{\{(.+?)\}\}\s+(.+)"
+                                      line))
+                       [nil nil line nil nil]))]
     (case format
       "excel" (download/excel-file search-id headers? rows)
       "tsv" (download/csv-file :tsv search-id headers? rows)
