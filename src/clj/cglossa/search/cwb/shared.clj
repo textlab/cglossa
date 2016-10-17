@@ -159,9 +159,12 @@
 (defn aligned-languages-command [corpus queries]
   (let [lang-codes           (map :lang queries)
         first-lang-code      (first lang-codes)
-        non-first-lang-codes (-> lang-codes set (disj first-lang-code))]
+        non-first-lang-codes (cond
+                               (= first-lang-code "org") ["korr"]
+                               (= first-lang-code "korr") ["org"]
+                               (> (count lang-codes) 1) (-> lang-codes set (disj first-lang-code)))]
     ;; Only show alignment attributes if we have actually asked for aligned languages
-    (when (> (count lang-codes) 1)
+    (when non-first-lang-codes
       (str "show " (str/join " " (map #(str "+" (:code corpus) "_" %) non-first-lang-codes))))))
 
 (defn sort-command [named-query sort-key]

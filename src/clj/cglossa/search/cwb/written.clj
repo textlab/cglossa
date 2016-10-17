@@ -198,5 +198,8 @@
 
 (defmethod transform-results :default [_ queries results]
   (when results
-    (let [num-langs (->> queries (map :lang) set count)]
+    (let [queried-langs (->> queries (map :lang) set)
+          num-langs     (if (some #{"org" "korr"} queried-langs)
+                          2
+                          (count queried-langs))]
       (map (fn [lines] {:text lines}) (partition num-langs results)))))
