@@ -11,21 +11,42 @@
   ^{:key "pos-panel"}
   [b/panel {:header "Parts-of-speech"}
    (doall (for [[pos title tooltip] menu-data
-                :let [selected? (contains? (:features @wrapped-term) pos)]]
+                :let [excluded-pos (str "!" pos)
+                      selected?    (contains? (:features @wrapped-term) pos)
+                      excluded?    (contains? (:features @wrapped-term) excluded-pos)]]
             ^{:key pos}
             [b/button
              {:style       {:margin-left 3 :margin-top 2 :margin-bottom 3}
               :bs-size     "xsmall"
-              :bs-style    (if selected? "info" "default")
+              :bs-style    (cond selected? "info" excluded? "danger" :else "default")
               :data-toggle (when tooltip "tooltip")
               :title       tooltip
               :on-click    (fn [e]
                              ;; Blur button to prevent tooltip from sticking
                              (.blur (js/$ (.-target e)))
-                             (swap! wrapped-term update :features
-                                    #(if selected?
-                                      (dissoc % pos)
-                                      (assoc % pos {}))))}
+                             (if (.-shiftKey e)
+                               ;; On shift-click, exclude this pos
+                               (swap! wrapped-term update :features
+                                      (fn [poses]
+                                        ;; If we say that we want to exclude this pos, remove
+                                        ;; any previously selected poses, since it would be
+                                        ;; redundant to exclude this pos if we kept the
+                                        ;; selected ones. For instance, if we say that something
+                                        ;; should be either a noun or a pronoun, there is no
+                                        ;; need to also specify that it should not be a verb.
+                                        ;; So if the user now wants to exclude verbs, assume that
+                                        ;; she no longer wants any previous selections.
+                                        (as-> poses $
+                                              (filter (fn [[k v]]
+                                                        (str/starts-with? k "!")) $)
+                                              (into {} $)
+                                              (assoc $ excluded-pos {}))))
+                               ;; No shift key - select this pos if not already selected or
+                               ;; excluded; otherwise remove its select or exclude status
+                               (swap! wrapped-term update :features
+                                      #(if selected?
+                                        (dissoc % pos)
+                                        (assoc % pos {})))))}
              (or title pos)]))])
 
 (defn- morphsyn-panel [wrapped-term menu-data]
@@ -109,13 +130,22 @@
       (when menu-data (pos-panel wrapped-term menu-data))
       (when menu-data (morphsyn-panel wrapped-term menu-data))
       (corpus-specific-panel corpus wrapped-query wrapped-term))]
-   [b/modalfooter
-    [b/button {:bs-style "danger"
-               :on-click #(swap! wrapped-term assoc :features nil)} "Clear"]
-    [b/button {:bs-style "success"
-               :on-click (fn [_] (reset! show-attr-popup? false) (search! a m))} "Search"]
-    [b/button {:bs-style "info"
-               :on-click #(reset! show-attr-popup? false)} "Close"]]])
+   [b/modalfooter {:style {:position "relative"}}
+    [:div {:style {:height 30}}]
+    [:div {:style {:position  "absolute"
+                   :display   "inline-block"
+                   :top       15
+                   :left      17
+                   :font-size 13
+                   :color     "#4E4E4E"}}
+     "Click to select; shift-click to exclude"]
+    [:div {:style {:position "absolute" :display "inline-block" :top 8 :right 15}}
+     [b/button {:bs-style "danger"
+                :on-click #(swap! wrapped-term assoc :features nil)} "Clear"]
+     [b/button {:bs-style "success"
+                :on-click (fn [_] (reset! show-attr-popup? false) (search! a m))} "Search"]
+     [b/button {:bs-style "info"
+                :on-click #(reset! show-attr-popup? false)} "Close"]]]])
 
 
 (defn menu-button [a {:keys [corpus] :as m}

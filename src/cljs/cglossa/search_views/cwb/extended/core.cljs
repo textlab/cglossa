@@ -158,19 +158,22 @@
                                          ;; Get human-readable value
                                          (map last))))]
     (for [[pos pos-title tooltip morphsyn] data
-          ;; Only consider parts-of-speech that have actually been selected
-          :when (contains? (get-in @wrapped-term path) pos)
+          ;; Only consider parts-of-speech that have actually been selected or excluded
+          :let [vals                     (get-in @wrapped-term path)
+                selected-or-excluded-pos (first (filter #(contains? vals %) [pos (str "!" pos)]))]
+          :when selected-or-excluded-pos
           ;; Extract the seq of possible morphosyntactic features for each morphosyntacic category
           ;; that applies to this part-of-speech
-          :let [cat-attrs (->> morphsyn (partition 2) (map second))]]
+          :let [cat-attrs (->> morphsyn (partition 2) (map second))
+                prefix    (when (str/starts-with? selected-or-excluded-pos "!") "!")]]
       {:pos         pos
-       :description (str (if pos-title (str/capitalize pos-title) pos) " "
+       :description (str prefix (if pos-title (str/capitalize pos-title) pos) " "
                          (str/join " " (map (partial cat-description pos) cat-attrs)))
        :tooltip     tooltip})))
 
 
 (defn- tag-description-label [value description tooltip path wrapped-term show-attr-popup?]
-  [b/label {:bs-style    "primary"
+  [b/label {:bs-style    (if (str/starts-with? description "!") "danger" "primary")
             :data-toggle (when tooltip "tooltip")
             :title       tooltip
             :style       {:float        "left"
