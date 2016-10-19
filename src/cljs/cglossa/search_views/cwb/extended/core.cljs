@@ -166,41 +166,45 @@
           ;; that applies to this part-of-speech
           :let [cat-attrs (->> morphsyn (partition 2) (map second))
                 prefix    (when (str/starts-with? selected-or-excluded-pos "!") "!")]]
-      {:pos         pos
+      {:pos         selected-or-excluded-pos
        :description (str prefix (if pos-title (str/capitalize pos-title) pos) " "
                          (str/join " " (map (partial cat-description pos) cat-attrs)))
        :tooltip     tooltip})))
 
 
 (defn- tag-description-label [value description tooltip path wrapped-term show-attr-popup?]
-  [b/label {:bs-style    (if (str/starts-with? description "!") "danger" "primary")
-            :data-toggle (when tooltip "tooltip")
-            :title       tooltip
-            :style       {:float        "left"
-                          :margin-top   3
-                          :margin-right 3
-                          :cursor       "pointer"}
-            :on-click    #(reset! show-attr-popup? true)}
-   description [:span {:style    {:margin-left 6 :cursor "pointer"}
-                       :on-click (fn [e]
-                                   (.stopPropagation e)
-                                   ;; Need to manually remove the tooltip of our parent
-                                   ;; label; otherwise the tooltip may persist after
-                                   ;; the label has been removed (and then there is no way
-                                   ;; to remove it).
-                                   (-> (.-target e)
-                                       js/$
-                                       (.closest "[data-toggle]")
-                                       (.tooltip "destroy"))
-                                   (swap! wrapped-term update-in path (fn [o]
-                                                                        (if (map? o)
-                                                                          (dissoc o value)
-                                                                          (disj o value))))
-                                   (when (empty? (get-in @wrapped-term path))
-                                     (let [path*     (butlast path)
-                                           attr-name (last path)]
-                                       (swap! wrapped-term update-in path* dissoc attr-name))))}
-                "x"]])
+  (let [excluded? (str/starts-with? description "!")]
+    [b/label {:bs-style    (if excluded? "danger" "primary")
+              :data-toggle (when tooltip "tooltip")
+              :title       tooltip
+              :style       {:float        "left"
+                            :margin-top   3
+                            :margin-right 3
+                            :cursor       "pointer"}
+              :on-click    #(reset! show-attr-popup? true)}
+     description [:span {:style    {:margin-left 6 :cursor "pointer"}
+                         :on-click (fn [e]
+                                     (.stopPropagation e)
+                                     ;; Need to manually remove the tooltip of our parent
+                                     ;; label; otherwise the tooltip may persist after
+                                     ;; the label has been removed (and then there is no way
+                                     ;; to remove it).
+                                     (-> (.-target e)
+                                         js/$
+                                         (.closest "[data-toggle]")
+                                         (.tooltip "destroy"))
+                                     (.log js/console value)
+                                     (swap! wrapped-term update-in path (fn [o]
+                                                                          (if (map? o)
+                                                                            (dissoc o value)
+                                                                            (disj o value))))
+                                     ;; Remove the entire category (e.g. a specific POS) if it
+                                     ;; became empty after the update we just did
+                                     (when (empty? (get-in @wrapped-term path))
+                                       (let [path*     (butlast path)
+                                             attr-name (last path)]
+                                         (swap! wrapped-term update-in path* dissoc attr-name))))}
+                  "x"]]))
 
 
 (defn- taglist [{:keys [corpus]} wrapped-term lang-code show-attr-popup?]
