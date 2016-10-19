@@ -312,7 +312,7 @@
   [:div.row {:style {:margin-top 15}}
    [:div.col-sm-12
     [b/buttontoolbar
-     [sort-button a m]
+     #_[sort-button a m]
      [download-button a m]
      [download-popup a m]
      [pagination a m]]]])
