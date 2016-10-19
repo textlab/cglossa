@@ -36,14 +36,21 @@
 
 
 (defn- process-attr-map [[attr-name values]]
-  (str attr-name "=\"" (str/join "|" values) "\""))
+  (when (seq values)
+    ;; If the values start with exclamation marks, remove them and change the
+    ;; operator from = to !=, yielding expressions of the type attr!=val1|val2
+    (let [op      (if (str/starts-with? (first values) "!") "!=" "=")
+          values* (map #(str/replace % #"^!" "") values)]
+      (str attr-name op "\"" (str/join "|" values*) "\""))))
 
 
 (defn- process-pos-map [[pos attrs]]
-  (let [attr-strings (map process-attr-map attrs)
+  (let [op           (if (str/starts-with? pos "!") "!=" "=")
+        pos*         (str/replace pos #"^!" "")
+        attr-strings (map process-attr-map attrs)
         attr-str     (when (seq attr-strings)
                        (str " & " (str/join " & " attr-strings)))]
-    (str "(pos=\"" pos "\"" attr-str ")")))
+    (str "(pos" op "\"" pos* "\"" attr-str ")")))
 
 
 (defn- handle-interval [terms part interval]
@@ -58,7 +65,7 @@
     terms))
 
 
-(defn- process-form [term name val]
+(defn- process-form [term name op val]
   (cond-> (assoc term :form (-> val
                                 ;; Unescape any escaped chars, since we don't want the backslashes
                                 ;; to show in the text input
@@ -74,25 +81,33 @@
 
 (defn- handle-attribute-value [terms part interval corpus-specific-attrs-regex]
   (let [term (as-> {:interval @interval} $
-                   (let [[_ name val] (re-find #"(word|lemma|phon|orig)\s*=\s*\"(.+?)\""
-                                               (last part))]
+                   (let [[_ name op val] (re-find #"(word|lemma|phon|orig)\s*(!?=)\s*\"(.+?)\""
+                                                  (last part))
+                         val* (if (= op "!=") (str "!" val) val)]
                      ;; If the attribute value starts with &&, it should be a special code
                      ;; (e.g. for marking errors in text, inserted as "tokens" to ensure alignment
                      ;; between original and corrected text) and should not be shown in the text
                      ;; input box
-                     (if (and name (not (str/starts-with? val "&&")))
-                       (process-form $ name val)
+                     (if (and name (not (str/starts-with? val* "&&")))
+                       (process-form $ name op val*)
                        $))
-                   (if-let [pos-exprs (re-seq #"\(pos=\"(.+?)\"(.*?)\)" (last part))]
-                     (reduce (fn [t [_ pos rest]]
+                   (if-let [pos-exprs (re-seq #"\(pos\s*(!?=)\s*\"(.+?)\"(.*?)\)" (last part))]
+                     (reduce (fn [t [_ pos-op pos rest]]
                                ;; Allow attribute values to contain Norwegian chars, -, <, > and /
                                ;; in addition to alphanumeric characters
-                               (let [others (re-seq #"(\w+)=\"([\w\|\-\<\>/æøå]+)\"" rest)]
-                                 (assoc-in t [:features pos]
-                                           (into {} (map (fn [[_ name vals]]
+                               (let [others (re-seq #"(\w+)\s*(!?=)\s*\"([\w\|\-\<\>/æøå]+)\""
+                                                    rest)]
+                                 (assoc-in t [:features (if (= pos-op "!=") (str "!" pos) pos)]
+                                           (into {} (map (fn [[_ name val-op vals]]
                                                            [name
-                                                            (set (str/split vals
-                                                                            #"\|"))])
+                                                            (as-> vals $
+                                                                  (str/split $ #"\|")
+                                                                  (map (fn [val]
+                                                                         (if (= val-op "!=")
+                                                                           (str "!" val)
+                                                                           val))
+                                                                       $)
+                                                                  (set $))])
                                                          others)))))
                              $
                              pos-exprs)
@@ -180,9 +195,15 @@
                         main   (when form*
                                  (str attr "=\"" form* "\" %c"))
                         feats  (when (seq features)
-                                 (str "(" (str/join " | " (map process-pos-map features)) ")"))
+                                 ;; If we want to exclude parts of speech, join them with &
+                                 ;; (e.g. [pos != "noun" & pos != "verb"]), otherwise with |
+                                 ;; (e.g. [pos = "noun" | pos = "verb"])
+                                 (let [op (if (str/starts-with? (ffirst features) "!") " & " " | ")]
+                                   (str "(" (str/join op (map process-pos-map features)) ")")))
                         extra  (when (seq corpus-specific-attrs)
-                                 (str/join " & " (map process-attr-map corpus-specific-attrs)))
+                                 (str/join " & " (filter identity
+                                                         (map process-attr-map
+                                                              corpus-specific-attrs))))
                         [min max] interval
                         interv (if (or min max)
                                  (str "[]{" (or min 0) "," (or max "") "} ")
@@ -190,7 +211,7 @@
                     (str interv "[" (str/join " & " (filter identity [main feats extra])) "]")))
         query*  (str/join \space parts)
         query** (if-let [pos-attr (:pos-attr lang-config)]
-                  (str/replace query* #"\bpos(?=\s*=)" pos-attr)
+                  (str/replace query* #"\bpos(?=\s*!?=)" pos-attr)
                   query*)
         query   (cond->> query**
                          (:segment-initial? @wrapped-query) (str "<sync>")
@@ -206,6 +227,6 @@
   (let [query (:query @wrapped-query)]
     (if-let [pos-attr (:pos-attr lang-config)]
       (str/replace query
-                   (re-pattern (str "\\b" pos-attr "(?=\\s*=)"))
+                   (re-pattern (str "\\b" pos-attr "(?=\\s*!?=)"))
                    "pos")
       query)))

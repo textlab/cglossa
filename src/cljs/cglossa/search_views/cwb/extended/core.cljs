@@ -193,7 +193,6 @@
                                          js/$
                                          (.closest "[data-toggle]")
                                          (.tooltip "destroy"))
-                                     (.log js/console value)
                                      (swap! wrapped-term update-in path (fn [o]
                                                                           (if (map? o)
                                                                             (dissoc o value)
