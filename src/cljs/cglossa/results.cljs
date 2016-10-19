@@ -212,101 +212,102 @@
 
 (defn- pagination [{{:keys [results total page-no paginator-page-no
                             paginator-text-val fetching-pages]} :results-view :as a} m]
-  (let [fetching?   (seq @fetching-pages)
-        set-page    (fn [e n]
-                      (.preventDefault e)
-                      ;; Don't allow switching to a new page while we are in the processing of
-                      ;; fetching one or more pages, since the user may start clicking lots of
-                      ;; times, generating lots of concurrent requests
-                      (when-not fetching?
-                        (let [new-page-no (js/parseInt n)
-                              last-page   (last-page-no @total)]
-                          (when (<= 1 new-page-no last-page)
-                            ;; Set the value of the page number shown in the paginator; it may
-                            ;; differ from the page shown in the result table until we have
-                            ;; actually fetched the data from the server
-                            (reset! paginator-page-no new-page-no)
-                            (reset! paginator-text-val new-page-no)
-                            (if (contains? @results new-page-no)
-                              (do
-                                ;; If the selected result page has already been fetched from the
-                                ;; server, it can be shown in the result table immediately
-                                (reset! page-no new-page-no)
-                                ;; If necessary, fetch any result pages in a window centred around
-                                ;; the selected page in order to speed up pagination to nearby
-                                ;; pages. No need to wait for it to finish though.
-                                (fetch-result-window! a m new-page-no))
-                              (go
-                                ;; Otherwise, we need to park until the results from the server
-                                ;; arrive before setting the page to be shown in the result table
-                                (<! (fetch-result-window! a m new-page-no))
-                                ;; Don't show the fetched page if we have already selected another
-                                ;; page in the paginator while we were waiting for the request
-                                ;; to finish
-                                (when (= new-page-no @paginator-page-no)
-                                  (reset! page-no new-page-no))))))))
-        on-key-down (fn [e]
-                      (when (= "Enter" (.-key e))
-                        (if (str/blank? @paginator-text-val)
-                          ;; If the text field is blank when we hit Enter, set its value
-                          ;; to the last selected page number instead
-                          (reset! paginator-text-val @paginator-page-no)
-                          ;; Otherwise, make sure the entered number is within valid
-                          ;; bounds and set it to be the new selected page
-                          (let [last-page (last-page-no @total)
-                                new-val   (as-> @paginator-text-val v
-                                                (js/parseInt v)
-                                                (if (pos? v) v 1)
-                                                (if (<= v last-page) v last-page))]
-                            (set-page e new-val)))))]
-    (when (> @total page-size)
-      [:div.pull-right
-       [:nav
-        [:ul.pagination.pagination-sm
-         [:li {:class-name (when (or (= @paginator-page-no 1) fetching?)
-                             "disabled")}
-          [:a {:href       "#"
-               :aria-label "First"
-               :title      "First"
-               :on-click   #(set-page % 1)}
-           [:span {:aria-hidden "true"} "«"]]]
-         [:li {:class-name (when (or (= @paginator-page-no 1) fetching?)
-                             "disabled")}
-          [:a {:href       "#"
-               :aria-label "Previous"
-               :title      "Previous"
-               :on-click   #(set-page % (dec @paginator-page-no))}
-           [:span {:aria-hidden "true"} "‹"]]]
-         [:li
-          [:input.form-control.input-sm
-           {:style       {:text-align    "right"
-                          :width         60
-                          :float         "left"
-                          :height        29
-                          :border-radius 0}
-            :value       @paginator-text-val
-            :on-click    #(.select (.-target %))
-            :on-change   (fn [e]
-                           (let [v (.-target.value e)]
-                             ;; Allow the text field to contain a number or be blank while
-                             ;; we are editing it
-                             (when (or (integer? (js/parseInt v)) (str/blank? v))
-                               (reset! paginator-text-val v))))
-            :on-key-down on-key-down}]]
-         [:li {:class-name (when (or (= @paginator-page-no (last-page-no @total)) fetching?)
-                             "disabled")}
-          [:a {:href       "#"
-               :aria-label "Next"
-               :title      "Next"
-               :on-click   #(set-page % (inc @paginator-page-no))}
-           [:span {:aria-hidden "true"} "›"]]]
-         [:li {:class-name (when (or (= @paginator-page-no (last-page-no @total)) fetching?)
-                             "disabled")}
-          [:a {:href       "#"
-               :aria-label "Last"
-               :title      "Last"
-               :on-click   #(set-page % (last-page-no @total))}
-           [:span {:aria-hidden "true"} "»"]]]]]])))
+  (r/with-let [set-page (fn [e n fetching?]
+                          (.preventDefault e)
+                          ;; Don't allow switching to a new page while we are in the processing of
+                          ;; fetching one or more pages, since the user may start clicking lots of
+                          ;; times, generating lots of concurrent requests
+                          (when-not fetching?
+                            (let [new-page-no (js/parseInt n)
+                                  last-page   (last-page-no @total)]
+                              (when (<= 1 new-page-no last-page)
+                                ;; Set the value of the page number shown in the paginator; it may
+                                ;; differ from the page shown in the result table until we have
+                                ;; actually fetched the data from the server
+                                (reset! paginator-page-no new-page-no)
+                                (reset! paginator-text-val new-page-no)
+                                (if (contains? @results new-page-no)
+                                  (do
+                                    ;; If the selected result page has already been fetched from the
+                                    ;; server, it can be shown in the result table immediately
+                                    (reset! page-no new-page-no)
+                                    ;; If necessary, fetch any result pages in a window centred
+                                    ;; around the selected page in order to speed up pagination
+                                    ;; to nearby pages. No need to wait for it to finish though.
+                                    (fetch-result-window! a m new-page-no))
+                                  (go
+                                    ;; Otherwise, we need to park until the results from the server
+                                    ;; arrive before setting the page to be shown in the result
+                                    ;; table
+                                    (<! (fetch-result-window! a m new-page-no))
+                                    ;; Don't show the fetched page if we have already selected
+                                    ;; another page in the paginator while we were waiting for
+                                    ;; the request to finish
+                                    (when (= new-page-no @paginator-page-no)
+                                      (reset! page-no new-page-no))))))))
+               on-key-down (fn [e fetching?]
+                             (when (= "Enter" (.-key e))
+                               (if (str/blank? @paginator-text-val)
+                                 ;; If the text field is blank when we hit Enter, set its value
+                                 ;; to the last selected page number instead
+                                 (reset! paginator-text-val @paginator-page-no)
+                                 ;; Otherwise, make sure the entered number is within valid
+                                 ;; bounds and set it to be the new selected page
+                                 (let [last-page (last-page-no @total)
+                                       new-val   (as-> @paginator-text-val v
+                                                       (js/parseInt v)
+                                                       (if (pos? v) v 1)
+                                                       (if (<= v last-page) v last-page))]
+                                   (set-page e new-val fetching?)))))]
+    (let [fetching? (seq @fetching-pages)]
+      (when (> @total page-size)
+        [:div.pull-right
+         [:nav
+          [:ul.pagination.pagination-sm
+           [:li {:class-name (when (or (= @paginator-page-no 1) fetching?)
+                               "disabled")}
+            [:a {:href       "#"
+                 :aria-label "First"
+                 :title      "First"
+                 :on-click   #(set-page % 1)}
+             [:span {:aria-hidden "true"} "«"]]]
+           [:li {:class-name (when (or (= @paginator-page-no 1) fetching?)
+                               "disabled")}
+            [:a {:href       "#"
+                 :aria-label "Previous"
+                 :title      "Previous"
+                 :on-click   #(set-page % (dec @paginator-page-no))}
+             [:span {:aria-hidden "true"} "‹"]]]
+           [:li
+            [:input.form-control.input-sm
+             {:style       {:text-align    "right"
+                            :width         60
+                            :float         "left"
+                            :height        29
+                            :border-radius 0}
+              :value       @paginator-text-val
+              :on-click    #(.select (.-target %))
+              :on-change   (fn [e]
+                             (let [v (.-target.value e)]
+                               ;; Allow the text field to contain a number or be blank while
+                               ;; we are editing it
+                               (when (or (integer? (js/parseInt v)) (str/blank? v))
+                                 (reset! paginator-text-val v))))
+              :on-key-down #(on-key-down % fetching?)}]]
+           [:li {:class-name (when (or (= @paginator-page-no (last-page-no @total)) fetching?)
+                               "disabled")}
+            [:a {:href       "#"
+                 :aria-label "Next"
+                 :title      "Next"
+                 :on-click   #(set-page % (inc @paginator-page-no))}
+             [:span {:aria-hidden "true"} "›"]]]
+           [:li {:class-name (when (or (= @paginator-page-no (last-page-no @total)) fetching?)
+                               "disabled")}
+            [:a {:href       "#"
+                 :aria-label "Last"
+                 :title      "Last"
+                 :on-click   #(set-page % (last-page-no @total))}
+             [:span {:aria-hidden "true"} "»"]]]]]]))))
 
 (defn- concordance-toolbar [a m]
   [:div.row {:style {:margin-top 15}}
