@@ -28,25 +28,45 @@
                                ;; On shift-click, exclude this pos
                                (swap! wrapped-term update :features
                                       (fn [poses]
-                                        ;; If we say that we want to exclude this pos, remove
-                                        ;; any previously selected poses, since it would be
-                                        ;; redundant to exclude this pos if we kept the
-                                        ;; selected ones. For instance, if we say that something
-                                        ;; should be either a noun or a pronoun, there is no
-                                        ;; need to also specify that it should not be a verb.
-                                        ;; So if the user now wants to exclude verbs, assume that
-                                        ;; she no longer wants any previous selections.
-                                        (as-> poses $
-                                              (filter (fn [[k v]]
-                                                        (str/starts-with? k "!")) $)
-                                              (into {} $)
-                                              (assoc $ excluded-pos {}))))
-                               ;; No shift key - select this pos if not already selected or
-                               ;; excluded; otherwise remove its select or exclude status
+                                        (cond
+                                          excluded?
+                                          ;; If the pos was already excluded, shift-click removes
+                                          ;; that state (as does a click without shift - see below).
+                                          (dissoc poses excluded-pos)
+
+                                          :else
+                                          ;; If we say that we want to exclude this pos, remove
+                                          ;; any previously selected poses, since it would be
+                                          ;; redundant to exclude this pos if we kept the
+                                          ;; selected ones. For instance, if we say that something
+                                          ;; should be either a noun or a pronoun, there is no
+                                          ;; need to also specify that it should not be a verb.
+                                          ;; So if the user now wants to exclude verbs, assume that
+                                          ;; she no longer wants any previous selections.
+                                          (as-> poses $
+                                                (filter (fn [[k v]]
+                                                          (str/starts-with? k "!")) $)
+                                                (into {} $)
+                                                (assoc $ excluded-pos {})))))
+                               ;; No shift key. If this pos has already been selected or
+                               ;; excluded, remove it from that state. Otherwise, select it
+                               ;; and remove any previously excluded poses, since they become
+                               ;; redundant - see comment above.
                                (swap! wrapped-term update :features
-                                      #(if selected?
-                                        (dissoc % pos)
-                                        (assoc % pos {})))))}
+                                      (fn [poses]
+                                        (cond
+                                          selected?
+                                          (dissoc poses pos)
+
+                                          excluded?
+                                          (dissoc poses excluded-pos)
+
+                                          :else
+                                          (as-> poses $
+                                                (remove (fn [[k v]]
+                                                          (str/starts-with? k "!")) $)
+                                                (into {} $)
+                                                (assoc $ pos {})))))))}
              (or title pos)]))])
 
 (defn- morphsyn-panel [wrapped-term menu-data]
