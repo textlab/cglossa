@@ -9,7 +9,7 @@
   :test-paths ["spec/clj"]
 
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/clojurescript "1.8.40" :scope "provided"]
+                 [org.clojure/clojurescript "1.8.51"]
                  [org.clojure/core.async "0.2.371"]
                  [ring "1.3.2"]
                  [ring/ring-defaults "0.1.5"]
@@ -120,7 +120,7 @@
                        :repl-options {:init-ns cglossa.server
                                       :port    8230}
 
-                       :plugins      [[lein-figwheel "0.5.4"]]
+                       :plugins      [[lein-figwheel "0.5.8"]]
 
                        :figwheel     {:css-dirs          ["resources/public/css"]
                                       :open-file-command "idea-opener"
