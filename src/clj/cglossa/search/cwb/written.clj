@@ -24,7 +24,7 @@
           endpos (where (>= :endpos endpos))))
 
 (defmethod run-queries :default [corpus search-id queries metadata-ids step
-                                 page-size last-count sort-key]
+                                 page-size last-count context-size sort-key]
   (let [step-index (dec step)
         num-ret    (* 2 page-size)      ; number of results to return initially
         parts      (if-let [bounds (get-in corpus [:multicpu_bounds step-index])]
@@ -61,7 +61,7 @@
                                                                     startpos endpos
                                                                     :cpu-index cpu)
                                           (str "save " named-query)
-                                          (str "set Context 15 word")
+                                          (str "set Context " context-size " word")
                                           "set PrintStructures \"s_id\""
                                           "set LD \"{{\""
                                           "set RD \"}}\""
@@ -99,11 +99,11 @@
     [hits cnt cnts]))
 
 ;; For written CWB corpora that don't use multicore processing (e.g. multilingual corpora)
-(defmethod get-results ["cwb" nil] [corpus search queries start end _ sort-key attrs]
+(defmethod get-results ["cwb" nil] [corpus search queries start end _ context-size sort-key attrs]
   (let [named-query (str (cwb-query-name corpus (:id search)) "_1_0")
         commands    [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
                      (cwb-corpus-name corpus queries)
-                     (str "set Context 15 word")
+                     (str "set Context " context-size " word")
                      "set PrintStructures \"s_id\""
                      "set LD \"{{\""
                      "set RD \"}}\""
@@ -114,7 +114,8 @@
                                                (str " " start " " end)))]]
     (run-cqp-commands corpus (flatten commands) false)))
 
-(defmethod get-results :default [corpus search queries start end cpu-counts sort-key attrs]
+(defmethod get-results :default [corpus search queries start end cpu-counts
+                                 context-size sort-key attrs]
   (let [named-query   (cwb-query-name corpus (:id search))
         nres-1        (when (and start end)
                         (- end start))
@@ -174,7 +175,7 @@
                         (fn [result-file [start end]]
                           (let [commands [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
                                           (cwb-corpus-name corpus queries)
-                                          (str "set Context 15 word")
+                                          (str "set Context " context-size " word")
                                           "set PrintStructures \"s_id\""
                                           "set LD \"{{\""
                                           "set RD \"}}\""

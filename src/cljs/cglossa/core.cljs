@@ -28,6 +28,7 @@
                                          :results                 (r/atom nil)
                                          :total                   (r/atom nil)
                                          :cpu-counts              (r/atom nil)
+                                         :context-size            (r/atom 15)
                                          :page-no                 (r/atom nil)
                                          ;; This is the page selected in the result paginator;
                                          ;; it may differ from the one shown in the result table

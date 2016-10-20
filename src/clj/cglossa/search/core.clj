@@ -11,10 +11,10 @@
 (defmulti run-queries
   "Multimethod for actually running the received queries in a way that is
   appropriate for the search engine of the corpus in question."
-  (fn [corpus _ _ _ _ _ _ _] (:search_engine corpus)))
+  (fn [corpus _ _ _ _ _ _ _ _] (:search_engine corpus)))
 
 (defmulti get-results
-  (fn [corpus _ _ _ _ _ _ _] [(:search_engine corpus) (seq (:multicpu_bounds corpus))]))
+  (fn [corpus _ _ _ _ _ _ _ _] [(:search_engine corpus) (seq (:multicpu_bounds corpus))]))
 
 (defmulti transform-results
   "Multimethod for transforming search results in a way that is
@@ -36,11 +36,12 @@
   (kdb/with-db core-db
     (first (select search (where {:id id})))))
 
-(defn search-corpus [corpus-id search-id queries metadata-ids step page-size last-count sort-key]
+(defn search-corpus [corpus-id search-id queries metadata-ids step page-size last-count
+                     context-size sort-key]
   (let [corpus     (get-corpus {:id corpus-id})
         search-id* (or search-id (:generated_key (create-search! corpus-id queries)))
         [hits cnt cnts] (run-queries corpus search-id* queries metadata-ids step
-                                     page-size last-count sort-key)
+                                     page-size last-count context-size sort-key)
         results    (transform-results corpus queries hits)
         s          (search-by-id search-id*)]
     {:search     s
@@ -50,14 +51,14 @@
      ;; Number of hits found by each cpus in this search step
      :cpu-counts cnts}))
 
-(defn results [corpus-id search-id start end cpu-counts sort-key]
+(defn results [corpus-id search-id start end cpu-counts context-size sort-key]
   (let [corpus      (get-corpus {:id corpus-id})
         s           (search-by-id search-id)
         queries     (edn/read-string (:queries s))
         start*      (Integer/parseInt start)
         end*        (Integer/parseInt end)
         cpu-counts* (edn/read-string cpu-counts)
-        [results _] (get-results corpus s queries start* end* cpu-counts* sort-key nil)]
+        [results _] (get-results corpus s queries start* end* cpu-counts* context-size sort-key nil)]
     (transform-results corpus queries results)))
 
 
@@ -68,14 +69,14 @@
     {:search  s
      :results results}))
 
-(defn download-results [corpus-id search-id cpu-counts format headers? attrs]
+(defn download-results [corpus-id search-id cpu-counts format headers? attrs context-size]
   (let [corpus   (get-corpus {:id corpus-id})
         s        (search-by-id search-id)
         queries  (edn/read-string (:queries s))
         start    0
         end      (when (= format "excel") 49999)
         sort-key "position"
-        [results _] (get-results corpus s queries start end cpu-counts sort-key attrs)
+        [results _] (get-results corpus s queries start end cpu-counts context-size sort-key attrs)
         rows     (for [line results]
                    ;; Extract corpus position, sentence/utterance ID, left context, match and right
                    ;; context from the result line

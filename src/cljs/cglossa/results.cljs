@@ -43,7 +43,7 @@
   already been fetched or that are currently being fetched in another request (note that such
   pages can only be located at the edges of the window, and not as 'holes' within the window,
   since they must have been fetched as part of an earlier window)."
-  [{{:keys [results total cpu-counts fetching-pages sort-key]} :results-view}
+  [{{:keys [results total cpu-counts fetching-pages context-size sort-key]} :results-view}
    {:keys [corpus search] :as m}
    centre-page-no]
   ;; Enclose the whole procedure in a go block. This way, the function will return the channel
@@ -75,12 +75,13 @@
               ;; Calculate the first and last result index (zero-based) to request from the server
               first-result (* page-size (dec (first page-nos)))
               last-result  (dec (* page-size (last page-nos)))
-              results-ch   (http/get "/results" {:query-params {:corpus-id  (:id @corpus)
-                                                                :search-id  (:id @search)
-                                                                :start      first-result
-                                                                :end        last-result
-                                                                :cpu-counts (str (vec @cpu-counts))
-                                                                :sort-key   (name @sort-key)}})
+              results-ch   (http/get "/results" {:query-params {:corpus-id    (:id @corpus)
+                                                                :search-id    (:id @search)
+                                                                :start        first-result
+                                                                :end          last-result
+                                                                :cpu-counts   (str (vec @cpu-counts))
+                                                                :context-size @context-size
+                                                                :sort-key     (name @sort-key)}})
               ;; Park until results are available on the core.async channel
               {:keys [status success] req-result :body} (<! results-ch)]
           ;; Remove the pages from the set of pages currently being fetched
@@ -133,8 +134,9 @@
              :on-click #(reset! showing-download-popup? true)}
    "Download"])
 
-(defn- download-popup [{{:keys [cpu-counts showing-download-popup? downloading?]} :results-view}
-                       {:keys [corpus search]}]
+(defn- download-popup
+  [{{:keys [cpu-counts context-size showing-download-popup? downloading?]} :results-view}
+   {:keys [corpus search]}]
   (r/with-let
     [hide-popup #(reset! showing-download-popup? false)
      attrs (cons [:word "Word form"] (->> @corpus :languages first :config :displayed-attrs))
@@ -146,14 +148,16 @@
                 (go
                   (let [{:keys [format headers? attrs]} @form-field-vals
                         results-ch (http/post "/download-results"
-                                              {:json-params {:corpus-id  (:id @corpus)
-                                                             :search-id  (:id @search)
-                                                             :cpu-counts (vec @cpu-counts)
-                                                             :format     format
-                                                             :headers?   headers?
-                                                             :attrs      (keep (fn [[k v]]
-                                                                                 (when v (first k)))
-                                                                               attrs)}})
+                                              {:json-params {:corpus-id    (:id @corpus)
+                                                             :search-id    (:id @search)
+                                                             :cpu-counts   (vec @cpu-counts)
+                                                             :format       format
+                                                             :headers?     headers?
+                                                             :attrs        (keep
+                                                                             (fn [[k v]]
+                                                                               (when v (first k)))
+                                                                             attrs)
+                                                             :context-size @context-size}})
                         {file-url :body} (<! results-ch)]
                     (reset! downloading? false)
                     (reset! showing-download-popup? false)
@@ -208,6 +212,31 @@
        [b/menuitem {:event-key :word, :on-select on-select} "Word forms"]
        [b/menuitem {:event-key :lemma, :on-select on-select} "Lemmas"]
        [b/menuitem {:event-key :pos, :on-select on-select} "Parts-of-speech"]]))
+
+
+(defn- context-size-selector [{{:keys [results
+                                       context-size
+                                       page-no
+                                       fetching-pages]} :results-view :as a}
+                              m]
+  [:div.pull-right {:style {:font-size 13 :display "inline-block" :margin-right 15 :margin-top 3}}
+   "Context: "
+   [:input.form-control.input-sm
+    {:type        "text"
+     :style       {:display "inline-block" :width 28 :height 25 :padding 5}
+     :value       @context-size
+     :on-click    #(.select (.-target %))
+     :on-change   #(reset! context-size (.-target.value %))
+     :on-key-down (fn [e]
+                    (when (= "Enter" (.-key e))
+                      ;; Remove all the result pages we have fetched so far, since they need
+                      ;; to be re-fetched with the new context size.
+                      (reset! results nil)
+                      ;; Ignore any result page requests that may be currently in flight
+                      (reset! fetching-pages #{})
+                      ;; Fetch the current result page using the new context size
+                      (fetch-result-window! a m @page-no)))}]
+   " words"])
 
 
 (defn- pagination [{{:keys [results total page-no paginator-page-no
@@ -316,7 +345,8 @@
      #_[sort-button a m]
      [download-button a m]
      [download-popup a m]
-     [pagination a m]]]])
+     [pagination a m]
+     [context-size-selector a m]]]])
 
 (defmulti result-links
   "Multimethod for links shown to the left of each search result in a

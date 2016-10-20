@@ -93,12 +93,13 @@
     (transit-response (num-selected-texts selected-metadata))))
 
 (defroutes search-routes
-  (POST "/search" [corpus-id search-id queries metadata-ids step page-size last-count sort-key]
+  (POST "/search" [corpus-id search-id queries metadata-ids step page-size last-count
+                   context-size sort-key]
     (transit-response (search-corpus corpus-id search-id queries metadata-ids
-                                     step page-size last-count sort-key) false))
+                                     step page-size last-count context-size sort-key) false))
 
-  (GET "/results" [corpus-id search-id start end cpu-counts sort-key]
-    (transit-response (results corpus-id search-id start end cpu-counts sort-key) false))
+  (GET "/results" [corpus-id search-id start end cpu-counts context-size sort-key]
+    (transit-response (results corpus-id search-id start end cpu-counts context-size sort-key) false))
 
   (GET "/result-metadata" [corpus-id text-id]
     (transit-response (result-metadata (Integer/parseInt corpus-id) text-id) false))
@@ -109,5 +110,5 @@
   (POST "/geo-distr" [corpus-id search-id metadata-ids]
     (transit-response (geo-distr corpus-id search-id metadata-ids) false))
 
-  (POST "/download-results" [corpus-id search-id cpu-counts format headers? attrs]
-    (download-results corpus-id search-id cpu-counts format headers? attrs)))
+  (POST "/download-results" [corpus-id search-id cpu-counts format headers? attrs context-size]
+    (download-results corpus-id search-id cpu-counts format headers? attrs context-size)))
