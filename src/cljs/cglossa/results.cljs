@@ -338,7 +338,7 @@
                  :on-click   #(set-page % (last-page-no @total))}
              [:span {:aria-hidden "true"} "»"]]]]]]))))
 
-(defn- concordance-toolbar [a m]
+(defn- concordance-toolbar [a {:keys [corpus] :as m}]
   [:div.row {:style {:margin-top 15}}
    [:div.col-sm-12
     [b/buttontoolbar
@@ -346,7 +346,8 @@
      [download-button a m]
      [download-popup a m]
      [pagination a m]
-     [context-size-selector a m]]]])
+     (when-not (= (:search-engine @corpus) "cwb_speech")
+       [context-size-selector a m])]]])
 
 (defmulti result-links
   "Multimethod for links shown to the left of each search result in a
