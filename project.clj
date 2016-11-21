@@ -9,36 +9,36 @@
   :test-paths ["spec/clj"]
 
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/clojurescript "1.8.51"]
-                 [org.clojure/core.async "0.2.371"]
-                 [ring "1.3.2"]
-                 [ring/ring-defaults "0.1.5"]
+                 [org.clojure/clojurescript "1.9.293"]
+                 [org.clojure/core.async "0.2.395"]
+                 [ring "1.5.0"]
+                 [ring/ring-defaults "0.2.1"]
                  [ring/ring-json "0.4.0"]
-                 [com.cognitect/transit-clj "0.8.275"]
-                 [compojure "1.3.4"]
-                 [enlive "1.1.5"]
-                 [reagent "0.6.0-alpha"]
-                 [cljsjs/jquery "1.9.0-0"]
-                 [cljsjs/react-bootstrap "0.30.2-0"]
-                 [environ "1.0.0"]
-                 [http-kit "2.1.21-alpha2"]
-                 [cljs-http "0.1.35"]
-                 [prone "0.8.2"]
-                 [korma "0.4.2"]
-                 [mysql/mysql-connector-java "5.1.37"]
-                 [org.clojure/data.csv "0.1.2"]
-                 [org.clojure/data.avl "0.0.12"]
+                 [com.cognitect/transit-clj "0.8.295"]
+                 [compojure "1.5.1"]
+                 [enlive "1.1.6"]
+                 [reagent "0.6.0"]
+                 [cljsjs/jquery "2.2.4-0"]
+                 [cljsjs/react-bootstrap "0.30.6-0"]
+                 [environ "1.1.0"]
+                 [http-kit "2.2.0"]
+                 [cljs-http "0.1.42"]
+                 [prone "1.1.2"]
+                 [korma "0.4.3"]
+                 [mysql/mysql-connector-java "6.0.5"]
+                 [org.clojure/data.csv "0.1.3"]
+                 [org.clojure/data.avl "0.0.17"]
                  [me.raynes/conch "0.8.0"]
                  [me.raynes/fs "1.4.6"]
-                 [cheshire "5.5.0"]
+                 [cheshire "5.6.3"]
                  [ring-logger-timbre "0.7.5"]
-                 [dk.ative/docjure "1.10.0"]
-                 [binaryage/devtools "0.5.0"]]
+                 [dk.ative/docjure "1.11.0"]
+                 [binaryage/devtools "0.8.3"]]
 
-  :plugins [[lein-cljsbuild "1.1.1"]
-            [lein-environ "1.0.0"]
-            [lein-sassc "0.10.0"]
-            [lein-auto "0.1.1"]]
+  :plugins [[lein-cljsbuild "1.1.4"]
+            [lein-environ "1.1.0"]
+            [lein-sassc "0.10.4"]
+            [lein-auto "0.1.3"]]
 
   :min-lein-version "2.5.0"
 
@@ -114,7 +114,7 @@
            :output-to "resources/public/css/style.css"}]
   :auto {"sassc" {:file-pattern #"\.(scss)$"}}
 
-  :profiles {:dev     {:dependencies [[leiningen "2.5.1"]
+  :profiles {:dev     {:dependencies [[leiningen "2.7.1"]
                                       [ring/ring-mock "0.3.0"]]
 
                        :repl-options {:init-ns cglossa.server
@@ -126,7 +126,7 @@
                                       :open-file-command "idea-opener"
                                       :server-port       3450}
 
-                       :env          {:is-dev true}
+                       :env          {:is-dev "1"}
 
                        :cljsbuild    {:builds
                                       {:app
