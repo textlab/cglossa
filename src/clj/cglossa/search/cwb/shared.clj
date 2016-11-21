@@ -9,8 +9,7 @@
             [taoensso.timbre :as timbre]
             [cglossa.shared :as shared]
             [cglossa.db.corpus :refer [multilingual?]]
-            [cglossa.db.metadata :refer [metadata-value-text]])
-  (:import [java.sql SQLException]))
+            [cglossa.db.metadata :refer [metadata-value-text]]))
 
 (defentity text)
 
@@ -124,7 +123,7 @@
           (where-limits corpus startpos endpos)
           (order-position-fields corpus)
           (select))
-      (catch SQLException e
+      (catch NullPointerException e
         (when-not (.contains (str e) "ResultSet is from UPDATE")
           (println e))))
     ;; No metadata selected, so just print the start and end positions specified in the

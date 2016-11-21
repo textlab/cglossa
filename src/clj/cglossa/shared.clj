@@ -9,11 +9,26 @@
 
 (defonce corpus-connections (atom {}))
 
+;; OVERRIDE OUTDATED mysql FUNCTION IN KORMA
+(defn mysql
+  "Create a database specification for a mysql database. Opts should include keys
+  for :db, :user, and :password. You can also optionally set host and port.
+  Delimiters are automatically set to \"`\"."
+  [{:keys [host port db make-pool?]
+    :or   {host "localhost", port 3306, db "", make-pool? true}
+    :as   opts}]
+  (merge {:classname   "com.mysql.cj.jdbc.Driver" ; must be in classpath - UPDATED DRIVER
+          :subprotocol "mysql"
+          :subname     (str "//" host ":" port "/" db "?useSSL=false&serverTimezone=CET") ; ADD useSSL and serverTimezone
+          :delimiters  "`"
+          :make-pool?  make-pool?}
+         (dissoc opts :host :port :db)))
+
 (def core-db-name (str (get env :glossa-prefix "glossa") "__core"))
 
-(kdb/defdb core-db (kdb/mysql {:user     (:glossa-db-user env "glossa")
-                               :password (:glossa-db-password env)
-                               :db       core-db-name}))
+(kdb/defdb core-db (mysql {:user     (:glossa-db-user env "glossa")
+                           :password (:glossa-db-password env)
+                           :db       core-db-name}))
 
 (defn convert-string [s from-charset-name to-charset-name]
   (let [from-charset (Charset/forName from-charset-name)

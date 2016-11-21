@@ -11,7 +11,7 @@
             [ring.logger.timbre :refer [wrap-with-logger]]
             [korma.db :as kdb]
             [korma.core :refer [select fields]]
-            [cglossa.shared :refer [corpus-connections core-db]]
+            [cglossa.shared :refer [corpus-connections mysql core-db]]
             [cglossa.routes :refer [app-routes db-routes search-routes]]
             [cglossa.db.corpus :refer [corpus]]
             [cglossa.search-engines])
@@ -24,11 +24,11 @@
   (reset! connections
           (into {} (for [c (select corpus (fields :id :code))]
                      [(:id c)
-                      (kdb/create-db (kdb/mysql {:user     (:glossa-db-user env "glossa")
-                                                 :password (:glossa-db-password env)
-                                                 :db       (str (get env :glossa-prefix "glossa")
-                                                                "_"
-                                                                (:code c))}))]))))
+                      (kdb/create-db (mysql {:user     (:glossa-db-user env "glossa")
+                                             :password (:glossa-db-password env)
+                                             :db       (str (get env :glossa-prefix "glossa")
+                                                            "_"
+                                                            (:code c))}))]))))
 (defn wrap-db
   "Middleware that checks if the request contains a corpus-id key, and if so,
   sets the database for the given corpus as the default for the request. Otherwise
