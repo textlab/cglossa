@@ -17,7 +17,9 @@
   [{:keys [host port db make-pool?]
     :or   {host "localhost", port 3306, db "", make-pool? true}
     :as   opts}]
-  (merge {:classname   "com.mysql.cj.jdbc.Driver" ; must be in classpath - UPDATED DRIVER
+  ;; TODO: Use the updated driver when we can update the MySQL connector (requires Java 1.8 or recent MySQL?)
+  (merge {#_:classname   #_"com.mysql.cj.jdbc.Driver" ; must be in classpath - UPDATED DRIVER
+          :classname "com.mysql.jdbc.Driver" ; must be in classpath
           :subprotocol "mysql"
           :subname     (str "//" host ":" port "/" db "?useSSL=false&serverTimezone=CET") ; ADD useSSL and serverTimezone
           :delimiters  "`"

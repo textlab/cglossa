@@ -9,7 +9,8 @@
             [taoensso.timbre :as timbre]
             [cglossa.shared :as shared]
             [cglossa.db.corpus :refer [multilingual?]]
-            [cglossa.db.metadata :refer [metadata-value-text]]))
+            [cglossa.db.metadata :refer [metadata-value-text]])
+  (:import [java.sql SQLException]))
 
 (defentity text)
 
@@ -123,7 +124,11 @@
           (where-limits corpus startpos endpos)
           (order-position-fields corpus)
           (select))
-      (catch NullPointerException e
+      ;; TODO: Use NullPointerException instead of SQLException when we
+      ;; can upgrade the MySQL connector to version 6 (requires Java 1.8
+      ;; or more recent MySQL than we have on our server (5.1)?)
+      ;(catch NullPointerException e
+      (catch SQLException e
         (when-not (.contains (str e) "ResultSet is from UPDATE")
           (println e))))
     ;; No metadata selected, so just print the start and end positions specified in the
