@@ -95,8 +95,8 @@
                                             :file-min "resources/public/js/bootstrap_tooltip.min.js"
                                             :provides ["tooltip"]
                                             :requires ["cljsjs.jquery"]}
-                                           {:file     "resources/public/js/griddle_0.2.15.js"
-                                            :file-min "resources/public/js/griddle_0.2.15.min.js"
+                                           {:file     "resources/public/js/griddle_0.6.0.js"
+                                            :file-min "resources/public/js/griddle_0.6.0.min.js"
                                             :provides ["griddle"]
                                             :requires ["cljsjs.react" "underscore"]}
                                            {:file     "resources/public/js/geo_distribution_map.js"
@@ -106,7 +106,7 @@
                                            "resources/public/js/externs/select2.ext.js"
                                            "resources/public/js/externs/react-spinner.ext.js"
                                            "resources/public/js/externs/bootstrap_tooltip.ext.js"
-                                           "resources/public/js/externs/griddle_0.2.15.ext.js"
+                                           "resources/public/js/externs/griddle_0.6.0.ext.js"
                                            "resources/public/js/externs/jplayer.ext.js"
                                            "resources/public/js/externs/wfplayer.ext.js"
                                            "resources/public/js/externs/geo_distribution_map.ext.js"]

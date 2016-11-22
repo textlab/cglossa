@@ -65,7 +65,11 @@
              [b/modaltitle "Corpus texts"]]
             [b/modalbody
              [:> js/Griddle
-              {:columns                    (map category-name @metadata-categories)
+              {:use-griddle-styles         false
+               :columns                    (map category-name @metadata-categories)
+               :column-metadata            (for [cat @metadata-categories]
+                                             {:columnName   (category-name cat)
+                                              :cssClassName (str "column-" (:code cat))})
                :use-external               true
                :external-set-page          (fn [page]
                                              (when-not (contains? @fetched-pages page)
@@ -86,7 +90,6 @@
                :external-is-loading        @loading?
                :enable-infinite-scroll     true
                :body-height                (- (.. (ViewportSizeMonitor.) getSize -height) 300)
-               :body-width                 1000
                :use-fixed-header           true}]]
             [b/modalfooter
              [b/button {:on-click hide} "Close"]]]))})))
