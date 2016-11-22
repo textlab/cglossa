@@ -59,6 +59,10 @@
   "Core.async channel used to cancel any already ongoing search when we start a new one."
   (async/chan))
 
+(defmulti extra-navbar-items (fn [corpus] (:code @corpus)))
+
+(defmethod extra-navbar-items :default [_] nil)
+
 (defmulti cleanup-result
   "Multimethod that accepts two arguments - a model/domain state map and a
   single search result - and dispatches to the correct method based on

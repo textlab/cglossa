@@ -31,6 +31,7 @@
         "ModalTitle"
         "Navbar"
         "Navbar.Brand"
+        "Navbar.Link"
         "Navbar.Text"
         "Overlay"
         "OverlayTrigger"
