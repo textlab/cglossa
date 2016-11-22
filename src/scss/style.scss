@@ -300,11 +300,23 @@ div.interval {
 .column-area {
     width: 100px;
 }
+.column-category {
+    width: 80px;
+}
+.column-collection {
+    width: 100px;
+}
+.column-corpus_date {
+    width: 100px;
+}
 .column-country {
     width: 100px;
 }
 .column-education {
     width: 150px;
+}
+.column-issnisbn {
+    width: 100px;
 }
 .column-mother_tongue {
     width: 110px;
@@ -318,6 +330,15 @@ div.interval {
 .column-place {
     width: 100px;
 }
+.column-publisher {
+    width: 100px;
+}
+.column-pubdate {
+    width: 100px;
+}
+.column-pubplace {
+    width: 100px;
+}
 .column-rec {
     width: 80px;
 }
@@ -327,15 +348,27 @@ div.interval {
 .column-sex {
     width: 60px;
 }
+.column-supercategory {
+    width: 120px;
+}
 .column-tid {
     width: 150px;
 }
 .column-time_in_norway {
     width: 100px;
 }
+.column-title {
+    width: 170px;
+}
+.column-translation {
+    width: 100px;
+}
+.column-version {
+    width: 50px;
+}
 .column-where_learned {
     width: 150px;
 }
 .column-wordcount {
-    width: 50px;
+    width: 60px;
 }
