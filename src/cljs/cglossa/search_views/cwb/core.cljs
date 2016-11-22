@@ -58,8 +58,8 @@
                          ;;   Guide/Regular_Expressions
                          (map #(str/replace % #"[\.\*\+\?\^\$\{\}\(\)\|\[\]\\]" "\\$&") $)
                          (map #(if (= % "")
-                                ""
-                                (str "[" attr "=\"" % "\" %c]"))
+                                 ""
+                                 (str "[" attr "=\"" % "\" %c]"))
                               $)
                          (str/join " " $)
                          (str/replace $
