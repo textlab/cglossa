@@ -57,13 +57,15 @@
        #(get-data 1)
 
        :reagent-render
-       (fn [a {:keys [metadata-categories]}]
+       (fn [a {:keys [corpus metadata-categories]}]
          (let [fetched-pages (atom #{})]
            [b/modal {:bs-size "large"
                      :show    true
                      :on-hide hide}
             [b/modalheader {:close-button true}
-             [b/modaltitle "Corpus texts"]
+             [b/modaltitle (if (= (:search-engine @corpus) "cwb_speech")
+                             "Informants"
+                             "Corpus texts")]
              [text-selection a m]]
             [b/modalbody
              [:> js/Griddle

@@ -162,13 +162,13 @@
      (let [lang (-> @corpus :languages first :code)]
        (add-row queries query-ids {:query "" :lang lang})))])
 
-(defn- show-texts-button [{:keys [show-texts?]} view]
+(defn- show-texts-button [{:keys [show-texts?]} {:keys [corpus]} view]
   [b/button {:bs-size  "small"
              :style    {:margin-top (if (= view extended) -15 0)}
              :on-click (fn [e]
                          (reset! show-texts? true)
                          (.preventDefault e))}
-   "Show texts"])
+   (str "Show " (if (= (:search-engine @corpus) "cwb_speech") "informants" "texts"))])
 
 (defn- language-select [wrapped-query languages queries]
   (let [selected-language     (or (:lang @wrapped-query) (-> languages first :code))
@@ -367,4 +367,4 @@
           (if multilingual?
             [add-language-button a m view]
             [add-phrase-button a m view])
-          [show-texts-button a view]]))}))
+          [show-texts-button a m view]]))}))
