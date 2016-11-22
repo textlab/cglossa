@@ -70,7 +70,9 @@
             [b/modalbody
              [:> js/Griddle
               {:use-griddle-styles         false
-               :columns                    (map category-name @metadata-categories)
+               :columns                    (->> @metadata-categories
+                                                (remove #(str/starts-with? (name (:code %)) "hd_"))
+                                                (map category-name))
                :column-metadata            (for [cat @metadata-categories]
                                              {:columnName   (category-name cat)
                                               :cssClassName (str "column-" (:code cat))})
