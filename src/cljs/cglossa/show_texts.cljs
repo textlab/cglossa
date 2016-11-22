@@ -23,9 +23,9 @@
             {:keys [rows max-pages] :as body} (:body response)]
         (if (http/unexceptional-status? (:status response))
           (let [rows* (for [row rows]
-                        (into {} (map (fn [cat]
-                                        [(category-name cat) (get row (:id cat))])
-                                      @metadata-categories)))]
+                        (into {"__dummy" " "} (map (fn [cat]
+                                                     [(category-name cat) (get row (:id cat))])
+                                                   @metadata-categories)))]
             (reset! loading? false)
             (swap! results concat rows*)
             (reset! mxpages max-pages)
@@ -59,43 +59,47 @@
        :reagent-render
        (fn [a {:keys [corpus metadata-categories]}]
          (let [fetched-pages (atom #{})]
-           [b/modal {:bs-size "large"
-                     :show    true
-                     :on-hide hide}
-            [b/modalheader {:close-button true}
-             [b/modaltitle (if (= (:search-engine @corpus) "cwb_speech")
-                             "Informants"
-                             "Corpus texts")]
-             [text-selection a m]]
-            [b/modalbody
-             [:> js/Griddle
-              {:use-griddle-styles         false
-               :columns                    (->> @metadata-categories
-                                                (remove #(str/starts-with? (name (:code %)) "hd_"))
-                                                (map category-name))
-               :column-metadata            (for [cat @metadata-categories]
-                                             {:columnName   (category-name cat)
-                                              :cssClassName (str "column-" (:code cat))})
-               :use-external               true
-               :external-set-page          (fn [page]
-                                             (when-not (contains? @fetched-pages page)
-                                               (swap! fetched-pages conj page)
-                                               (get-data page)))
-               :enable-sort                false
-               :external-set-page-size     #()
-               :external-max-page          (inc @max-pages)
-               :external-change-sort       #()
-               :external-set-filter        #()
-               :external-current-page      @current-page
-               :results                    @results
-               :table-class-name           "table"
-               :results-per-page           @external-results-per-page
-               :external-sort-column       @external-sort-column
-               :external-sort-ascending    @external-sort-ascending
-               :external-loading-component loading-comp
-               :external-is-loading        @loading?
-               :enable-infinite-scroll     true
-               :body-height                (- (.. (ViewportSizeMonitor.) getSize -height) 300)
-               :use-fixed-header           true}]]
-            [b/modalfooter
-             [b/button {:on-click hide} "Close"]]]))})))
+           [:div.show-texts-popup
+            [b/modal {:show    true
+                      :on-hide hide
+                      :dialog-class-name "show-texts-popup"}
+             [b/modalheader {:close-button true}
+              [b/modaltitle (if (= (:search-engine @corpus) "cwb_speech")
+                              "Informants"
+                              "Corpus texts")]
+              [text-selection a m]]
+             [b/modalbody
+              [:> js/Griddle
+               {:use-griddle-styles         false
+                :columns                    (->> @metadata-categories
+                                                 (remove #(str/starts-with? (name (:code %)) "hd_"))
+                                                 (mapv category-name)
+                                                 ;; Add dummy column to fill remaining space
+                                                 (#(conj % "__dummy")))
+                :column-metadata            (conj (for [cat @metadata-categories]
+                                                    {:columnName   (category-name cat)
+                                                     :cssClassName (str "column-" (:code cat))})
+                                                  {:columnName "__dummy" :displayName " "})
+                :use-external               true
+                :external-set-page          (fn [page]
+                                              (when-not (contains? @fetched-pages page)
+                                                (swap! fetched-pages conj page)
+                                                (get-data page)))
+                :enable-sort                false
+                :external-set-page-size     #()
+                :external-max-page          (inc @max-pages)
+                :external-change-sort       #()
+                :external-set-filter        #()
+                :external-current-page      @current-page
+                :results                    @results
+                :table-class-name           "table"
+                :results-per-page           @external-results-per-page
+                :external-sort-column       @external-sort-column
+                :external-sort-ascending    @external-sort-ascending
+                :external-loading-component loading-comp
+                :external-is-loading        @loading?
+                :enable-infinite-scroll     true
+                :body-height                (- (.. (ViewportSizeMonitor.) getSize -height) 300)
+                :use-fixed-header           true}]]
+             [b/modalfooter
+              [b/button {:on-click hide} "Close"]]]]))})))
