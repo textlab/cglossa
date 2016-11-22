@@ -275,7 +275,7 @@ div.interval {
     overflow-x: auto;
 
     .griddle-body {
-        width: 3000px;
+        width: 1200px;
     }
 }
 
@@ -284,30 +284,57 @@ div.interval {
     margin-right: 20px;
 }
 
+.show-texts-popup {
+    width: auto;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
 /* Columns in the "Show texts" grid */
-.column-tid {
-    width: 150px;
-}
-.column-rec {
-    width: 80px;
-}
-.column-sex {
-    width: 50px;
+.column-age {
+    width: 60px;
 }
 .column-agegroup {
     width: 70px;
 }
-.column-place {
-    width: 100px;
-}
 .column-area {
-    width: 100px;
-}
-.column-region {
     width: 100px;
 }
 .column-country {
     width: 100px;
+}
+.column-education {
+    width: 150px;
+}
+.column-mother_tongue {
+    width: 110px;
+}
+.column-occupation {
+    width: 150px;
+}
+.column-other_languages {
+    width: 150px;
+}
+.column-place {
+    width: 100px;
+}
+.column-rec {
+    width: 80px;
+}
+.column-region {
+    width: 100px;
+}
+.column-sex {
+    width: 60px;
+}
+.column-tid {
+    width: 150px;
+}
+.column-time_in_norway {
+    width: 100px;
+}
+.column-where_learned {
+    width: 150px;
 }
 .column-wordcount {
     width: 50px;
