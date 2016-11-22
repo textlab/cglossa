@@ -26,13 +26,13 @@
   (count-selected-texts! a m)
   (search! a m))
 
-(defn- text-selection [{:keys [num-selected-texts]} {:keys [corpus]}]
+(defn text-selection [{:keys [num-selected-texts]} {:keys [corpus]}]
   (let [tid-type  (if (= (:search-engine @corpus) "cwb_speech") "informants" "texts")
         sel-texts (if (or (nil? @num-selected-texts)
                           (= @num-selected-texts (:num-texts @corpus)))
                     "All "
                     (str @num-selected-texts " of "))]
-    [:div {:style {:margin-left 15 :color "#676767"}}
+    [:div {:style {:color "#676767"}}
      (str sel-texts (:num-texts @corpus) " " tid-type " selected")]))
 
 (defn- metadata-select [a m corpus cat-id search selected open-metadata-cat]
@@ -87,7 +87,8 @@
                                      (swap! search dissoc :metadata))
                                    (metadata-selection-changed a m))]
     [:span
-     [text-selection a m]
+     [:div {:style {:margin-left 15}}
+      [text-selection a m]]
      (doall
        (for [cat @metadata-categories
              :let [cat-id   (:id cat)

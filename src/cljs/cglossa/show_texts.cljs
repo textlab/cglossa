@@ -2,9 +2,10 @@
   (:require [clojure.string :as str]
             [cljs.core.async :refer [<!]]
             [reagent.core :as r]
-            [cglossa.react-adapters.bootstrap :as b]
             [cljs-http.client :as http]
-            griddle)
+            griddle
+            [cglossa.react-adapters.bootstrap :as b]
+            [cglossa.metadata-list :refer [text-selection]])
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:import [goog.dom ViewportSizeMonitor]))
 
@@ -35,7 +36,7 @@
   [:div "Loading"])
 (def loading-comp (r/reactify-component loading))
 
-(defn show-texts-modal [{:keys [show-texts?]} {:keys [metadata-categories] :as m}]
+(defn show-texts-modal [{:keys [show-texts?]} m]
   ;; Loading of external data with infinite scroll
   ;; mimics example at http://jsfiddle.net/joellanciaux/m9hyhwra/2/
   (let [hide                      #(reset! show-texts? false)
@@ -56,13 +57,14 @@
        #(get-data 1)
 
        :reagent-render
-       (fn [_ {:keys [metadata-categories]}]
+       (fn [a {:keys [metadata-categories]}]
          (let [fetched-pages (atom #{})]
            [b/modal {:bs-size "large"
                      :show    true
                      :on-hide hide}
             [b/modalheader {:close-button true}
-             [b/modaltitle "Corpus texts"]]
+             [b/modaltitle "Corpus texts"]
+             [text-selection a m]]
             [b/modalbody
              [:> js/Griddle
               {:use-griddle-styles         false
