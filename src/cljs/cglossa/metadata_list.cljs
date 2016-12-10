@@ -11,8 +11,9 @@
 (defn- count-selected-texts! [{:keys [num-selected-texts]} {:keys [corpus search]}]
   (go
     (let [results-ch (http/post "/num-texts"
-                                {:json-params {:corpus-id         (:id @corpus)
-                                               :selected-metadata (selected-metadata-ids search)}})
+                                {:json-params
+                                 {:corpus-id             (:id @corpus)
+                                  :selected-metadata-ids (selected-metadata-ids search)}})
           {:keys [status success body]} (<! results-ch)]
       (if-not success
         (.log js/console status)

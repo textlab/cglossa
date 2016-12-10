@@ -89,8 +89,8 @@
           page*  (or page 1)]
       (transit-response (show-texts selected-metadata ncats* page*) false)))
 
-  (POST "/num-texts" [selected-metadata]
-    (transit-response (num-selected-texts selected-metadata))))
+  (POST "/num-texts" [selected-metadata-ids]
+    (transit-response (num-selected-texts selected-metadata-ids)))
 
 (defroutes search-routes
   (POST "/search" [corpus-id search-id queries metadata-ids step page-size last-count

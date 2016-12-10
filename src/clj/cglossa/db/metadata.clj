@@ -115,18 +115,18 @@
     {:rows      rows
      :max-pages max-pages}))
 
-(defn num-selected-texts [selected-metadata]
+(defn num-selected-texts [selected-metadata-ids]
   ;; If we don't get any selected metadata, just return nil, which means that all text
   ;; were selected.
-  (when (seq selected-metadata)
+  (when (seq selected-metadata-ids)
     ;; Korma doesn't seem to support any way to express count(distinct...) apart from
     ;; inserting a raw string.
     (let [cnt (raw "COUNT(DISTINCT `text_value`) AS cnt")]
       (-> (select* [metadata-value])
           (fields cnt)
           (join :inner [metadata-value-text :j0] (= :j0.metadata_value_id :id))
-          (join-selected-values selected-metadata)
-          (where-selected-values selected-metadata)
+          (join-selected-values selected-metadata-ids)
+          (where-selected-values selected-metadata-ids)
           (where {:metadata_category_id
                   (subselect metadata-category (fields :id) (where {:code "tid"}))})
           (select)
