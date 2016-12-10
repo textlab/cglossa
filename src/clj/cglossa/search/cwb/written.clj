@@ -21,7 +21,7 @@
 (defmethod where-limits "cwb" [sql _ startpos endpos]
   (cond-> sql
           true (where (>= :startpos startpos))
-          endpos (where (>= :endpos endpos))))
+          endpos (where (<= :endpos endpos))))
 
 (defmethod run-queries :default [corpus search-id queries metadata-ids step
                                  page-size last-count context-size sort-key]
