@@ -1,7 +1,6 @@
 (ns cglossa.search.cwb.shared
   "Shared code for all types of corpora encoded with the IMS Open Corpus Workbench."
   (:require [clojure.string :as str]
-            [clojure.set :as set]
             [korma.core :refer [defentity select select* modifier fields join where raw]]
             [me.raynes.fs :as fs]
             [me.raynes.conch.low-level :as sh]
