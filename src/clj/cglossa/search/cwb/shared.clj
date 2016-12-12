@@ -94,7 +94,7 @@
 (defmulti where-limits
   "Limits selected corpus positions to be between the supplied start and end positions,
   if applicable to the current corpus type."
-  (fn [_ corpus _ _] (:search-engine corpus)))
+  (fn [_ corpus _ _] (:search_engine corpus)))
 
 ;; The default implementation of where-limits does nothing.
 (defmethod where-limits :default [sql _ _ _] sql)

@@ -17,7 +17,7 @@
 (defmulti extra-info
   "Allows additional info besides the one residing in the database to be
   gathered using a procedure determined by the corpus type."
-  (fn [corpus] (:search-engine corpus)))
+  (fn [corpus] (:search_engine corpus)))
 
 
 (defmethod extra-info :default [c]
