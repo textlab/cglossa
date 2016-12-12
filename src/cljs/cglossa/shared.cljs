@@ -271,7 +271,8 @@
     :id        "headword_search"
     :name      "headword_search"} " Headword search"])
 
-(defn top-toolbar [{:keys              [num-resets show-results? show-metadata?]
+(defn top-toolbar [{:keys              [num-resets show-results? show-metadata?
+                                        num-selected-texts num-selected-tokens]
                     {:keys [queries]}  :search-view
                     {:keys [sort-key]} :results-view
                     :as                a}
@@ -300,5 +301,7 @@
                            (reset! search {})
                            (reset! show-results? false)
                            (reset! sort-key :position)
+                           (reset! num-selected-texts nil)
+                           (reset! num-selected-tokens nil)
                            (swap! num-resets inc))} ; see comments in the start component
      "Reset form"]]])
