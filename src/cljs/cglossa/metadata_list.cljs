@@ -49,8 +49,7 @@
                             (= @num-selected-texts (:num-texts @corpus)))
                       "All "
                       (str @num-selected-texts " of "))
-        corpus-code (keyword (:code @corpus))
-        corpus-size (get-in @corpus [:extra-info :size corpus-code])
+        corpus-size (second (first (get-in @corpus [:extra-info :size])))
         sel-tokens  (if (or (nil? @num-selected-tokens)
                             (= @num-selected-tokens corpus-size))
                       corpus-size
