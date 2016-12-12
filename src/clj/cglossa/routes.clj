@@ -14,6 +14,7 @@
             [net.cgrand.enlive-html :refer [deftemplate html-content]]
             [taoensso.timbre :as timbre]
             [cglossa.shared :refer [corpus-connections]]
+            [cglossa.search.cwb.shared :refer [token-count-matching-metadata]]
             [cglossa.db.corpus :refer [get-corpus]]
             [cglossa.db.metadata :refer [get-metadata-categories get-metadata-values
                                          show-texts num-selected-texts result-metadata]]
@@ -91,6 +92,10 @@
 
   (POST "/num-texts" [selected-metadata-ids]
     (transit-response (num-selected-texts selected-metadata-ids)))
+
+  (POST "/num-tokens" [corpus-id queries selected-metadata-ids]
+    (let [corpus (get-corpus {:id corpus-id})]
+      (transit-response (token-count-matching-metadata corpus queries selected-metadata-ids)))))
 
 (defroutes search-routes
   (POST "/search" [corpus-id search-id queries metadata-ids step page-size last-count

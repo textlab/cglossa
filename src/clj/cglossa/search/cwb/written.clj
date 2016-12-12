@@ -4,15 +4,33 @@
             [clojure.edn :as edn]
             [clojure.core.async :as async :refer [<!!]]
             [me.raynes.fs :as fs]
-            [korma.core :as korma :refer [where order]]
+            [korma.core :as korma :refer [select select* where order raw aggregate]]
             [cglossa.search.core :refer [run-queries get-results transform-results]]
             [cglossa.search.cwb.shared :refer [cwb-query-name cwb-corpus-name run-cqp-commands
-                                               construct-query-commands position-fields
+                                               construct-query-commands token-count-matching-metadata
+                                               position-fields-for-outfile
                                                order-position-fields where-limits
                                                displayed-attrs-command aligned-languages-command
-                                               sort-command]]))
+                                               sort-command join-metadata where-metadata
+                                               where-language text]]))
 
-(defmethod position-fields :default [_ positions-filename]
+(defmethod token-count-matching-metadata :default [corpus queries metadata-ids]
+  (if (seq metadata-ids)
+    (-> (select* [text :t])
+        (aggregate (sum (raw "endpos - startpos + 1")) :ntokens)
+        (join-metadata metadata-ids)
+        (where-metadata metadata-ids)
+        (where-language corpus queries)
+        select
+        first
+        :ntokens
+        int)
+    ;; No metadata selected, so just return the corpus size
+    (let [sizes       (get-in corpus [:extra-info :size])
+          corpus-name (str/lower-case (cwb-corpus-name corpus queries))]
+      (get sizes corpus-name))))
+
+(defmethod position-fields-for-outfile :default [_ positions-filename]
   (korma/raw (str "startpos, endpos INTO OUTFILE '" positions-filename "'")))
 
 (defmethod order-position-fields :default [sql corpus]

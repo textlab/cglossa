@@ -2,21 +2,45 @@
   "Support for speech corpora encoded with the IMS Open Corpus Workbench."
   (:require [clojure.string :as str]
             [me.raynes.fs :as fs]
-            [korma.core :as korma :refer [defentity table entity-fields select where]]
+            [korma.core :as korma :refer [defentity table entity-fields select select* modifier
+                                          fields where]]
             [cglossa.db.corpus :refer [get-corpus]]
             [cglossa.search.core :refer [run-queries get-results transform-results
                                          geo-distr-queries]]
             [cglossa.search.cwb.shared :refer [cwb-query-name cwb-corpus-name run-cqp-commands
-                                               construct-query-commands position-fields
+                                               construct-query-commands token-count-matching-metadata
+                                               position-fields-for-outfile
                                                order-position-fields displayed-attrs-command
-                                               aligned-languages-command sort-command]]))
+                                               aligned-languages-command sort-command
+                                               text join-metadata where-metadata]]))
 
 (defentity media-file (table :media_file) (entity-fields :basename))
 
 (defn- corpus-size [corpus queries]
   (get-in corpus [:extra-info :size (str/lower-case (cwb-corpus-name corpus queries))]))
 
-(defmethod position-fields "cwb_speech" [_ positions-filename]
+(defmethod token-count-matching-metadata "cwb_speech" [corpus queries metadata-ids]
+  (if (seq metadata-ids)
+    (let [bounds (-> (select* [text :t])
+                     (modifier "DISTINCT")
+                     (fields :bounds)
+                     (join-metadata metadata-ids)
+                     (where-metadata metadata-ids)
+                     (select))]
+      (->> bounds
+           (map :bounds)
+           (mapcat #(str/split % #":"))
+           (map #(str/split % #"-"))
+           (map (fn [b]
+                  [(Integer/parseInt (first b)) (Integer/parseInt (second b))]))
+           (map #(inc (- (second %) (first %))))
+           (reduce +)))
+    ;; No metadata selected, so just return the corpus size
+    (let [sizes       (get-in corpus [:extra-info :size])
+          corpus-name (str/lower-case (cwb-corpus-name corpus queries))]
+      (get sizes corpus-name))))
+
+(defmethod position-fields-for-outfile "cwb_speech" [_ positions-filename]
   (korma/raw (str "replace(replace(`bounds`, '-', '\t'), ':', '\n') INTO OUTFILE '"
                   positions-filename "' FIELDS ESCAPED BY ''")))
 

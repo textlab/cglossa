@@ -44,15 +44,15 @@
                           (str corpus-code "_" (-> query :lang str/upper-case) " " (:query query)))]
     (str/join " :" (cons main-query aligned-queries))))
 
-(defmulti position-fields
-  "The database fields that contain corpus positions for texts."
+(defmulti position-fields-for-outfile
+  "The database fields that contain corpus positions for texts combined with 'INTO OUTFILE'."
   (fn [corpus _] (:search_engine corpus)))
 
 (defmulti order-position-fields
   "Ordering of the database fields that contain corpus positions for texts."
   (fn [_ corpus] (:search_engine corpus)))
 
-(defn- join-metadata
+(defn join-metadata
   "Adds a join with the metadata_value_text table for each metadata category
   for which we have selected one or more values."
   [sql metadata-ids]
@@ -67,7 +67,7 @@
           sql
           (-> metadata-ids count range)))
 
-(defn- where-metadata
+(defn where-metadata
   "For each metadata category for which we have selected one or more
   values, adds a 'where' clause with the ids of the metadata values in that
   category. The 'where' clause is associated with the corresponding instance of
@@ -99,6 +99,13 @@
 ;; The default implementation of where-limits does nothing.
 (defmethod where-limits :default [sql _ _ _] sql)
 
+(defmulti token-count-matching-metadata
+  "Counts the number of tokens in all corpus texts that are
+  associated with the metadata values that have the given database ids, with an
+  OR relationship between values within the same category and an AND
+  relationship between categories."
+  (fn [corpus _ _] (:search_engine corpus)))
+
 (defn- print-positions-matching-metadata
   "Prints to file the start and stop positions of all corpus texts that are
   associated with the metadata values that have the given database ids, with an
@@ -116,7 +123,7 @@
     (try
       (-> (select* [text :t])
           (modifier "DISTINCT")
-          (fields (position-fields corpus positions-filename))
+          (fields (position-fields-for-outfile corpus positions-filename))
           (join-metadata metadata-ids)
           (where-metadata metadata-ids)
           (where-language corpus queries)

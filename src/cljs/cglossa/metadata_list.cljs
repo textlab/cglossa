@@ -5,7 +5,7 @@
             [cljs-http.client :as http]
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.select2 :as sel]
-            [cglossa.shared :refer [selected-metadata-ids search!]])
+            [cglossa.shared :refer [selected-metadata-ids queries->param search!]])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (defn- count-selected-texts! [{:keys [num-selected-texts]} {:keys [corpus search]}]
@@ -23,8 +23,24 @@
         (reset! num-selected-texts (when body
                                      (js/parseInt body)))))))
 
+(defn- count-selected-tokens! [{:keys             [num-selected-tokens]
+                                {:keys [queries]} :search-view}
+                               {:keys [corpus search]}]
+  (go
+    (let [results-ch (http/post "/num-tokens"
+                                {:json-params
+                                 {:corpus-id             (:id @corpus)
+                                  :queries               (queries->param @corpus @queries)
+                                  :selected-metadata-ids (selected-metadata-ids search)}})
+          {:keys [status success body]} (<! results-ch)]
+      (if-not success
+        (.log js/console status)
+        (reset! num-selected-tokens (when body
+                                      (js/parseInt body)))))))
+
 (defn- metadata-selection-changed [a m]
   (count-selected-texts! a m)
+  (count-selected-tokens! a m)
   (search! a m))
 
 (defn text-selection [{:keys [num-selected-texts]} {:keys [corpus]}]
