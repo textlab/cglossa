@@ -43,14 +43,20 @@
   (count-selected-tokens! a m)
   (search! a m))
 
-(defn text-selection [{:keys [num-selected-texts]} {:keys [corpus]}]
-  (let [tid-type  (if (= (:search-engine @corpus) "cwb_speech") "informants" "texts")
-        sel-texts (if (or (nil? @num-selected-texts)
-                          (= @num-selected-texts (:num-texts @corpus)))
-                    "All "
-                    (str @num-selected-texts " of "))]
+(defn text-selection [{:keys [num-selected-texts num-selected-tokens]} {:keys [corpus]}]
+  (let [tid-type    (if (= (:search-engine @corpus) "cwb_speech") "informants" "texts")
+        sel-texts   (if (or (nil? @num-selected-texts)
+                            (= @num-selected-texts (:num-texts @corpus)))
+                      "All "
+                      (str @num-selected-texts " of "))
+        corpus-code (keyword (:code @corpus))
+        corpus-size (get-in @corpus [:extra-info :size corpus-code])
+        sel-tokens  (if (or (nil? @num-selected-tokens)
+                            (= @num-selected-tokens corpus-size))
+                      corpus-size
+                      (str @num-selected-tokens " of " corpus-size))]
     [:div {:style {:color "#676767"}}
-     (str sel-texts (:num-texts @corpus) " " tid-type " selected")]))
+     (str sel-texts (:num-texts @corpus) " " tid-type " (" sel-tokens " tokens) selected")]))
 
 (defn- metadata-select [a m corpus cat-id search selected open-metadata-cat]
   (r/create-class
