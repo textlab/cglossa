@@ -8,13 +8,15 @@
             [cglossa.shared :refer [selected-metadata-ids queries->param search!]])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
-(defn- count-selected-texts! [{:keys [num-selected-texts]} {:keys [corpus search]}]
+(defn- count-selected-texts! [{:keys [num-selected-texts]} {:keys [corpus search] :as m}]
   (go
     (let [results-ch (http/post "/num-texts"
                                 {:json-params
                                  {:corpus-id             (:id @corpus)
                                   :selected-metadata-ids (selected-metadata-ids search)}})
           {:keys [status success body]} (<! results-ch)]
+      (when (= status 401)
+        (reset! (:authenticated-user m) nil))
       (if-not success
         (.log js/console status)
         ;; If we get a nil from the server, it means that all texts were selected
@@ -25,7 +27,7 @@
 
 (defn- count-selected-tokens! [{:keys             [num-selected-tokens]
                                 {:keys [queries]} :search-view}
-                               {:keys [corpus search]}]
+                               {:keys [corpus search] :as m}]
   (go
     (let [results-ch (http/post "/num-tokens"
                                 {:json-params
@@ -33,6 +35,8 @@
                                   :queries               (queries->param @corpus @queries)
                                   :selected-metadata-ids (selected-metadata-ids search)}})
           {:keys [status success body]} (<! results-ch)]
+      (when (= status 401)
+        (reset! (:authenticated-user m) nil))
       (if-not success
         (.log js/console status)
         (reset! num-selected-tokens (when body

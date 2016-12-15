@@ -88,10 +88,11 @@
       [value-data values-texts texts])))
 
 (defn -main [value-tsv-path cat-tsv-path]
-  (with-open [values-tsv-file       (io/writer (str (fs/tmpdir) "/glossa/metadata_value.tsv"))
-              values-texts-tsv-file (io/writer (str (fs/tmpdir) "/glossa/metadata_value_text.tsv"))
-              texts-tsv-file        (io/writer (str (fs/tmpdir) "/glossa/text.tsv"))]
-    (let [[values values-texts texts] (create-import-data value-tsv-path cat-tsv-path)]
-      (utils/write-csv values-tsv-file values)
-      (utils/write-csv values-texts-tsv-file values-texts)
-      (utils/write-csv texts-tsv-file texts))))
+  (let [tmpdir (System/getenv "TMPDIR")]
+    (with-open [values-tsv-file       (io/writer (str tmpdir "/glossa/metadata_value.tsv"))
+                values-texts-tsv-file (io/writer (str tmpdir "/glossa/metadata_value_text.tsv"))
+                texts-tsv-file        (io/writer (str tmpdir "/glossa/text.tsv"))]
+      (let [[values values-texts texts] (create-import-data value-tsv-path cat-tsv-path)]
+        (utils/write-csv values-tsv-file values)
+        (utils/write-csv values-texts-tsv-file values-texts)
+        (utils/write-csv texts-tsv-file texts)))))

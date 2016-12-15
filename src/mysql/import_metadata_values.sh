@@ -25,6 +25,7 @@ if [ "$#" -ne 3 ] ; then
 fi
 
 tmpd="${TMPDIR:-/tmp}/glossa"
+mkdir -p "$tmpd"
 valfile1=${tmpd}/glossa_valtmp.tsv
 valfile2=${tmpd}/metadata_value.tsv
 valfile3=${tmpd}/metadata_value_text.tsv

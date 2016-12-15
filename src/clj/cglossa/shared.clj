@@ -30,7 +30,9 @@
 
 (kdb/defdb core-db (mysql {:user     (:glossa-db-user env "glossa")
                            :password (:glossa-db-password env)
-                           :db       core-db-name}))
+                           :db       core-db-name
+                           :host     "localhost"
+                           :port     3306}))
 
 (defn convert-string [s from-charset-name to-charset-name]
   (let [from-charset (Charset/forName from-charset-name)

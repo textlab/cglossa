@@ -10,12 +10,14 @@
             [taoensso.timbre.appenders.3rd-party.rotor :refer [rotor-appender]]
             [ring.logger.timbre :refer [wrap-with-logger]]
             [korma.db :as kdb]
-            [korma.core :refer [select fields]]
+            [korma.core :refer [defentity table select insert delete values fields where raw join]]
             [cglossa.shared :refer [corpus-connections mysql core-db]]
             [cglossa.routes :refer [app-routes db-routes search-routes]]
             [cglossa.db.corpus :refer [corpus]]
             [cglossa.search-engines])
   (:gen-class))
+
+(use 'ring.middleware.cookies)
 
 (defn- init-corpus-connections! [connections]
   (assert (contains? env :glossa-db-password)
@@ -43,6 +45,21 @@
                       core-db)]
       (kdb/with-db db (handler request)))))
 
+(defentity session (table :session))
+(defentity user (table :user))
+(defn wrap-auth [handler]
+  (fn [request]
+    (if (re-find #"^(/|/auth|/css/.*|/js/.*|/img/.*)$" (:uri request))
+      (handler request)
+      (let [session_id (:value (get (:cookies request) "session_id"))]
+        (if-let [user-data (first (kdb/with-db core-db (select session (join user (= :session.user_id :user.id))
+                                                           (fields :user.id :user.email :user.name)
+                                                           (where {:session.id session_id})
+                                                           (where (raw "session.expire_time >= NOW()")))))]
+          (handler (assoc request :user-data user-data))
+          {:status 401
+           :body "Unauthorised"})))))
+
 (def http-handler
   (let [r (routes #'db-routes #'search-routes #'app-routes)
         r (if (:is-dev env) (reload/wrap-reload r) r)]
@@ -51,6 +68,8 @@
         wrap-db
         wrap-keyword-params
         wrap-json-params
+        wrap-auth
+        wrap-cookies
         wrap-params)))
 
 (defn run [& [port]]

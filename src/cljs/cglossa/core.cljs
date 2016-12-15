@@ -8,8 +8,8 @@
             [devtools.core :as devtools]
             [cglossa.search-engines]    ; just to pull in implementations
             [cglossa.corpora.core]      ; just to pull in implementations
-            [cglossa.shared :refer [reset-queries! reset-results!]]
-            [cglossa.app :refer [app]])
+            [cglossa.react-adapters.bootstrap :as b]
+            [cglossa.app :refer [app init get-models]])
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:import [goog Throttle]))
 
@@ -25,6 +25,8 @@
                     :num-selected-tokens (r/atom nil)
                     :show-texts?         (r/atom false)
                     :show-results?       (r/atom false)
+                    :show-login?         (r/atom false)
+                    :show-fatal-error    (r/atom nil)
                     :results-view        {:view-type               (r/atom :concordance)
                                           :results                 (r/atom nil)
                                           :total                   (r/atom nil)
@@ -66,7 +68,8 @@
 
 (defonce model-state {:corpus              (r/atom nil)
                       :metadata-categories (r/atom nil)
-                      :search              (r/atom {})})
+                      :search              (r/atom {})
+                      :authenticated-user  (r/atom nil)})
 
 ;; Set :narrow-view in app-state whenever the window is resized (throttled to 200ms)
 (def on-resize-throttle (Throttle. #(reset! (:narrow-view? app-state) (narrow-view?)) 200))
@@ -74,26 +77,8 @@
 
 (.tooltip (js/$ "body") #js {:selector "[data-toggle='tooltip']" :delay #js {:show 300 :hide 0}})
 
-(defn- get-models
-  ([url] (get-models url {}))
-  ([url params]
-   (go (let [response (<! (http/get url {:query-params params}))
-             body     (:body response)]
-         (doseq [[model-name data] body]
-           (if (http/unexceptional-status? (:status response))
-             (reset! (get model-state model-name) data)
-             (.error js/console (str "Error: " body))))))))
-
-(defn- init []
-  (if-let [corpus (second (re-find #"corpus=(\w+)" (.-location.search js/window)))]
-    (go
-      (<! (get-models "/corpus" {:code corpus}))
-      (reset-queries! app-state model-state)
-      (reset-results! app-state model-state))
-    (js/alert "Please provide a corpus in the query string (on the form corpus=mycorpus)")))
-
 ;; Don't re-init model state on hot reload
-(defonce ^:private __init (init))
+(defonce ^:private __init (init app-state model-state))
 
 (defn ^:export main []
   (rdom/render

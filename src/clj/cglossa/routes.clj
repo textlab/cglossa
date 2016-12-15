@@ -7,13 +7,15 @@
             [compojure.core :refer [GET POST defroutes routes context]]
             [compojure.route :refer [resources files]]
             [korma.db :as kdb]
+            [korma.core :refer [defentity table select insert delete values fields where raw join]]
             [cheshire.core :as cheshire]
             [ring.util.response :as response]
             [ring.handler.dump :refer [handle-dump]]
             [cognitect.transit :as transit]
             [net.cgrand.enlive-html :refer [deftemplate html-content]]
             [taoensso.timbre :as timbre]
-            [cglossa.shared :refer [corpus-connections]]
+            [buddy.hashers :as hashers]
+            [cglossa.shared :refer [core-db corpus-connections]]
             [cglossa.search.cwb.shared :refer [token-count-matching-metadata]]
             [cglossa.db.corpus :refer [get-corpus]]
             [cglossa.db.metadata :refer [get-metadata-categories get-metadata-values
@@ -21,6 +23,10 @@
             [cglossa.search.core :refer [search-corpus results geo-distr download-results]]
             [cglossa.search.cwb.speech :refer [play-video]])
   (:import (java.io ByteArrayOutputStream)))
+
+(def max-session-age 86400) ; in seconds
+(defentity session (table :session))
+(defentity user (table :user))
 
 (defn- hyphenize-keys
   "Recursively changes underscore to hyphen in all map keys, which are assumed
@@ -65,13 +71,29 @@
   (GET "/admin" req (admin)))
 
 (defroutes db-routes
-  (GET "/corpus" [code]
-    (if-let [c (get-corpus {:code code})]
-      (let [cats (kdb/with-db (get @corpus-connections (:id c)) (get-metadata-categories))]
-        (transit-response {:corpus              c
-                           :metadata-categories cats}))
-      {:status 500
-       :body   (str "No corpus named " code " exists!")}))
+  (GET "/corpus" {user-data :user-data params :params}
+    (let [code (:code params)
+          c    (get-corpus {:code code})]
+      (if (:id c)
+        (let [cats (kdb/with-db (get @corpus-connections (:id c)) (get-metadata-categories))]
+          (transit-response {:corpus              c
+                             :metadata-categories cats
+                             :authenticated-user  (:email user-data)}))
+        {:status 404
+         :body   (str "Corpus '" code "' not found.")})))
+
+  (POST "/auth" [email password]
+    (let [user_data (first (kdb/with-db core-db (select user (fields :id :password) (where {:email email}))))]
+      (if (hashers/check password (:password user_data))
+        (let [session_id (reduce str (take 64 (repeatedly #(rand-nth (map char (range (int \a) (inc (int \z))))))))]
+          (kdb/with-db core-db
+            (delete session (where (raw "expire_time < NOW()")))
+            (insert session (values {:id session_id :user_id (:id user_data) :expire_time (raw (str "DATE_ADD(NOW(), INTERVAL " max-session-age " SECOND)"))})))
+          {:status 200
+           :cookies {"session_id" {:value session_id}}
+           :max-age max-session-age})
+        {:status 403
+         :body (str "Wrong username or password.")})))
 
   (POST "/corpus" [zipfile]
     (println zipfile))

@@ -96,6 +96,8 @@
                                          resp-results    :results
                                          resp-count      :count
                                          resp-cpu-counts :cpu-counts} :body} val]
+            (when (= status 401)
+              (reset! (:authenticated-user m) nil))
             (if-not success
               (.log js/console status)
               (do

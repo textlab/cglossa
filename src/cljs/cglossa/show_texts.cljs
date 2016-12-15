@@ -12,7 +12,7 @@
 (defn- category-name [{:keys [code name]}]
   (or name (-> code (str/replace "_" " ") str/capitalize)))
 
-(defn- get-external-data [{:keys [corpus metadata-categories search]}
+(defn- get-external-data [{:keys [corpus metadata-categories search] :as m}
                           results loading? mxpages cur-page page]
   (reset! loading? true)
   (go (let [response (<! (http/post "/texts" {:json-params
@@ -26,6 +26,8 @@
                         (into {"__dummy" " "} (map (fn [cat]
                                                      [(category-name cat) (get row (:id cat))])
                                                    @metadata-categories)))]
+            (when (= (:status response) 401)
+              (reset! (:authenticated-user m) nil))
             (reset! loading? false)
             (swap! results concat rows*)
             (reset! mxpages max-pages)

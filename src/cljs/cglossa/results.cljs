@@ -84,6 +84,8 @@
                                                                 :sort-key     (name @sort-key)}})
               ;; Park until results are available on the core.async channel
               {:keys [status success] req-result :body} (<! results-ch)]
+          (when (= status 401)
+            (reset! (:authenticated-user m) nil))
           ;; Remove the pages from the set of pages currently being fetched
           (swap! fetching-pages #(apply disj % page-nos))
           (if-not success
@@ -136,7 +138,7 @@
 
 (defn- download-popup
   [{{:keys [cpu-counts context-size showing-download-popup? downloading?]} :results-view}
-   {:keys [corpus search]}]
+   {:keys [corpus search] :as m}]
   (r/with-let
     [hide-popup #(reset! showing-download-popup? false)
      attrs (cons [:word "Word form"] (->> @corpus :languages first :config :displayed-attrs))
@@ -158,10 +160,13 @@
                                                                                (when v (first k)))
                                                                              attrs)
                                                              :context-size @context-size}})
-                        {file-url :body} (<! results-ch)]
+                        results          (<! results-ch)
+                        {file-url :body} results]
                     (reset! downloading? false)
                     (reset! showing-download-popup? false)
-                    (aset js/window "location" file-url))))]
+                    (if (= (:status results) 401)
+                      (reset! (:authenticated-user m) nil)
+                      (aset js/window "location" file-url)))))]
     (let [attr-boxes (doall
                        (map-indexed (fn [index [attr-code attr-name :as attr]]
                                       ^{:key attr-code}
