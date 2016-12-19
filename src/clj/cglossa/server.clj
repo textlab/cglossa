@@ -53,7 +53,7 @@
       (handler request)
       (let [session_id (:value (get (:cookies request) "session_id"))]
         (if-let [user-data (first (kdb/with-db core-db (select session (join user (= :session.user_id :user.id))
-                                                           (fields :user.id :user.email :user.name)
+                                                           (fields :user.id :user.mail :user.eduPersonPrincipalName :user.displayName)
                                                            (where {:session.id session_id})
                                                            (where (raw "session.expire_time >= NOW()")))))]
           (handler (assoc request :user-data user-data))

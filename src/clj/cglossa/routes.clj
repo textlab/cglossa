@@ -78,12 +78,12 @@
         (let [cats (kdb/with-db (get @corpus-connections (:id c)) (get-metadata-categories))]
           (transit-response {:corpus              c
                              :metadata-categories cats
-                             :authenticated-user  (:email user-data)}))
+                             :authenticated-user  (or (:displayName user-data) (:mail user-data))}))
         {:status 404
          :body   (str "Corpus '" code "' not found.")})))
 
-  (POST "/auth" [email password]
-    (let [user_data (first (kdb/with-db core-db (select user (fields :id :password) (where {:email email}))))]
+  (POST "/auth" [mail password]
+    (let [user_data (first (kdb/with-db core-db (select user (fields :id :password) (where {:mail mail :password [not= "SAML"]}))))]
       (if (hashers/check password (:password user_data))
         (let [session_id (reduce str (take 64 (repeatedly #(rand-nth (map char (range (int \a) (inc (int \z))))))))]
           (kdb/with-db core-db

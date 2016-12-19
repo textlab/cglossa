@@ -68,12 +68,12 @@
      (when @show-texts?
        [show-texts-modal a m])
      (when @show-login?
-        [(let [email (r/atom nil)
+        [(let [mail (r/atom nil)
                password (r/atom nil)
                msg (r/atom nil)
                submit
                #(go
-                  (let [auth (<! (http/post "/auth" {:json-params {:email @email :password @password}}))]
+                  (let [auth (<! (http/post "/auth" {:json-params {:mail @mail :password @password}}))]
                      (if (= (:status auth) 403)
                        (reset! msg [:p {:style {:color "red"}} (:body auth)])
                        (do
@@ -90,7 +90,7 @@
                     [b/modalbody
                       [b/formgroup
                         "E-mail:" [b/formcontrol {:type "text" :name "login" :id "login" :style {:width 400}
-                                                  :on-change #(reset! email (.-target.value %))
+                                                  :on-change #(reset! mail (.-target.value %))
                                                   :on-key-down #(when (= "Enter" (.-key %)) (submit))}]
                         "Password:" [b/formcontrol {:type "password" :name "password" :style {:width 400}
                                                     :on-change #(reset! password (.-target.value %))

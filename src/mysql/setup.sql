@@ -22,3 +22,17 @@ CREATE TABLE IF NOT EXISTS `search` (
 `queries` text NOT NULL,
 `metadata_value_ids` text
 ) ENGINE=InnoDB;
+
+CREATE TABLE `session` (
+  `id` varchar(255) NOT NULL KEY,
+  `user_id` int unsigned NOT NULL,
+  `expire_time` datetime NOT NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE `user` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT KEY,
+  `password` varchar(255) NOT NULL DEFAULT 'SAML',
+  `mail` varchar(255) NOT NULL,
+  `eduPersonPrincipalName` varchar(255) DEFAULT NULL,
+  `displayName` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB;
