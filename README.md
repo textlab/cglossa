@@ -33,8 +33,12 @@ simplification and speedup of all code related to importing and searching corpor
 In order to set up the core database, run the `src/mysql/setup.sh` script. This
 will create the core database with the name `glossa__core`. If you want to change
 the prefix used for the core and all the corpus-specific databases to something
-other than **glossa**, set the environment variable **GLOSSA_PREFIX**. For example,
-the following commands:
+other than **glossa**, set the environment variable **GLOSSA_PREFIX**.
+
+The variables **GLOSSA_DB_USER** (default: "glossa") and **GLOSSA_DB_PASSWORD**
+also need to be set accordingly.
+
+For example, the following commands:
 
 ```sh
 export GLOSSA_PREFIX=myglossa
@@ -44,6 +48,8 @@ cd src/mysql
 
 will create the core database with the name **myglossa__core**, and all corpus-specific databases
 will also get a **myglossa** prefix instead of **glossa**.
+
+
 
 ### Creating a corpus
 The script `src/mysql/create_corpus.sh` creates a row for the new corpus in the
@@ -60,6 +66,9 @@ If the corpus has metadata, they can be imported using the scripts
 is the "short name" of the corpus (e.g. **mycorpus**). **TODO**: Describe the format
 of the TSV files.
 
+### Creating local users
+New users can be added using `src/mysql/adduser.sh`. For the script to work,
+the environment variables, described above, need to be set properly.
 
 ## Development on Glossa itself
 

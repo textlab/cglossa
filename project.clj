@@ -41,7 +41,8 @@
   :plugins [[lein-cljsbuild "1.1.4"]
             [lein-environ "1.1.0"]
             [lein-sassc "0.10.4"]
-            [lein-auto "0.1.3"]]
+            [lein-auto "0.1.3"]
+            [lein-exec "0.3.6"]]
 
   :min-lein-version "2.5.0"
 
