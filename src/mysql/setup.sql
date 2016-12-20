@@ -33,6 +33,7 @@ CREATE TABLE `user` (
   `id` int unsigned NOT NULL AUTO_INCREMENT KEY,
   `password` varchar(255) NOT NULL DEFAULT 'SAML',
   `mail` varchar(255) NOT NULL,
-  `eduPersonPrincipalName` varchar(255) DEFAULT NULL,
-  `displayName` varchar(255) DEFAULT NULL
+  `eduPersonPrincipalName` varchar(255) UNIQUE DEFAULT NULL,
+  `displayName` varchar(255) DEFAULT NULL,
+  `saml_data` text
 ) ENGINE=InnoDB;
