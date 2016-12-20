@@ -90,10 +90,10 @@
                     [b/modalbody
                       [b/formgroup
                         "E-mail:" [b/formcontrol {:type "text" :name "login" :id "login" :style {:width 400}
-                                                  :on-change #(reset! mail (.-target.value %))
+                                                  :on-change #(do (reset! mail (.-target.value %)) (reset! msg nil))
                                                   :on-key-down #(when (= "Enter" (.-key %)) (submit))}]
                         "Password:" [b/formcontrol {:type "password" :name "password" :style {:width 400}
-                                                    :on-change #(reset! password (.-target.value %))
+                                                    :on-change #(do (reset! password (.-target.value %)) (reset! msg nil))
                                                     :on-key-down #(when (= "Enter" (.-key %)) (submit))}]]
                       @msg
                       [b/button {:bs-style "success" :on-click #(submit)} "Log in"]]])}))])
