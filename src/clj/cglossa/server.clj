@@ -28,6 +28,8 @@
                      [(:id c)
                       (kdb/create-db (mysql {:user     (:glossa-db-user env "glossa")
                                              :password (:glossa-db-password env)
+                                             :useUnicode true
+                                             :characterEncoding "UTF-8"
                                              :db       (str (get env :glossa-prefix "glossa")
                                                             "_"
                                                             (:code c))}))]))))

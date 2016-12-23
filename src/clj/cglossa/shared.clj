@@ -30,6 +30,8 @@
 
 (kdb/defdb core-db (mysql {:user     (:glossa-db-user env "glossa")
                            :password (:glossa-db-password env)
+                           :useUnicode true
+                           :characterEncoding "UTF-8"
                            :db       core-db-name
                            :host     "localhost"
                            :port     3306}))
