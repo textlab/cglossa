@@ -1,5 +1,6 @@
 (ns cglossa.app
-  (:require-macros [cljs.core.async.macros :refer [go]])
+  (:require-macros [cljs.core.async.macros :refer [go]]
+                   [adzerk.env :as env])
   (:require [cljsjs.react]
             [reagent.core :as r]
             [cljs-http.client :as http]
@@ -12,6 +13,10 @@
             [cglossa.shared :refer [reset-queries! reset-results!]]
             [cglossa.react-adapters.bootstrap :as b]))
 
+(env/def
+  SAML_LOGIN_URL nil
+  SAML_LOGOUT_URL nil)
+
 (defn- header [{:keys [show-results? show-login?]} {:keys [corpus authenticated-user]}]
   [b/navbar {:fixed-top true}
    [b/navbar-brand "Glossa"]
@@ -22,9 +27,13 @@
    [extra-navbar-items corpus]
    (if (nil? @authenticated-user)
      (reset! show-login? true) ; if we want to allow anonymous users, we can show a login button here: [b/button {:on-click #(reset! show-login? true)} "Log in"]
-     [:span.navbar-right.hidden-xs {:style {:margin-top 10}} (str "Logged in as " @authenticated-user " ")
-            [b/button {:bs-size "small" :on-click #(do (set! document.cookie "session_id=; expires=Thu, 01 Jan 1970 00:00:01 GMT;")
-                                                       (reset! authenticated-user nil))} "Log out"]])
+     (do (reset! show-login? false)
+         [:span.navbar-right.hidden-xs {:style {:margin-top 10}} (str "Logged in as " @authenticated-user " ")
+                [b/button {:bs-size "small" :on-click #(do (set! document.cookie "session_id=; expires=Thu, 01 Jan 1970 00:00:01 GMT;")
+                                                           (if (not-empty SAML_LOGOUT_URL)
+                                                             (set! window.location SAML_LOGOUT_URL)
+                                                             (reset! authenticated-user nil)))}
+                          "Log out"]]))
    [:img.navbar-right.hidden-xs {:src "img/logo.png" :style {:margin-top 13}}]
    [:img.navbar-right.hidden-xs {:src "img/clarino_duo-219.png" :style {:width 80 :margin-top 15}}]
    ])
@@ -96,7 +105,11 @@
                                                     :on-change #(do (reset! password (.-target.value %)) (reset! msg nil))
                                                     :on-key-down #(when (= "Enter" (.-key %)) (submit))}]]
                       @msg
-                      [b/button {:bs-style "success" :on-click #(submit)} "Log in"]]])}))])
+                      [b/button {:bs-style "success" :on-click #(submit)} "Log in"]
+                      (when (not-empty SAML_LOGIN_URL)
+                        [:div
+                          [:br]
+                          [:a {:href SAML_LOGIN_URL} "Log in (external)"]])]])}))])
 
      (when @corpus
        [:div.table-display {:style {:margin-bottom 10}}

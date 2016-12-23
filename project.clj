@@ -36,6 +36,7 @@
                  [ring-logger-timbre "0.7.5"]
                  [dk.ative/docjure "1.11.0"]
                  [buddy/buddy-hashers "1.0.0"]
+                 [adzerk/env "0.3.1"]
                  [binaryage/devtools "0.8.3"]]
 
   :plugins [[lein-cljsbuild "1.1.4"]
