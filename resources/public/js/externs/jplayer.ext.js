@@ -1,2 +1,0 @@
-var Jplayer = {};
-var TextBox = {};
