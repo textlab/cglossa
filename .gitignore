@@ -16,3 +16,4 @@ figwheel_server.log
 bower_components
 /log/*.log*
 /resources/public/tmp/glossa-*
+/src/fable/node_modules
