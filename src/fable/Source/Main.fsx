@@ -20,7 +20,7 @@ module Main =
     static member initial =
       #if DEV_HMR
       // This section is used to maintain state between HMR
-      if isNotNull (unbox window?storage) then
+      if not <| isNull (unbox window?storage) then
         unbox window?storage
       else
         let model = { Input = "" }
