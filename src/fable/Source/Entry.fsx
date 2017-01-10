@@ -1,5 +1,4 @@
 #r "../node_modules/fable-core/Fable.Core.dll"
-#load "Helpers.fsx"
 #load "Main.fsx"
 
 open Fable.Core
@@ -7,10 +6,9 @@ open Fable.Import
 open Fable.Import.Browser
 
 open Fable.Core.JsInterop
-open Helpers
 
 
-let contentNode = "#app"
+let contentNodeClass = "app"
 
 #if DEV_HMR
 
@@ -19,7 +17,7 @@ type IModule =
 
 let [<Global>] [<Emit("module")>] Module : IModule = failwith "JS only"
 
-let node = document.querySelector contentNode
+let node = document.querySelector ("." + contentNodeClass)
 
 if isNotNull Module.hot then
   Module.hot?accept() |> ignore
@@ -29,4 +27,4 @@ if isNotNull Module.hot then
   ) |> ignore
 #endif
 
-App.Main.start contentNode ()
+App.Main.start contentNodeClass

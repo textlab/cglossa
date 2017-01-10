@@ -1,6 +1,7 @@
 #r "../node_modules/fable-core/Fable.Core.dll"
-#load "../node_modules/fable-import-virtualdom/Fable.Helpers.Virtualdom.fs"
-#load "Helpers.fsx"
+#r "../node_modules/fable-react/Fable.React.dll"
+#r "../node_modules/fable-elmish/Fable.Elmish.dll"
+#r "../node_modules/fable-elmish-react/Fable.Elmish.React.dll"
 
 namespace App
 
@@ -9,12 +10,7 @@ open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.Browser
 
-open Fable.Helpers.Virtualdom
-open Fable.Helpers.Virtualdom.App
-open Fable.Helpers.Virtualdom.Html
-
 open System
-open Helpers
 
 module Main =
 
@@ -34,13 +30,15 @@ module Main =
       { Input = "" }
       #endif
 
+  let init _ = Model.initial, []
+
   // Actions supported by the application
-  type Actions =
+  type Msg =
     | ChangeInput of string
 
-  let update (model: Model) action =
-    let model', action' =
-      match action with
+  let update (msg:Msg) (model: Model) =
+    let model', msg' =
+      match msg with
       | ChangeInput s ->
         { model with Input = s } , []
 
@@ -49,27 +47,39 @@ module Main =
     window?storage <- model'
     #endif
 
-    model', action'
+    model', msg'
 
-  /// Custom binding for inInput. This directly give the value
-  let inline onInput x = onEvent "oninput" (fun e -> x (unbox e?target?value))
   /// View
-  let view model =
+
+  open Fable.Helpers.React
+  open Fable.Helpers.React.Props
+
+  let view model dispatch =
     div
       []
       [
         label
           []
-          [text "Enter name: "]
+          [unbox "Enter name: "]
         input
-          [ onInput ChangeInput ]
-        br []
+          [ OnInput (fun e -> ChangeInput (unbox e?target?value) |> dispatch ) ]
+          []
+        br [] []
         span
           []
-          [text (sprintf "Hello %s" model.Input)]
+          [unbox (sprintf "Hello %s" model.Input)]
       ]
 
-  let start node () =
-    createApp Model.initial view update
-    |> withStartNodeSelector node
-    |> start renderer
+  open Elmish
+  open Elmish.React
+
+  #if DEV_HMR
+  let start contentNodeClass = Elmish.Program.mkProgram init update view
+                               |> Program.withConsoleTrace
+                               |> Program.withReact contentNodeClass
+                               |> Program.run
+  #else
+  let start contentNodeClass = Elmish.Program.mkProgram init update view
+                               |> Program.withReact contentNodeClass
+                               |> Program.run
+  #endif
