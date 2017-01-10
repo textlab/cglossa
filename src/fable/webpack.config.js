@@ -4,7 +4,6 @@ var merge = require('webpack-merge');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var CopyWebpackPlugin = require('copy-webpack-plugin');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var poststylus = require('poststylus');
 
 var TARGET_ENV = process.env.npm_lifecycle_event === 'build' ? 'production' : 'development';
 
@@ -16,12 +15,12 @@ var commonConfig = {
         filename: "[hash].js"
     },
     module: {
-        preLoaders: [{
+        rules: [{
             test: /\.js$/,
+            enforce: "pre",
             exclude: /node_modules/,
             loader: "source-map-loader"
-        }],
-        loaders: [{
+        }, {
             test: /\.(eot|ttf|woff|woff2|svg|png)$/,
             exclude: /node_modules/,
             loader: 'file-loader'
@@ -37,10 +36,7 @@ var commonConfig = {
             from: 'Source/static/img/',
             to: 'img/'
         }])
-    ],
-    stylus: {
-        use: [poststylus(['autoprefixer'])]
-    }
+    ]
 };
 
 if (TARGET_ENV === 'development') {
@@ -58,8 +54,7 @@ if (TARGET_ENV === 'development') {
                 exclude: /node_modules/,
                 loaders: [
                     'style-loader',
-                    'css-loader',
-                    'stylus-loader'
+                    'css-loader'
                 ]
             }]
         },
@@ -81,10 +76,10 @@ if (TARGET_ENV === 'production') {
         module: {
             loaders: [{
                 test: /\.styl$/,
-                loader: ExtractTextPlugin.extract('style-loader', [
-                    'css-loader',
-                    'stylus-loader'
-                ])
+                loader: ExtractTextPlugin.extract({
+                    fallbackLoader: 'style-loader',
+                    loader: 'css-loader',
+                })
             }]
         },
 
@@ -94,16 +89,22 @@ if (TARGET_ENV === 'production') {
                 to: 'static/img/'
             }]),
 
-            new webpack.optimize.OccurenceOrderPlugin(),
-
             // extract CSS into a separate file
-            new ExtractTextPlugin('./[hash].css', { allChunks: true }),
+            new ExtractTextPlugin({
+                filename: './[hash].css',
+                allChunks: true
+            }),
 
             // minify & mangle JS/CSS
             new webpack.optimize.UglifyJsPlugin({
+                sourceMap: true,
                 minimize: true,
                 compressor: { warnings: false }
                 // mangle:  true
+            }),
+
+            new webpack.LoaderOptionsPlugin({
+                minimize: true
             })
         ]
 
