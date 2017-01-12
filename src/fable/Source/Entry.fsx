@@ -19,8 +19,11 @@ let [<Global>] [<Emit("module")>] Module : IModule = failwith "JS only"
 
 let node = document.querySelector ("." + contentNodeClass)
 
+[<Emit("module.hot.accept();")>]
+let accept() = jsNative
+
 if not <| isNull Module.hot then
-  Module.hot?accept("./Main.js") |> ignore
+  accept()
 
   Module.hot?dispose(fun _ ->
     node.removeChild(node.firstChild) |> ignore
