@@ -30,8 +30,8 @@
         "source-map-loader": "^0.1.5",
         "style-loader": "^0.13.1",
         "webpack": "github:webpack/webpack",
-        "webpack-dev-server": "^1.16.2",
-        "webpack-merge": "^2.3.1"
+        "webpack-dev-server": "2.2.0-rc.0",
+        "webpack-merge": "^2.4.0"
     },
     "dependencies": {
         "core-js": "^2.4.1",
