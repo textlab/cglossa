@@ -11,22 +11,41 @@ module Model =
     module LanguageCode =
 
         type T = LanguageCode of string
-        let getName = importMember<string->string> "iso-639-1"
+
+        let validate = importMember<string->bool> "iso-639-1"
+
         let create code =
-            if System.String.IsNullOrEmpty((getName code)) then
-                None
-            else
+            // Use the iso-639-1 npm module to validate the language code
+            if validate code then
                 Some (LanguageCode code)
+            else
+                None
+
+        let value (LanguageCode c) = c
 
     type Language = { Code : LanguageCode.T }
 
+    module AlignedLanguageList =
+
+        type T = AlignedLanguageList of Language list
+
+        let create languages =
+            // An aligned corpus must have at least two aligned languages
+            if List.length languages >= 2 then
+                Some (AlignedLanguageList languages)
+            else
+                None
+
+        let value (AlignedLanguageList languages) = languages
+
     type Languages =
         | SingleLanguage of Language
-        // alignment requires at least two languages
-        | AlignedLanguages of Language * Language * Language list
+        | AlignedLanguages of AlignedLanguageList.T
 
     type Url = Url of string
 
+    (*  We list search engines in a separate file to make it easy to extend
+        the list in individual Glossa installations *)
     open SearchEngine
 
     type T = { 
