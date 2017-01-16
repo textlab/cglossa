@@ -6,7 +6,10 @@ namespace App
 open Fable.Core.JsInterop
 
 module Model =
+
     type CorpusCode = CorpusCode of string
+
+    type CorpusName = CorpusName of string
 
     module LanguageCode =
 
@@ -14,10 +17,10 @@ module Model =
 
         let validate = importMember<string->bool> "iso-639-1"
 
-        let create code =
+        let create (twoCharCode: string) =
             // Use the iso-639-1 npm module to validate the language code
-            if validate code then
-                Some (LanguageCode code)
+            if validate twoCharCode then
+                Some (LanguageCode twoCharCode)
             else
                 None
 
@@ -29,7 +32,7 @@ module Model =
 
         type T = AlignedLanguageList of Language list
 
-        let create languages =
+        let create (languages: Language list) =
             // An aligned corpus must have at least two aligned languages
             if List.length languages >= 2 then
                 Some (AlignedLanguageList languages)
@@ -42,17 +45,17 @@ module Model =
         | SingleLanguage of Language
         | AlignedLanguages of AlignedLanguageList.T
 
-    type Url = Url of string
+    type LogoUrl = LogoUrl of string
 
-    (*  We list search engines in a separate file to make it easy to extend
-        the list in individual Glossa installations *)
+    // We list search engines in a separate file to make it easy to extend
+    // the list in individual Glossa installations
     open SearchEngine
 
     type T = { 
         Code : CorpusCode
-        Name : string
+        Name : CorpusName
         Languages : Languages
-        LogoOpt : Url option
+        LogoOpt : LogoUrl option
         MetadataCategoriesOpt : (string list) option
         SearchEngine : SearchEngine
     }
