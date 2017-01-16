@@ -2,15 +2,16 @@
 #r "../node_modules/fable-react/Fable.React.dll"
 #r "../node_modules/fable-elmish/Fable.Elmish.dll"
 #r "../node_modules/fable-elmish-react/Fable.Elmish.React.dll"
+#load "Model.fsx"
 
 namespace App
 
+open System
 open Fable.Core
 open Fable.Core.JsInterop
-open Fable.Import
-open Fable.Import.Browser
+module Browser = Fable.Import.Browser
 
-open System
+open Model
 
 module Main =
 
@@ -20,11 +21,11 @@ module Main =
     static member initial =
       #if DEV_HMR
       // This section is used to maintain state between HMR
-      if not <| isNull (unbox window?storage) then
-        unbox window?storage
+      if not <| isNull (unbox Browser.window?storage) then
+        unbox Browser.window?storage
       else
         let model = { Input = "" }
-        window?storage <- model
+        Browser.window?storage <- model
         model
       #else
       { Input = "" }
@@ -44,7 +45,7 @@ module Main =
 
     #if DEV_HMR
     // Update the model in storage
-    window?storage <- model'
+    Browser.window?storage <- model'
     #endif
 
     model', msg'
@@ -67,19 +68,15 @@ module Main =
         br [] []
         span
           []
-          [unbox (sprintf "Hello %s" model.Input)]
+          [unbox (sprintf "Helloiasueran %s" model.Input)]
       ]
 
   open Elmish
   open Elmish.React
 
+  let start contentNodeClass = Elmish.Program.mkProgram init update view
   #if DEV_HMR
-  let start contentNodeClass = Elmish.Program.mkProgram init update view
                                |> Program.withConsoleTrace
-                               |> Program.withReact contentNodeClass
-                               |> Program.run
-  #else
-  let start contentNodeClass = Elmish.Program.mkProgram init update view
-                               |> Program.withReact contentNodeClass
-                               |> Program.run
   #endif
+                               |> Program.withReact contentNodeClass
+                               |> Program.run
