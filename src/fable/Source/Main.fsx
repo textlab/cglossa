@@ -3,6 +3,7 @@
 #r "../node_modules/fable-elmish/Fable.Elmish.dll"
 #r "../node_modules/fable-elmish-react/Fable.Elmish.React.dll"
 #load "Model.fsx"
+#load "Msg.fsx"
 
 namespace App
 
