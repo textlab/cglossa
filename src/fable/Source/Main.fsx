@@ -11,37 +11,32 @@ open Fable.Core
 open Fable.Core.JsInterop
 module Browser = Fable.Import.Browser
 
-open Model
-
 module Main =
 
-  type Model =
-    { Input: string }
+  let initialModel =
+    #if DEV_HMR
+    // This section is used to maintain state between HMR
+    if not <| isNull (unbox Browser.window?storage) then
+      unbox Browser.window?storage
+    else
+      let model = Model.FrontPage Model.FrontPageState.None
+      Browser.window?storage <- model
+      model
+    #else
+    Model.FrontPage Model.FrontPageState.None
+    #endif
 
-    static member initial =
-      #if DEV_HMR
-      // This section is used to maintain state between HMR
-      if not <| isNull (unbox Browser.window?storage) then
-        unbox Browser.window?storage
-      else
-        let model = { Input = "" }
-        Browser.window?storage <- model
-        model
-      #else
-      { Input = "" }
-      #endif
-
-  let init _ = Model.initial, []
+  let init _ = initialModel, []
 
   // Actions supported by the application
   type Msg =
-    | ChangeInput of string
+    | NoOp
 
-  let update (msg:Msg) (model: Model) =
+  let update (msg:Msg) (model: Model.Model) =
     let model', msg' =
       match msg with
-      | ChangeInput s ->
-        { model with Input = s } , []
+      | NoOp ->
+        model, []
 
     #if DEV_HMR
     // Update the model in storage
@@ -58,18 +53,7 @@ module Main =
   let view model dispatch =
     div
       []
-      [
-        label
-          []
-          [unbox "Enter name: "]
-        input
-          [ OnInput (fun e -> ChangeInput (unbox e?target?value) |> dispatch ) ]
-          []
-        br [] []
-        span
-          []
-          [unbox (sprintf "Helloiasueran %s" model.Input)]
-      ]
+      [ unbox "hei" ]
 
   open Elmish
   open Elmish.React

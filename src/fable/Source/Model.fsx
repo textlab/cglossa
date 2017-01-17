@@ -7,9 +7,9 @@ open Fable.Core.JsInterop
 
 module Model =
 
-    type CorpusCode = CorpusCode of string
-
-    type CorpusName = CorpusName of string
+///////////////////////////////
+// Corpus and languages
+///////////////////////////////
 
     module LanguageCode =
 
@@ -45,37 +45,63 @@ module Model =
         | SingleLanguage of Language
         | AlignedLanguages of AlignedLanguageList.T
 
-    type LogoUrl = LogoUrl of string
-
     // We list search engines in a separate file to make it easy to extend
     // the list in individual Glossa installations
     open SearchEngine
 
-    type T = { 
+    type Url = Url of string
+
+    type CorpusCode = CorpusCode of string
+
+    type CorpusName = CorpusName of string
+
+    type Corpus = { 
         Code : CorpusCode
         Name : CorpusName
         Languages : Languages
-        LogoOpt : LogoUrl option
+        LogoOpt : Url option
         MetadataCategoriesOpt : (string list) option
         SearchEngine : SearchEngine
     }
 
-(* 
-
-
-    type FrontPageState = None
+///////////////////////////////
+// Searches and results
+///////////////////////////////
 
     type Query = { 
-        query : string
-        lang : LanguageCode
+        QueryString : string
+        Language : Language
     }
+
+    type SearchId = SearchId of int
 
     type Search = { 
         // the ID is not set until the search is saved
-        maybeId : int option
-        queries : Query list
-        metadataValueIds : int list
+        IdOpt : SearchId option
+        Queries : Query list
+        MetadataValueIds : int list
     }
+
+    type Result = string
+
+    type SortKey = 
+        | Position
+        | Match
+        | LeftImmediate
+        | LeftWide
+        | RightImmediate
+        | RightWide
+
+///////////////////////////////
+// Application state
+///////////////////////////////
+
+    type SearchView = 
+        | SimpleSearchView
+        | ExtendedSearchView
+        | CQPSearchView
+
+    type FrontPageState = None
 
     type SearchPageState = {
         Corpus: Corpus
@@ -83,28 +109,27 @@ module Model =
         Queries: Query list
     }
 
-    type Result = string
-
     type ResultPageState = {
         Corpus: Corpus
         SearchView: SearchView
+        Queries: Query list
         Results: Result list
     }
 
 ////////////////////////////////////////////
-// Common types
+// Model
 ////////////////////////////////////////////
 
     type Model =
         | FrontPage of FrontPageState
         | SearchPage of SearchPageState
         | ResultPage of ResultPageState
-        displayedQueries : List Query
-        isNarrowView : Bool
-        page : Page
-        maybeShouldShowMetadata : Maybe Bool
-    }
+        // displayedQueries : List Query
+        // isNarrowView : Bool
+        // page : Page
+        // maybeShouldShowMetadata : Maybe Bool
 
+(*
 
     type Page
         = FrontPage
@@ -112,23 +137,11 @@ module Model =
         | ResultPage Corpus SearchView (List Result)
 
 
-    type SearchView
-        = SimpleSearchView
-        | ExtendedSearchView
-        | CQPSearchView
 
 
 --------------------------------------------
 -- ResultPage types
 --------------------------------------------
-
-type SortKey
-    = Position
-    | Match
-    | LeftImmediate
-    | LeftWide
-    | RightImmediate
-    | RightWide
 
 type ResultViewState = { sortKey : SortKey }
 
