@@ -40,16 +40,12 @@ also need to be set accordingly.
 
 For example, the following commands:
 
-```sh
-export GLOSSA_PREFIX=myglossa
-cd src/mysql
-./setup.sh
-```
+    export GLOSSA_PREFIX=myglossa
+    cd src/mysql
+    ./setup.sh
 
 will create the core database with the name **myglossa__core**, and all corpus-specific databases
 will also get a **myglossa** prefix instead of **glossa**.
-
-
 
 ### Creating a corpus
 The script `src/mysql/create_corpus.sh` creates a row for the new corpus in the
@@ -73,29 +69,58 @@ the environment variables, described above, need to be set properly.
 ## Development on Glossa itself
 
 ### Quick start:
-Start a REPL (in a terminal: `lein repl`, or from Emacs: open a
-clj/cljs file in the project, then do `M-x cider-jack-in`. Make sure
-CIDER is up to date).
+A simple startup script for the development mode may look as follows:
 
-In the REPL do
+    #!/bin/sh
+    # Set up the environment (you may set other variables here, if needed):
+    export GLOSSA_DB_PASSWORD='glossa'
+    # Start the server and figwheel:
+    lein run >>server.log &
+    rlwrap lein figwheel
+    # Kill the server after the fighweel session is finished:
+    pkill -f " -Dleiningen.original.pwd=`pwd` .* run$"
 
-```clojure
-(run)
-```
+The webserver is started by default at port 10555. When you see the line
+`Successfully compiled "resources/public/app.js" in 21.36 seconds.`, you're
+ready to go. Browse to `http://localhost:10555` and enjoy.
 
-The call to `(run)` starts the webserver at port
-10555, 
+Figwheel may also be started without `rlwrap`, but it will then be missing line
+editing, persistent history and completion.
 
-Start the figwheel REPL: `lein figwheel` (if you have rlwrap installed, run
-`rlwrap lein figwheel` to get line editing, persistent history and completion).
+### REPL
 
+Clojure REPL can be started in a terminal: `lein repl`, or from Emacs: open a
+clj/cljs file in the project, then do `M-x cider-jack-in` (make sure
+CIDER is up to date). You may call `(run)` in REPL, which is equivalent to
+`lein run` in the startup script.
 
-When you see the line `Successfully compiled "resources/public/app.js"
-in 21.36 seconds.`, you're ready to go. Browse to
-`http://localhost:10555` and enjoy.
+### External SAML login
+
+External SAML login (used e.g. by Feide) is done via an external daemon that
+creates a new session (and possibly a new user) after successful
+authentication. To enable external login, `SAML_LOGIN_URL` and
+`SAML_LOGOUT_URL` must be set in the startup script. At the Text Laboratory,
+the URLs are as follows:
+
+    export SAML_LOGIN_URL='https://www.tekstlab.uio.no/glossa2/login/feide'
+    export SAML_LOGOUT_URL='https://www.tekstlab.uio.no/glossa2/logout/feide'
+
+### Deployment
+
+Build Glossa in the production mode:
+
+    lein uberjar
+
+To start the server, set up the environment variables and run:
+
+    java -jar target/cglossa.jar
+
+To stop the server, run:
+
+    pkill -f 'java -jar target/cglossa.jar'
 
 ## License
 
-Copyright © 2015 The Text Laboratory, University of Oslo
+Copyright © 2015-2017 The Text Laboratory, University of Oslo
 
 Distributed under the <a href="http://www.opensource.org/licenses/MIT">MIT License</a>.
