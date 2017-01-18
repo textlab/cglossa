@@ -12,7 +12,7 @@
             [ring.util.response :as response]
             [ring.handler.dump :refer [handle-dump]]
             [cognitect.transit :as transit]
-            [net.cgrand.enlive-html :refer [deftemplate html-content]]
+            [net.cgrand.enlive-html :refer [deftemplate html-content clone-for set-attr content]]
             [taoensso.timbre :as timbre]
             [buddy.hashers :as hashers]
             [cglossa.shared :refer [core-db corpus-connections]]
@@ -21,6 +21,7 @@
             [cglossa.db.metadata :refer [get-metadata-categories get-metadata-values
                                          show-texts num-selected-texts result-metadata]]
             [cglossa.search.core :refer [search-corpus results geo-distr download-results]]
+            [cglossa.db.corpus :refer [corpus]]
             [cglossa.search.cwb.speech :refer [play-video]])
   (:import (java.io ByteArrayOutputStream)))
 
@@ -57,7 +58,11 @@
            :body   (.toString e#)})))
 
 (deftemplate page (io/resource "index.html") [])
-(deftemplate front (io/resource "front.html") [])
+(deftemplate front (io/resource "front.html") []
+  [:#corpus-entry] (clone-for [corp (kdb/with-db core-db (select corpus (fields :code :name)))]
+                              [:li :a] (content (:name corp))
+                              [:li :a] (set-attr :href (str "./?corpus=" (:code corp)))))
+
 (deftemplate admin (io/resource "admin.html") []
   [:#corpus-table]
   (html-content
@@ -68,9 +73,8 @@
   (files "/" {:root "resources/public" :mime-types {"tsv" "text/tab-separated-values"}})
   (resources "/" {:mime-types {"tsv" "text/tab-separated-values"}})
   (GET "/request" [] handle-dump)
-  (GET "/" req (page))
-  (GET "/front" req (front))
-  (GET "/admin" req (admin)))
+  ;(GET "/admin" req (admin))
+  (GET "/" {{corpus :corpus} :params} (if corpus (page) (front))))
 
 (defroutes db-routes
   (GET "/corpus" {user-data :user-data params :params}
