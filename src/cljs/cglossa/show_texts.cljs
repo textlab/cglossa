@@ -15,7 +15,7 @@
 (defn- get-external-data [{:keys [corpus metadata-categories search] :as m}
                           results loading? mxpages cur-page page]
   (reset! loading? true)
-  (go (let [response (<! (http/post "/texts" {:json-params
+  (go (let [response (<! (http/post "texts" {:json-params
                                               {:corpus-id         (:id @corpus)
                                                :selected-metadata (:metadata @search)
                                                :ncats             (count @metadata-categories)

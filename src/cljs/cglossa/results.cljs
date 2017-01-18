@@ -75,7 +75,7 @@
               ;; Calculate the first and last result index (zero-based) to request from the server
               first-result (* page-size (dec (first page-nos)))
               last-result  (dec (* page-size (last page-nos)))
-              results-ch   (http/get "/results" {:query-params {:corpus-id    (:id @corpus)
+              results-ch   (http/get "results" {:query-params {:corpus-id    (:id @corpus)
                                                                 :search-id    (:id @search)
                                                                 :start        first-result
                                                                 :end          last-result
@@ -149,7 +149,7 @@
                 (reset! downloading? true)
                 (go
                   (let [{:keys [format headers? attrs]} @form-field-vals
-                        results-ch (http/post "/download-results"
+                        results-ch (http/post "download-results"
                                               {:json-params {:corpus-id    (:id @corpus)
                                                              :search-id    (:id @search)
                                                              :cpu-counts   (vec @cpu-counts)

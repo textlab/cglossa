@@ -60,7 +60,7 @@
 (defn- init [app-state model-state]
   (if-let [corpus (second (re-find #"corpus=(\w+)" (.-location.search js/window)))]
     (go
-      (<! (get-models "/corpus" model-state app-state {:code corpus}))
+      (<! (get-models "corpus" model-state app-state {:code corpus}))
       (reset-queries! app-state model-state)
       (reset-results! app-state model-state))
     (reset! (:show-fatal-error app-state) "Please provide a corpus in the query string (on the form corpus=mycorpus)")))
@@ -82,7 +82,7 @@
                msg (r/atom nil)
                submit
                #(go
-                  (let [auth (<! (http/post "/auth" {:json-params {:mail @mail :password @password}}))]
+                  (let [auth (<! (http/post "auth" {:json-params {:mail @mail :password @password}}))]
                      (if (= (:status auth) 403)
                        (reset! msg [:p {:style {:color "red"}} (:body auth)])
                        (do
