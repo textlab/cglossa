@@ -57,6 +57,7 @@
            :body   (.toString e#)})))
 
 (deftemplate page (io/resource "index.html") [])
+(deftemplate front (io/resource "front.html") [])
 (deftemplate admin (io/resource "admin.html") []
   [:#corpus-table]
   (html-content
@@ -68,6 +69,7 @@
   (resources "/" {:mime-types {"tsv" "text/tab-separated-values"}})
   (GET "/request" [] handle-dump)
   (GET "/" req (page))
+  (GET "/front" req (front))
   (GET "/admin" req (admin)))
 
 (defroutes db-routes
