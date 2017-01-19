@@ -99,15 +99,18 @@ CIDER is up to date). You may call `(run)` in REPL, which is equivalent to
 External SAML login (used e.g. by Feide) is done via an external daemon that
 creates a new session (and possibly a new user) after successful
 authentication. To enable external login, `SAML_LOGIN_URL` and
-`SAML_LOGOUT_URL` must be set in the startup script. At the Text Laboratory,
-the URLs are as follows:
+`SAML_LOGOUT_URL` must be set in the startup script. You may also optionally
+set `SAML_LOGIN_IMG` with the URL to the logo of the identity provider. At the
+Text Laboratory, the URLs for using Feide are as follows:
 
     export SAML_LOGIN_URL='https://www.tekstlab.uio.no/glossa2/login/feide'
     export SAML_LOGOUT_URL='https://www.tekstlab.uio.no/glossa2/logout/feide'
+    export SAML_LOGIN_IMG='https://www.tekstlab.uio.no/glossa2/logo/feide.png'
 
 ### Deployment
 
-Build Glossa in the production mode:
+Build Glossa in the production mode (note: if you want to enable external
+login, the SAML environment variables need to be set at this stage):
 
     lein uberjar
 

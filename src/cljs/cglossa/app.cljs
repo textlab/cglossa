@@ -15,7 +15,8 @@
 
 (env/def
   SAML_LOGIN_URL nil
-  SAML_LOGOUT_URL nil)
+  SAML_LOGOUT_URL nil
+  SAML_LOGIN_IMG nil)
 
 (defn- header [{:keys [show-results? show-login?]} {:keys [corpus authenticated-user]}]
   [b/navbar {:fixed-top true}
@@ -80,6 +81,7 @@
         [(let [mail (r/atom nil)
                password (r/atom nil)
                msg (r/atom nil)
+               local-login? (r/atom false)
                submit
                #(go
                   (let [auth (<! (http/post "auth" {:json-params {:mail @mail :password @password}}))]
@@ -88,28 +90,41 @@
                        (do
                          (reset! show-login? false)
                          (init a m)))))]
-            (r/create-class
-              {:display-name "login-modal"
-               :component-did-mount #(.focus (.get (js/$ (str "#login")) 0))
-               :render
-                (fn [_]
-                  [b/modal
-                    {:bs-size "large" :show true}
-                    [b/modalheader [b/modaltitle "Log in"]]
-                    [b/modalbody
-                      [b/formgroup
-                        "E-mail:" [b/formcontrol {:type "text" :name "login" :id "login" :style {:width 400}
-                                                  :on-change #(do (reset! mail (.-target.value %)) (reset! msg nil))
-                                                  :on-key-down #(when (= "Enter" (.-key %)) (submit))}]
-                        "Password:" [b/formcontrol {:type "password" :name "password" :style {:width 400}
-                                                    :on-change #(do (reset! password (.-target.value %)) (reset! msg nil))
-                                                    :on-key-down #(when (= "Enter" (.-key %)) (submit))}]]
-                      @msg
-                      [b/button {:bs-style "success" :on-click #(submit)} "Log in"]
-                      (when (not-empty SAML_LOGIN_URL)
-                        [:div
-                          [:br]
-                          [:a {:href SAML_LOGIN_URL} "Log in (external)"]])]])}))])
+            (fn [_]
+              [b/modal
+                {:bs-size "medium" :show true}
+                [b/modalheader [b/modaltitle "Login"]]
+                [b/modalbody
+                  {:style {:width 350}}
+                  (when (not-empty SAML_LOGIN_URL)
+                    [:div
+                      [:br]
+                      [:a {:href SAML_LOGIN_URL}
+                        (if (not-empty SAML_LOGIN_IMG)
+                          [:img {:src SAML_LOGIN_IMG}]
+                          "External login")]])
+                  [:div
+                    [:a {:href "#" :on-click #(do (.blur (.-target %))
+                                                  (swap! local-login? not))}
+                        "Login with registered e-mail and password"]]
+                  (when @local-login?
+                    [(r/create-class
+                      {:component-did-mount
+                       #(.focus (.get (js/$ (str "#login")) 0))
+                       :render
+                        (fn [_]
+                         [:div
+                           [b/formgroup
+                             "E-mail:" [b/formcontrol {:type "text" :name "login" :id "login" :style {:width 450}
+                                                       :on-change #(do (reset! mail (.-target.value %)) (reset! msg nil))
+                                                       :on-key-down #(when (= "Enter" (.-key %)) (submit))}]
+                             "Password:" [b/formcontrol {:type "password" :name "password" :style {:width 450}
+                                                         :on-change #(do (reset! password (.-target.value %)) (reset! msg nil))
+                                                         :on-key-down #(when (= "Enter" (.-key %)) (submit))}]]
+                           @msg
+                           [b/button {:bs-style "success" :on-click #(submit)} "Log in"]])})])
+                    [:br]
+                    [:a {:href "./"} "< Back"]]]))])
 
      (when @corpus
        [:div.table-display {:style {:margin-bottom 10}}
