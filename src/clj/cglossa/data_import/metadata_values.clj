@@ -57,7 +57,13 @@
     (if (not= -1 bounds-index)
       (if (not= -1 language-index)
         (map list (nth cols bounds-index) (nth cols language-index))
-        (map list (nth cols bounds-index)))
+        (map list (if (< bounds-index (count cols))
+                    (nth cols bounds-index)
+                    (throw (Exception.
+                             (str "Bounds-index (" bounds-index ") outside number of columns, "
+                                  (count cols)
+                                  ": "
+                                  (vec cols)))))))
       (if (not= -1 language-index)
         (map list (nth cols startpos-index) (nth cols endpos-index) (nth cols language-index))
         (map list (nth cols startpos-index) (nth cols endpos-index))))))
