@@ -1,0 +1,374 @@
+body {
+  padding-top: 70px;
+}
+
+.app-footer {
+  height: 20px;
+  position: fixed;
+  bottom: 0px;
+  width: 100%;
+  background-color: #525252;
+  z-index: 10;
+}
+
+.app-footer .textlab-logo {
+  float: right;
+}
+
+.attr-modal, .download-modal {
+  .modal-body {
+    padding-bottom: 0;
+  }
+
+  .modal-footer {
+    padding: 10px;
+  }
+
+  .panel {
+    margin-bottom: 8px;
+
+    .panel-heading {
+      font-size: 13px;
+      font-weight: bold;
+      color: #4E4E4E;
+      padding: 3px 15px;
+    }
+
+    .panel-body {
+      padding: 7px;
+    }
+  }
+}
+
+h5.category-header {
+  color: #1010C2;
+  font-weight: normal;
+  cursor: pointer;
+
+  &.active-category {
+    font-weight: bold;
+  }
+}
+
+.corpus-logo {
+  width: 100px;
+  margin-left: 30px;
+}
+
+.corpus-info {
+  margin-bottom: 40px;
+}
+
+.corpus-part-name {
+  margin-left: 20px;
+}
+
+.counting-matches {
+  margin-top: 6px;
+}
+
+.multiword-container {
+  margin-top: 10px;
+  margin-bottom: 30px;
+
+  .form-group {
+    // override bootstrap
+    margin-bottom: 0;
+  }
+}
+
+.speaker-id {
+  color: #777;
+}
+
+.minmax-field {
+  width: 20px;
+}
+
+div.interval {
+  vertical-align: top;
+  padding-left: 10px;
+  padding-right: 10px;
+
+  @media (min-width:768px) {
+    min-width: 78px;
+  }
+
+  input.interval {
+    width: 25px;
+    height: 25px;
+    padding: 0px 4px;
+    margin: 0px 5px 8px 0px;
+    text-align: right;
+  }
+
+  @media (max-width:767px) {
+    input.interval {
+      margin-bottom: 0;
+    }
+  }
+
+  h6 {
+    margin-top: 0;
+    margin-bottom: 2px;
+  }
+}
+
+.download-modal .panel-body {
+  padding-left: 5px;
+}
+
+.metadata-category {
+  margin-top: 10px;
+  margin-left: 15px;
+}
+
+.multiword-search-form {
+  .multiword-term .control-group {
+      display: table;
+
+      div.word {
+        display: table-cell;
+        vertical-align: bottom;
+      }
+
+    div.word-checkboxes {
+      margin-top: 8px;
+    }
+  }
+
+  button.search {
+    margin-left: 20px;
+    margin-bottom: 22px;
+  }
+}
+
+.pos-feature-heading {
+  padding: 2px 20px 7px 20px;
+  margin-top: 5px;
+  font-variant: small-caps;
+  font-size: 130%;
+  font-weight: bold;
+  color: #555;
+  background-color: #eee;
+
+  &:first-of-type {
+    margin-top: 0;
+  }
+}
+
+.remove-row-btn-container {
+  width: 35px;
+  vertical-align: middle;
+}
+
+.row-fluid {
+  input.max-hits[class*="span"] {
+    margin-top: 7px;
+    margin-left: 2px;
+    vertical-align: baseline;
+  }
+}
+
+.search-input-links {
+  margin-bottom: 10px;
+}
+
+.search-result-table-container {
+  table {
+    td.left-context {
+      width: 50%;
+      text-align: right;
+    }
+
+    td.right-context {
+      width: 50%;
+    }
+
+    td.aligned-text {
+      font-style: italic;
+
+      span.aligned-id {
+        color: #999;
+      }
+    }
+
+    td.match {
+      font-weight: bold;
+    }
+  }
+}
+
+.metadata {
+  vertical-align: top;
+  overflow: hidden;
+  transition: width .1s;
+  transition: max-width .1s;
+}
+
+.table-display {
+  display: table !important;
+}
+
+.table-row {
+  display: table-row !important;
+}
+
+.table-cell {
+  display: table-cell !important;
+}
+
+// Override bootstrap-tags.css
+
+.multiword-term .tag-list {
+  left: 0;
+  top: 5px;
+}
+
+.tag a {
+  color: white;
+  opacity: 0.8;
+}
+
+.tag.label {
+  line-height: 17px;
+}
+
+// Override bootstrap.css
+
+.row-fluid script:first-child + [class*="span"] {
+  margin-left: 0;
+}
+
+.pagination {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.pagination ul > li > a, .pagination ul > li > span {
+  line-height: 26px;
+}
+
+.pagination ul > li > span.paginator-counter {
+  padding: 0;
+
+  input {
+    margin: 0;
+    height: 24px;
+    vertical-align: top;
+    text-align: right;
+  }
+}
+
+.metadata-category {
+    .select2-container {
+      margin-top: 5px;
+    }
+
+    .close-cat-btn {
+      margin-left: 10px;
+      padding-top: 3px;
+    }
+}
+
+.griddle {
+    overflow-x: auto;
+
+    .griddle-body {
+        width: 1100px;
+    }
+}
+
+.media-popup .modal-dialog {
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.show-texts-popup {
+    width: auto;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+/* Columns in the "Show texts" grid */
+.column-age {
+    width: 60px;
+}
+.column-agegroup {
+    width: 70px;
+}
+.column-area {
+    width: 100px;
+}
+.column-category {
+    width: 80px;
+}
+.column-collection {
+    width: 100px;
+}
+.column-corpus_date {
+    width: 100px;
+}
+.column-country {
+    width: 100px;
+}
+.column-education {
+    width: 150px;
+}
+.column-issnisbn {
+    width: 100px;
+}
+.column-mother_tongue {
+    width: 110px;
+}
+.column-occupation {
+    width: 150px;
+}
+.column-other_languages {
+    width: 150px;
+}
+.column-place {
+    width: 100px;
+}
+.column-publisher {
+    width: 100px;
+}
+.column-pubdate {
+    width: 100px;
+}
+.column-pubplace {
+    width: 100px;
+}
+.column-rec {
+    width: 80px;
+}
+.column-region {
+    width: 100px;
+}
+.column-sex {
+    width: 60px;
+}
+.column-supercategory {
+    width: 120px;
+}
+.column-tid {
+    width: 150px;
+}
+.column-time_in_norway {
+    width: 100px;
+}
+.column-title {
+    width: 200px;
+}
+.column-translation {
+    width: 100px;
+}
+.column-version {
+    width: 50px;
+}
+.column-where_learned {
+    width: 150px;
+}
+.column-wordcount {
+    width: 60px;
+}

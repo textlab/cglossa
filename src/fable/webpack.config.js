@@ -49,12 +49,13 @@ if (TARGET_ENV === 'development') {
         ],
 
         module: {
-            loaders: [{
-                test: /\.styl$/,
+            rules: [{
+                test: /\.(css|scss)$/,
                 exclude: /node_modules/,
-                loaders: [
+                use: [
                     'style-loader',
-                    'css-loader'
+                    'css-loader',
+                    'sass-loader'
                 ]
             }]
         },
@@ -65,7 +66,7 @@ if (TARGET_ENV === 'development') {
 
             // print more readable module names in the browser console on HMR updates
             new webpack.NamedModulesPlugin(),
-        ]
+        ],
 
     });
 }
@@ -79,10 +80,10 @@ if (TARGET_ENV === 'production') {
 
         module: {
             loaders: [{
-                test: /\.styl$/,
+                test: /\.(css|scss)$/,
                 loader: ExtractTextPlugin.extract({
                     fallbackLoader: 'style-loader',
-                    loader: 'css-loader',
+                    loader: ['css-loader', 'sass-loader']
                 })
             }]
         },

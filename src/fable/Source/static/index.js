@@ -1,5 +1,7 @@
-// Pull in desired css/stylus files
-require( '../styles/app.styl' );
+// Pull in desired css/scss files
+require('../styles/style.scss');
+require('../styles/media.scss');
+require('../styles/geo-map.scss');
 
 // Call Entry point
-var Entry = require( '../../out/Entry' );
+var Entry = require('../../out/Entry');
