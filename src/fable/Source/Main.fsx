@@ -2,6 +2,7 @@
 #r "../node_modules/fable-react/Fable.React.dll"
 #r "../node_modules/fable-elmish/Fable.Elmish.dll"
 #r "../node_modules/fable-elmish-react/Fable.Elmish.React.dll"
+#load "Helpers.fsx"
 #load "Model.fsx"
 #load "Msg.fsx"
 #load "Update.fsx"
@@ -11,6 +12,7 @@ namespace App
 open System
 open Fable.Core
 open Fable.Core.JsInterop
+open Helpers
 module Browser = Fable.Import.Browser
 
 module Main =
@@ -18,7 +20,7 @@ module Main =
   let initialModel =
     #if DEV_HMR
     // This section is used to maintain state between HMR
-    if not <| isNull (unbox Browser.window?storage) then
+    if isNotNull (unbox Browser.window?storage) then
       unbox Browser.window?storage
     else
       let model = Model.FrontPage Model.FrontPageState.None

@@ -1,11 +1,12 @@
 #r "../node_modules/fable-core/Fable.Core.dll"
+#load "Helpers.fsx"
 #load "Main.fsx"
 
 open Fable.Core
 open Fable.Import
 open Fable.Import.Browser
-
 open Fable.Core.JsInterop
+open Helpers
 
 
 let contentNodeClass = "app"
@@ -22,7 +23,7 @@ let node = document.querySelector ("." + contentNodeClass)
 [<Emit("module.hot.accept();")>]
 let accept() = jsNative
 
-if not <| isNull Module.hot then
+if isNotNull Module.hot then
   accept()
 
   Module.hot?dispose(fun _ ->
