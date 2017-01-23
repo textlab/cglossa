@@ -4,6 +4,7 @@
 #r "../node_modules/fable-elmish-react/Fable.Elmish.React.dll"
 #load "Model.fsx"
 #load "Msg.fsx"
+#load "Update.fsx"
 
 namespace App
 
@@ -29,22 +30,15 @@ module Main =
 
   let init _ = initialModel, []
 
-  // Actions supported by the application
-  type Msg =
-    | NoOp
-
-  let update (msg:Msg) (model: Model.Model) =
-    let model', msg' =
-      match msg with
-      | NoOp ->
-        model, []
+  let update (msg:Msg.Msg) (model: Model.Model) =
+    let model', cmd = Update.update msg model
 
     #if DEV_HMR
     // Update the model in storage
     Browser.window?storage <- model'
     #endif
 
-    model', msg'
+    model', cmd
 
   /// View
 

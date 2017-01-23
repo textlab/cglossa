@@ -2,6 +2,8 @@
 
 namespace App
 
+open Model
+
 module Msg =
 
     type Msg =
@@ -13,8 +15,8 @@ module Msg =
         | ClickedCQPSearchView
         | HideMetadata
         | ShowMetadata
-        | ResetForm of Model.Corpus * Model.SearchView
+        | ResetForm of Corpus * SearchView
         ////////////////////////////
         // ResultPage messages
         ////////////////////////////
-        | SortBy of Model.SortKey
+        | SortBy of SortKey
