@@ -33,19 +33,25 @@ simplification and speedup of all code related to importing and searching corpor
 In order to set up the core database, run the `src/mysql/setup.sh` script. This
 will create the core database with the name `glossa__core`. If you want to change
 the prefix used for the core and all the corpus-specific databases to something
-other than **glossa**, set the environment variable **GLOSSA_PREFIX**.
+other than **glossa**, set the environment variable `GLOSSA_PREFIX`.
 
-The variables **GLOSSA_DB_USER** (default: "glossa") and **GLOSSA_DB_PASSWORD**
+The variables `GLOSSA_DB_USER` (default: "glossa") and `GLOSSA_DB_PASSWORD`
 also need to be set accordingly.
 
-For example, the following commands:
+The variables should be set in `config.sh` in the root of the project. For example:
 
-    export GLOSSA_PREFIX=myglossa
+    export GLOSSA_DB_USER='glossa'
+    export GLOSSA_DB_PASSWORD='GlossaPassword'
+    export GLOSSA_PREFIX='myglossa'
+
+With the above config, the following commands:
+
     cd src/mysql
     ./setup.sh
 
-will create the core database with the name **myglossa__core**, and all corpus-specific databases
-will also get a **myglossa** prefix instead of **glossa**.
+will create the core database with the name **myglossa__core**, and all corpus-specific
+databases will also get a **myglossa** prefix instead of **glossa**. To change only the
+name of the core database, set `GLOSSA_CORE` in `config.sh`.
 
 ### Creating a corpus
 The script `src/mysql/create_corpus.sh` creates a row for the new corpus in the
@@ -69,20 +75,11 @@ the environment variables, described above, need to be set properly.
 ## Development on Glossa itself
 
 ### Quick start:
-A simple startup script for the development mode may look as follows:
-
-    #!/bin/sh
-    # Set up the environment (you may set other variables here, if needed):
-    export GLOSSA_DB_PASSWORD='glossa'
-    # Start the server and figwheel:
-    lein run >>server.log &
-    rlwrap lein figwheel
-    # Kill the server after the fighweel session is finished:
-    pkill -f " -Dleiningen.original.pwd=`pwd` .* run$"
-
-The webserver is started by default at port 10555. When you see the line
-`Successfully compiled "resources/public/app.js" in 21.36 seconds.`, you're
-ready to go. Browse to `http://localhost:10555` and enjoy.
+Make sure that `config.sh` is set up as described above, and run
+`./start_dev.sh`. The webserver is started by default at port 10555. When you
+see the line `Successfully compiled "resources/public/app.js" in 21.36
+seconds.`, you're ready to go. Browse to `http://localhost:10555` and enjoy. The
+port can be changed by setting `PORT` in `config.sh`.
 
 Figwheel may also be started without `rlwrap`, but it will then be missing line
 editing, persistent history and completion.
@@ -99,9 +96,9 @@ CIDER is up to date). You may call `(run)` in REPL, which is equivalent to
 External SAML login (used e.g. by Feide) is done via an external daemon that
 creates a new session (and possibly a new user) after successful
 authentication. To enable external login, `SAML_LOGIN_URL` and
-`SAML_LOGOUT_URL` must be set in the startup script. You may also optionally
-set `SAML_LOGIN_IMG` with the URL to the logo of the identity provider. At the
-Text Laboratory, the URLs for using Feide are as follows:
+`SAML_LOGOUT_URL` must be set in `config.sh`. You may also optionally set
+`SAML_LOGIN_IMG` with the URL to the logo of the identity provider. At the Text
+Laboratory, the URLs for using Feide are as follows:
 
     export SAML_LOGIN_URL='https://www.tekstlab.uio.no/glossa2/login/feide'
     export SAML_LOGOUT_URL='https://www.tekstlab.uio.no/glossa2/logout/feide'
@@ -109,18 +106,19 @@ Text Laboratory, the URLs for using Feide are as follows:
 
 ### Deployment
 
-Build Glossa in the production mode (note: if you want to enable external
-login, the SAML environment variables need to be set at this stage):
+If you want to enable external login, the SAML environment variables need to be
+set during building the application. Therefore, the best way to build Glossa in
+the production mode is to run the script:
 
-    lein uberjar
+    ./build.sh
 
-To start the server, set up the environment variables and run:
+To start the server:
 
-    java -jar target/cglossa.jar
+    ./start_prod.sh
 
-To stop the server, run:
+To restart the server:
 
-    pkill -f 'java -jar target/cglossa.jar'
+    ./restart_prod.sh
 
 ## License
 

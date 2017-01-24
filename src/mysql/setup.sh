@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+. ${PWD%src/mysql}/config.sh
+
 set -e
 
 if [ -z ${GLOSSA_DB_PASSWORD+x} ]; then

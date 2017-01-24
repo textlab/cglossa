@@ -4,4 +4,4 @@ git stash
 git pull
 git stash pop
 ./build.sh
-./restart_dev.sh
+./restart_prod.sh

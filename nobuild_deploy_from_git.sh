@@ -5,4 +5,4 @@
 git stash
 git pull
 git stash pop
-./restart_dev.sh
+./restart_prod.sh

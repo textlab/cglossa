@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+. ${PWD%src/mysql}/config.sh
+
 position_cols="\`startpos\`, \`endpos\`"
 language_col=""
 while getopts ":sm" opt; do

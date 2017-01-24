@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+. ${PWD%src/mysql}/config.sh
+
 set -e
 
 is_speech=false
