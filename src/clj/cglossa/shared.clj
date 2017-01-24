@@ -26,7 +26,7 @@
           :make-pool?  make-pool?}
          (dissoc opts :host :port :db)))
 
-(def core-db-name (get env :glossa-core (str (get env :glossa-prefix) "__core")))
+(def core-db-name (get env :glossa-core (str (get env :glossa-prefix "glossa") "__core")))
 
 (kdb/defdb core-db (mysql {:user     (:glossa-db-user env "glossa")
                            :password (:glossa-db-password env)
