@@ -14,9 +14,9 @@
                                                            terms->query]]
             [cglossa.search-views.cwb.extended.attributes :refer [menu-button]]))
 
-(defn wrapped-term-changed [wrapped-query terms index query-term-ids lang-config term]
+(defn wrapped-term-changed [wrapped-query terms index query-term-ids lang-config corpus term]
   (swap! wrapped-query assoc :query (terms->query wrapped-query (assoc terms index term)
-                                                  query-term-ids lang-config)))
+                                                  query-term-ids lang-config corpus)))
 
 ;;;;;;;;;;;;;;;;
 ;;;; Components
@@ -66,9 +66,9 @@
                           (swap! query-term-ids
                                  #(conj % (inc (apply max %))))
                           ;; Append [] to the end of the CQP query expression (but before
-                          ;; </sync>, if present)
+                          ;; </sync> or </s>, if present)
                           (swap! wrapped-query
-                                 update :query str/replace #"(.+?)(</sync>)?$" "$1 []$2"))}
+                                 update :query str/replace #"(.+?)(</s(?:ync)?>)?$" "$1 []$2"))}
     [b/glyphicon {:glyph "plus"}]]])
 
 
@@ -90,7 +90,7 @@
    [interval-input a m wrapped-term 1] "max"])
 
 
-(defn- checkboxes [wrapped-query wrapped-term has-phon? has-orig? first? last?]
+(defn- checkboxes [wrapped-query wrapped-term has-phon? has-orig? first? last? speech?]
   (let [term-val @wrapped-term]
     [:div.table-cell {:style {:min-width 200}}
      [:div.word-checkboxes
@@ -114,20 +114,20 @@
                 :checked   (:end? term-val)
                 :on-change #(swap! wrapped-term assoc :end? (.-target.checked %))
                 }] "End"]]
-     (when has-phon?
-       [:div
+     [:div
+      (when has-phon?
         [:label.checkbox-inline {:style {:padding-left 18}}
          [:input {:type      "checkbox"
                   :style     {:margin-left -18}
                   :checked   (:phonetic? term-val)
                   :on-change #(swap! wrapped-term assoc :phonetic? (.-target.checked %))
-                  }] "Phonetic"]
-        (if (and first? last?)
-          [:div
-           [segment-initial-checkbox wrapped-query]
-           [segment-final-checkbox wrapped-query]]
-          (list (when first? ^{:key "seg-init"} [segment-initial-checkbox wrapped-query])
-                (when last? ^{:key "seg-final"} [segment-final-checkbox wrapped-query])))])
+                  }] "Phonetic"])
+      (if (and first? last?)
+        [:div
+         [segment-initial-checkbox wrapped-query speech?]
+         [segment-final-checkbox wrapped-query speech?]]
+        (list (when first? ^{:key "seg-init"} [segment-initial-checkbox wrapped-query speech?])
+              (when last? ^{:key "seg-final"} [segment-final-checkbox wrapped-query speech?])))]
      (when has-orig?
        [:div
         [:label.checkbox-inline {:style {:padding-left 18}}
@@ -242,7 +242,7 @@
 
 (defn multiword-term [a m wrapped-query wrapped-term query-term-ids
                       index first? last? has-phon? has-orig? show-remove-row-btn?
-                      show-remove-term-btn?]
+                      show-remove-term-btn? speech?]
   (r/with-let [show-attr-popup? (r/atom false)]
     [:div.table-cell>div.multiword-term>div.control-group
      [:div.table-row
@@ -255,7 +255,7 @@
      [:div.table-row
       (when first?
         [:div.table-cell])
-      [checkboxes wrapped-query wrapped-term has-phon? has-orig? first? last?]
+      [checkboxes wrapped-query wrapped-term has-phon? has-orig? first? last? speech?]
       (when last?
         [:div.table-cell])]
 
@@ -296,7 +296,8 @@
                                      (map first)
                                      (map name))
           terms                 (query->terms query corpus-specific-attrs)
-          last-term-index       (dec (count terms))]
+          last-term-index       (dec (count terms))
+          speech?               (= (:search-engine @corpus) "cwb_speech")]
       (when (nil? @query-term-ids)
         (reset! query-term-ids (vec (range (count terms)))))
       [:div.multiword-container
@@ -308,7 +309,7 @@
                            (let [wrapped-term          (r/wrap term
                                                                wrapped-term-changed
                                                                wrapped-query terms index
-                                                               query-term-ids lang-config)
+                                                               query-term-ids lang-config @corpus)
                                  term-id               (nth @query-term-ids index)
                                  first?                (zero? index)
                                  last?                 (= index last-term-index)
@@ -320,7 +321,7 @@
                                    ^{:key (str "term" term-id)}
                                    [multiword-term a m wrapped-query wrapped-term query-term-ids
                                     index first? last? (has-phonetic? @corpus) (has-original? @corpus)
-                                    show-remove-row-btn? show-remove-term-btn?])))
+                                    show-remove-row-btn? show-remove-term-btn? speech?])))
                          terms))]
          (when (:has-headword-search @corpus)
            [:div.table-row

@@ -170,10 +170,11 @@
             (split-query query))))
 
 
-(defn terms->query [wrapped-query terms query-term-ids lang-config]
+(defn terms->query [wrapped-query terms query-term-ids lang-config corpus]
   (let [;; Remove ids whose corresponding terms have been set to nil
         _       (swap! query-term-ids #(vec (keep-indexed (fn [index id]
                                                             (when (nth terms index) id)) %)))
+        s-tag   (if (= (:search-engine corpus) "cwb_speech") "sync" "s")
         terms*  (filter identity terms) ; nil means term should be removed
         parts   (for [{:keys [interval form lemma? phonetic? original?
                               start? end? features corpus-specific-attrs]} terms*]
@@ -214,8 +215,8 @@
                   (str/replace query* #"\bpos(?=\s*!?=)" pos-attr)
                   query*)
         query   (cond->> query**
-                         (:segment-initial? @wrapped-query) (str "<sync>")
-                         (:segment-final? @wrapped-query) (#(str % "</sync>")))]
+                         (:segment-initial? @wrapped-query) (str "<" s-tag ">")
+                         (:segment-final? @wrapped-query) (#(str % "</" s-tag ">")))]
     query))
 
 

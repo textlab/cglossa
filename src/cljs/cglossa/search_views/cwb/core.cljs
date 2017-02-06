@@ -38,11 +38,12 @@
       (without-suffix headword-query-suffix-more-words)
       (without-prefix headword-query-prefix)))
 
-(defn- phrase->cqp [phrase wrapped-query phonetic? original?]
+(defn- phrase->cqp [phrase wrapped-query phonetic? original? corpus]
   (let [attr       (cond
                      phonetic? "phon"
                      original? "orig"
                      :else "word")
+        s-tag      (if (= (:search-engine corpus) "cwb_speech") "sync" "s")
         chinese-ch "[\u4E00-\u9FFF\u3400-\u4DFF\uF900-\uFAFF]"
         ; Surround every Chinese character by space when constructing a cqp query,
         ; to treat it as if it was an individual word:
@@ -73,8 +74,8 @@
                          ;; add the extra element if the query ends in a space.
                          (if (= \space (last (seq p1))) (str $ " ") $))
         p3         (cond->> p2
-                            (:segment-initial? @wrapped-query) (str "<sync>")
-                            (:segment-final? @wrapped-query) (#(str % "</sync>")))]
+                            (:segment-initial? @wrapped-query) (str "<" s-tag ">")
+                            (:segment-final? @wrapped-query) (#(str % "</" s-tag ">")))]
     (if (str/blank? p3)
       (str "[" attr "=\".*\" %c]")
       p3)))
@@ -189,6 +190,7 @@
   [a {:keys [corpus] :as m} input-type wrapped-query displayed-query
    show-remove-row-btn? show-checkboxes? on-text-changed]
   (let [query     (:query @wrapped-query)
+        speech?   (= (:search-engine @corpus) "cwb_speech")
         phonetic? (not= -1 (.indexOf query "phon="))
         original? (not= -1 (.indexOf query "orig="))]
     [:form.table-display {:style {:margin "10px 0px 15px -35px"}}
@@ -210,19 +212,19 @@
               ;; div.checkbox, since each [input {:type "checkbox"}] generates its own div.checkbox
               ;; wrapper (or is it possible somehow?), so we create the markup manually instead.
               [:div.checkbox {:style {:display "table-cell" :padding-top 7}}
-               (when (has-phonetic? @corpus)
-                 (list
+               (list
+                 (when (has-phonetic? @corpus)
                    ^{:key "phon"}
                    [:label.checkbox-inline {:style {:padding-left 18}}
                     [:input {:name      "phonetic"
                              :type      "checkbox"
                              :style     {:margin-left -18}
                              :checked   phonetic?
-                             :on-change #(on-phonetic-changed % wrapped-query)}] " Phonetic form"]
-                   ^{:key "seg-init"}
-                   [segment-initial-checkbox wrapped-query]
-                   ^{:key "seg-final"}
-                   [segment-final-checkbox wrapped-query]))
+                             :on-change #(on-phonetic-changed % wrapped-query)}] " Phonetic form"])
+                 ^{:key "seg-init"}
+                 [segment-initial-checkbox wrapped-query speech?]
+                 ^{:key "seg-final"}
+                 [segment-final-checkbox wrapped-query speech?])
                (when (has-original? @corpus)
                  (list
                    ^{:key "orig"}
@@ -243,11 +245,11 @@
 
 (defn- simple
   "Simple search view component"
-  [a m wrapped-query show-remove-row-btn?]
+  [a {:keys [corpus] :as m} wrapped-query show-remove-row-btn?]
   (let [query           (:query @wrapped-query)
         displayed-query (-> query
                             (->non-headword-query)
-                            (str/replace #"</?sync>" "")
+                            (str/replace #"</?s(?:ync)?>" "")
                             ;; Unescape any escaped chars, since we don't want the backslashes
                             ;; to show in the text input
                             (str/replace #"\\(.)" "$1")
@@ -260,7 +262,8 @@
                           (let [value (.-target.value event)
                                 query (if (= value "")
                                         ""
-                                        (phrase->cqp value wrapped-query phonetic? original?))]
+                                        (phrase->cqp value wrapped-query phonetic?
+                                                     original? @corpus))]
                             (swap! wrapped-query assoc :query query)))]
     [single-input-view a m "text" wrapped-query displayed-query show-remove-row-btn?
      true on-text-changed]))

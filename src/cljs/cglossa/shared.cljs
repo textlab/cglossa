@@ -235,7 +235,7 @@
                                          "hidden")}}
     [b/glyphicon {:glyph "remove"}]]])
 
-(defn segment-initial-checkbox [wrapped-query]
+(defn segment-initial-checkbox [wrapped-query speech?]
   [:label.checkbox-inline {:style {:padding-left 18}}
    [:input {:type      "checkbox"
             :style     {:margin-left -18}
@@ -243,14 +243,15 @@
             :on-change (fn [e]
                          (let [query     (:query @wrapped-query)
                                checked?  (.-target.checked e)
+                               s-tag     (if speech? "<sync>" "<s>")
                                new-query (if checked?
-                                           (str "<sync>" query)
-                                           (str/replace query #"^<sync>" ""))]
+                                           (str s-tag query)
+                                           (str/replace query (re-pattern (str "^" s-tag)) ""))]
                            (swap! wrapped-query
                                   assoc :query new-query :segment-initial? checked?)))}]
-   " Segment initial"])
+   (str " " (if speech? "Segment" "Sentence") " initial")])
 
-(defn segment-final-checkbox [wrapped-query]
+(defn segment-final-checkbox [wrapped-query speech?]
   [:label.checkbox-inline {:style {:padding-left 18}}
    [:input {:type      "checkbox"
             :style     {:margin-left -18}
@@ -258,12 +259,13 @@
             :on-change (fn [e]
                          (let [query     (:query @wrapped-query)
                                checked?  (.-target.checked e)
+                               s-tag     (if speech? "</sync>" "</s>")
                                new-query (if checked?
-                                           (str query "</sync>")
-                                           (str/replace query #"</sync>$" ""))]
+                                           (str query s-tag)
+                                           (str/replace query (re-pattern (str s-tag "$")) ""))]
                            (swap! wrapped-query
                                   assoc :query new-query :segment-final? checked?)))}]
-   " Segment final"])
+   (str " " (if speech? "Segment" "Sentence") " final")])
 
 (defn headword-search-checkbox [wrapped-query]
   [b/checkbox
