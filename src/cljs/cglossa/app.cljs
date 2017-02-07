@@ -92,7 +92,7 @@
                          (init a m)))))]
             (fn [_]
               [b/modal
-                {:bs-size "medium" :show true}
+                {:bs-size "large" :show true}
                 [b/modalheader [b/modaltitle "Login"]]
                 [b/modalbody
                   {:style {:width 350}}
