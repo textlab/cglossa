@@ -174,7 +174,7 @@
                                (= first-lang-code "korr") ["org"]
                                (> (count lang-codes) 1) (-> lang-codes set (disj first-lang-code)))]
     ;; Only show alignment attributes if we have actually asked for aligned languages
-    (when non-first-lang-codes
+    (when (seq non-first-lang-codes)
       (str "show " (str/join " " (map #(str "+" (:code corpus) "_" %) non-first-lang-codes))))))
 
 (defn sort-command [named-query sort-key]
