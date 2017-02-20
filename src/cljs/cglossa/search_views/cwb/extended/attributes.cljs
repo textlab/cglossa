@@ -142,14 +142,16 @@
 (defn- additional-words-panel [corpus wrapped-query wrapped-term]
   (r/with-let [text (r/atom "")]
     (let [on-select (fn [event-key _]
-                      (.log js/console wrapped-term)
-                      (.log js/console @wrapped-term)
                       #_(swap! wrapped-term update-in [:a :b] (fn [h] "asdf"))
-                      (swap! wrapped-term update-in [:extra-forms event-key]
-                             (fn [h]
-                               (.log js/console h)
-                               "asdf"))
-                      (.log js/console @wrapped-term))
+                      (let [[key val] (if (str/starts-with? event-key "!")
+                                        ;; Move the exclamation point from the key to the value
+                                        [(subs event-key 1) (str "!" @text)]
+                                        [event-key @text])]
+                        (swap! wrapped-term update-in [:extra-forms key]
+                               (fn [vals]
+                                 (if vals
+                                   (conj vals val)
+                                   (set [val]))))))
           items     {:add-word      [b/menuitem {:key       :add-word
                                                  :event-key "word"
                                                  :on-select on-select}

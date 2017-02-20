@@ -74,7 +74,6 @@
 
 
 (defn- process-first-form [term name op val]
-  (.log js/console term)
   (cond-> (assoc term :form (unescape-form val))
           (= name "lemma") (assoc :lemma? true)
           (= name "phon") (assoc :phonetic? true)
@@ -84,18 +83,14 @@
 
 
 (defn- process-other-forms [term name op val]
-  (update-in term [:extra-forms name] (fn [v]
-                                        (if v
-                                          (conj v val)
-                                          (set [val])))))
+  (update-in term [:extra-forms name] #(if % (conj % val) (set [val]))))
 
 
 (defn- handle-attribute-value [terms part interval corpus-specific-attrs-regex]
   (let [process-forms (fn [t p]
                         (let [forms (for [[_ name op val] (re-seq #"(word|lemma|phon|orig)\s*(!?=)\s*\"(.+?)\"" p)
                                           :let [val* (if (= op "!=") (str "!" val) val)]]
-                                      (do (.log js/console val*)
-                                          [name op val*]))]
+                                      [name op val*])]
                           (reduce (fn [acc [name op val]]
                                     ;; If the attribute value starts with &&, it should be a special
                                     ;; code (e.g. for marking errors in text, inserted as "tokens"
@@ -112,7 +107,6 @@
                                   forms)))
         term          (as-> {:interval @interval} $
                             (process-forms $ (last part))
-                            (do (.log js/console $) $)
                             #_(let [[_ name op val] (re-find #"(word|lemma|phon|orig)\s*(!?=)\s*\"(.+?)\""
                                                              (last part))
                                     val* (if (= op "!=") (str "!" val) val)]
@@ -202,6 +196,26 @@
             (split-query query))))
 
 
+(defn- process-extra-forms [name vals]
+  (let [pos-and-neg     (group-by #(str/starts-with? % "!") vals)
+        positives       (get pos-and-neg false)
+        negatives       (get pos-and-neg true)
+        has-positives?  (seq positives)
+        considered-vals (if has-positives?
+                          ;; If there are any positives (e.g. word="hello"), we can ignore any
+                          ;; negatives, since they are redundant
+                          positives
+                          ;; Else use the negatives (with the initial exclamation points removed)
+                          (map #(subs % 1) negatives))
+        operation       (if has-positives? "=" "!=")
+        separator       (if has-positives? " | " " & ")]
+    (str "("
+         (str/join separator
+                   (for [val considered-vals]
+                     (str name operation "\"" val "\"")))
+         ")")))
+
+
 (defn terms->query [wrapped-query terms query-term-ids lang-config corpus]
   (let [;; Remove ids whose corresponding terms have been set to nil
         _       (swap! query-term-ids #(vec (keep-indexed (fn [index id]
@@ -234,8 +248,9 @@
                                        (let [op (if (str/starts-with? (ffirst features) "!") " & " " | ")]
                                          (str "(" (str/join op (map process-pos-map features)) ")")))
                         extra-forms* (when (seq extra-forms)
-                                       (str/join " & " (for [[name val] extra-forms]
-                                                         (str name "=\"" val "\""))))
+                                       (str/join " & "
+                                                 (for [[name vals] extra-forms]
+                                                   (process-extra-forms name vals))))
                         extra        (when (seq corpus-specific-attrs)
                                        (str/join " & " (filter identity
                                                                (map process-attr-map
