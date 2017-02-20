@@ -65,13 +65,17 @@
     terms))
 
 
-(defn- process-form [term name op val]
-  (cond-> (assoc term :form (-> val
-                                ;; Unescape any escaped chars, since we don't want the backslashes
-                                ;; to show in the text input
-                                (str/replace #"\\(.)" "$1")
-                                (str/replace #"^(?:\.\*)?(.+?)" "$1")
-                                (str/replace #"(.+?)(?:\.\*)?$" "$1")))
+;; Unescapes any escaped chars, since we don't want the backslashes to show in the text input
+(defn- unescape-form [form]
+  (-> form
+      (str/replace #"\\(.)" "$1")
+      (str/replace #"^(?:\.\*)?(.+?)" "$1")
+      (str/replace #"(.+?)(?:\.\*)?$" "$1")))
+
+
+(defn- process-first-form [term name op val]
+  (.log js/console term)
+  (cond-> (assoc term :form (unescape-form val))
           (= name "lemma") (assoc :lemma? true)
           (= name "phon") (assoc :phonetic? true)
           (= name "orig") (assoc :original? true)
@@ -79,53 +83,81 @@
           (re-find #"^\.\*.+" val) (assoc :end? true)))
 
 
+(defn- process-other-forms [term name op val]
+  (update-in term [:extra-forms name] (fn [v]
+                                        (if v
+                                          (conj v val)
+                                          (set [val])))))
+
+
 (defn- handle-attribute-value [terms part interval corpus-specific-attrs-regex]
-  (let [term (as-> {:interval @interval} $
-                   (let [[_ name op val] (re-find #"(word|lemma|phon|orig)\s*(!?=)\s*\"(.+?)\""
-                                                  (last part))
-                         val* (if (= op "!=") (str "!" val) val)]
-                     ;; If the attribute value starts with &&, it should be a special code
-                     ;; (e.g. for marking errors in text, inserted as "tokens" to ensure alignment
-                     ;; between original and corrected text) and should not be shown in the text
-                     ;; input box
-                     (if (and name (not (str/starts-with? val* "&&")))
-                       (process-form $ name op val*)
-                       $))
-                   (if-let [pos-exprs (re-seq #"\(pos\s*(!?=)\s*\"(.+?)\"(.*?)\)" (last part))]
-                     (reduce (fn [t [_ pos-op pos rest]]
-                               ;; Allow attribute values to contain Norwegian chars, -, <, > and /
-                               ;; in addition to alphanumeric characters
-                               (let [others (re-seq #"(\w+)\s*(!?=)\s*\"([\w\|\-\<\>/æøå]+)\""
-                                                    rest)]
-                                 (assoc-in t [:features (if (= pos-op "!=") (str "!" pos) pos)]
-                                           (into {} (map (fn [[_ name val-op vals]]
-                                                           [name
-                                                            (as-> vals $
-                                                                  (str/split $ #"\|")
-                                                                  (map (fn [val]
-                                                                         (if (= val-op "!=")
-                                                                           (str "!" val)
-                                                                           val))
-                                                                       $)
-                                                                  (set $))])
-                                                         others)))))
-                             $
-                             pos-exprs)
-                     $)
-                   (if-let [exprs (when corpus-specific-attrs-regex
-                                    (re-seq corpus-specific-attrs-regex (last part)))]
-                     (reduce (fn [t [_ attr vals]]
-                               ;; If the attribute is "word" or "orig", we only allow values
-                               ;; starting with && to be treated as corpus-specific values
-                               ;; (other values are just ordinary word forms to search for)
-                               (if (or (nil? (#{"word" "orig"} attr))
-                                       (str/starts-with? vals "&&"))
-                                 (assoc-in t [:corpus-specific-attrs attr]
-                                           (set (str/split vals #"\|")))
-                                 t))
-                             $
-                             exprs)
-                     $))]
+  (let [process-forms (fn [t p]
+                        (let [forms (for [[_ name op val] (re-seq #"(word|lemma|phon|orig)\s*(!?=)\s*\"(.+?)\"" p)
+                                          :let [val* (if (= op "!=") (str "!" val) val)]]
+                                      (do (.log js/console val*)
+                                          [name op val*]))]
+                          (reduce (fn [acc [name op val]]
+                                    ;; If the attribute value starts with &&, it should be a special
+                                    ;; code (e.g. for marking errors in text, inserted as "tokens"
+                                    ;; to ensure alignment between original and corrected text) and
+                                    ;; should not be shown in the text input box
+                                    (if (and name (not (str/starts-with? val "&&")))
+                                      ;; Only the first non-negative word/lemma/phon/orig form
+                                      ;; goes into the form attribute; the rest are :extra-forms
+                                      (if (and (str/blank? (:form acc)) (= op "="))
+                                        (process-first-form acc name op val)
+                                        (process-other-forms acc name op val))
+                                      acc))
+                                  t
+                                  forms)))
+        term          (as-> {:interval @interval} $
+                            (process-forms $ (last part))
+                            (do (.log js/console $) $)
+                            #_(let [[_ name op val] (re-find #"(word|lemma|phon|orig)\s*(!?=)\s*\"(.+?)\""
+                                                             (last part))
+                                    val* (if (= op "!=") (str "!" val) val)]
+                                ;; If the attribute value starts with &&, it should be a special code
+                                ;; (e.g. for marking errors in text, inserted as "tokens" to ensure alignment
+                                ;; between original and corrected text) and should not be shown in the text
+                                ;; input box
+                                (if (and name (not (str/starts-with? val* "&&")))
+                                  (process-first-form $ name op val*)
+                                  $))
+                            (if-let [pos-exprs (re-seq #"\(pos\s*(!?=)\s*\"(.+?)\"(.*?)\)" (last part))]
+                              (reduce (fn [t [_ pos-op pos rest]]
+                                        ;; Allow attribute values to contain Norwegian chars, -, <, > and /
+                                        ;; in addition to alphanumeric characters
+                                        (let [others (re-seq #"(\w+)\s*(!?=)\s*\"([\w\|\-\<\>/æøå]+)\""
+                                                             rest)]
+                                          (assoc-in t [:features (if (= pos-op "!=") (str "!" pos) pos)]
+                                                    (into {} (map (fn [[_ name val-op vals]]
+                                                                    [name
+                                                                     (as-> vals $
+                                                                           (str/split $ #"\|")
+                                                                           (map (fn [val]
+                                                                                  (if (= val-op "!=")
+                                                                                    (str "!" val)
+                                                                                    val))
+                                                                                $)
+                                                                           (set $))])
+                                                                  others)))))
+                                      $
+                                      pos-exprs)
+                              $)
+                            (if-let [exprs (when corpus-specific-attrs-regex
+                                             (re-seq corpus-specific-attrs-regex (last part)))]
+                              (reduce (fn [t [_ attr vals]]
+                                        ;; If the attribute is "word" or "orig", we only allow values
+                                        ;; starting with && to be treated as corpus-specific values
+                                        ;; (other values are just ordinary word forms to search for)
+                                        (if (or (nil? (#{"word" "orig"} attr))
+                                                (str/starts-with? vals "&&"))
+                                          (assoc-in t [:corpus-specific-attrs attr]
+                                                    (set (str/split vals #"\|")))
+                                          t))
+                                      $
+                                      exprs)
+                              $))]
     (reset! interval [nil nil])
     (conj terms term)))
 
@@ -177,39 +209,42 @@
         s-tag   (if (= (:search-engine corpus) "cwb_speech") "sync" "s")
         terms*  (filter identity terms) ; nil means term should be removed
         parts   (for [{:keys [interval form lemma? phonetic? original?
-                              start? end? features corpus-specific-attrs]} terms*]
-                  (let [attr   (cond
-                                 lemma? "lemma"
-                                 phonetic? "phon"
-                                 original? "orig"
-                                 :else "word")
-                        form*  (if (empty? form)
-                                 (when (and (empty? features) (empty? corpus-specific-attrs)) ".*")
-                                 (cond-> form
-                                         ;; Escape special characters using a regex from
-                                         ;; https://developer.mozilla.org/en-US/docs/Web/JavaScript/
-                                         ;;   Guide/Regular_Expressions
-                                         true (str/replace #"[\.\*\+\?\^\$\{\}\(\)\|\[\]\\]"
-                                                           "\\$&")
-                                         start? (str ".*")
-                                         end? (#(str ".*" %))))
-                        main   (when form*
-                                 (str attr "=\"" form* "\" %c"))
-                        feats  (when (seq features)
-                                 ;; If we want to exclude parts of speech, join them with &
-                                 ;; (e.g. [pos != "noun" & pos != "verb"]), otherwise with |
-                                 ;; (e.g. [pos = "noun" | pos = "verb"])
-                                 (let [op (if (str/starts-with? (ffirst features) "!") " & " " | ")]
-                                   (str "(" (str/join op (map process-pos-map features)) ")")))
-                        extra  (when (seq corpus-specific-attrs)
-                                 (str/join " & " (filter identity
-                                                         (map process-attr-map
-                                                              corpus-specific-attrs))))
+                              start? end? features extra-forms corpus-specific-attrs]} terms*]
+                  (let [attr         (cond
+                                       lemma? "lemma"
+                                       phonetic? "phon"
+                                       original? "orig"
+                                       :else "word")
+                        form*        (if (empty? form)
+                                       (when (and (empty? features) (empty? corpus-specific-attrs)) ".*")
+                                       (cond-> form
+                                               ;; Escape special characters using a regex from
+                                               ;; https://developer.mozilla.org/en-US/docs/Web/JavaScript/
+                                               ;;   Guide/Regular_Expressions
+                                               true (str/replace #"[\.\*\+\?\^\$\{\}\(\)\|\[\]\\]"
+                                                                 "\\$&")
+                                               start? (str ".*")
+                                               end? (#(str ".*" %))))
+                        main         (when form*
+                                       (str attr "=\"" form* "\" %c"))
+                        feats        (when (seq features)
+                                       ;; If we want to exclude parts of speech, join them with &
+                                       ;; (e.g. [pos != "noun" & pos != "verb"]), otherwise with |
+                                       ;; (e.g. [pos = "noun" | pos = "verb"])
+                                       (let [op (if (str/starts-with? (ffirst features) "!") " & " " | ")]
+                                         (str "(" (str/join op (map process-pos-map features)) ")")))
+                        extra-forms* (when (seq extra-forms)
+                                       (str/join " & " (for [[name val] extra-forms]
+                                                         (str name "=\"" val "\""))))
+                        extra        (when (seq corpus-specific-attrs)
+                                       (str/join " & " (filter identity
+                                                               (map process-attr-map
+                                                                    corpus-specific-attrs))))
                         [min max] interval
-                        interv (if (or min max)
-                                 (str "[]{" (or min 0) "," (or max "") "} ")
-                                 "")]
-                    (str interv "[" (str/join " & " (filter identity [main feats extra])) "]")))
+                        interv       (if (or min max)
+                                       (str "[]{" (or min 0) "," (or max "") "} ")
+                                       "")]
+                    (str interv "[" (str/join " & " (filter identity [main feats extra-forms* extra])) "]")))
         query*  (str/join \space parts)
         query** (if-let [pos-attr (:pos-attr lang-config)]
                   (str/replace query* #"\bpos(?=\s*!?=)" pos-attr)

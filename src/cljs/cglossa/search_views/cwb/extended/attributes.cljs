@@ -2,6 +2,7 @@
   (:require [reagent.core :as r]
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.shared :refer [search!]]
+            [cglossa.search-views.shared :refer [has-phonetic? has-original?]]
             [cglossa.search-views.cwb.extended.shared :refer [language-data language-menu-data
                                                               language-config
                                                               language-corpus-specific-attrs]]
@@ -138,6 +139,72 @@
                                             dissoc attr*)))}
                    (or title (str/capitalize attr-value))]))]))))
 
+(defn- additional-words-panel [corpus wrapped-query wrapped-term]
+  (r/with-let [text (r/atom "")]
+    (let [on-select (fn [event-key _]
+                      (.log js/console wrapped-term)
+                      (.log js/console @wrapped-term)
+                      #_(swap! wrapped-term update-in [:a :b] (fn [h] "asdf"))
+                      (swap! wrapped-term update-in [:extra-forms event-key]
+                             (fn [h]
+                               (.log js/console h)
+                               "asdf"))
+                      (.log js/console @wrapped-term))
+          items     {:add-word      [b/menuitem {:key       :add-word
+                                                 :event-key "word"
+                                                 :on-select on-select}
+                                     "Add word form"]
+                     :add-lemma     [b/menuitem {:key       :add-lemma
+                                                 :event-key "lemma"
+                                                 :on-select on-select}
+                                     "Add lemma"]
+                     :add-phon      [b/menuitem {:key       :add-phon
+                                                 :event-key "phon"
+                                                 :on-select on-select}
+                                     "Add phonetic form"]
+                     :add-orig      [b/menuitem {:key       :add-orig
+                                                 :event-key "orig"
+                                                 :on-select on-select}
+                                     "Add original form"]
+                     :exclude-word  [b/menuitem {:key       :exclude-word
+                                                 :event-key "!word"
+                                                 :on-select on-select}
+                                     "Exclude word form"]
+                     :exclude-lemma [b/menuitem {:key       :exclude-lemma
+                                                 :event-key "!lemma"
+                                                 :on-select on-select}
+                                     "Exclude lemma"]
+                     :exclude-phon  [b/menuitem {:key       :exclude-phon
+                                                 :event-key "!phon"
+                                                 :on-select on-select}
+                                     "Exclude phonetic form"]
+                     :exclude-orig  [b/menuitem {:key       :exclude-orig
+                                                 :event-key "!orig"
+                                                 :on-select on-select}
+                                     "Exclude original form"]}
+          sel-items (cond
+                      (has-phonetic? @corpus)
+                      (select-keys items [:add-word :add-lemma :add-phon
+                                          :exclude-word :exclude-lemma :exclude-phon])
+
+                      (has-original? @corpus)
+                      (select-keys items [:add-word :add-lemma :add-orig
+                                          :exclude-word :exclude-lemma :exclude-orig])
+
+                      :else
+                      (select-keys items [:add-word :add-lemma
+                                          :exclude-word :exclude-lemma]))]
+      ^{:key (str "additional-words")}
+      [b/panel
+       [b/inputgroup {:bs-size "small" :style {:width 250}}
+        [b/formcontrol {:type "text" :value @text :on-change #(reset! text (.-target.value %))}]
+        [b/dropdownbutton {:component-class js/ReactBootstrap.InputGroup.Button
+                           :bs-size         "small"
+                           :id              "additional-word"
+                           :title           "Add or exclude"
+                           :disabled        (str/blank? @text)}
+         (vals sel-items)]]])))
+
 (defn- attribute-modal [a {:keys [corpus] :as m}
                         wrapped-query wrapped-term menu-data show-attr-popup?]
   [b/modal {:class-name "attr-modal"
@@ -149,7 +216,8 @@
     (list
       (when menu-data (pos-panel wrapped-term menu-data))
       (when menu-data (morphsyn-panel wrapped-term menu-data))
-      (corpus-specific-panel corpus wrapped-query wrapped-term))]
+      (corpus-specific-panel corpus wrapped-query wrapped-term)
+      (additional-words-panel corpus wrapped-query wrapped-term))]
    [b/modalfooter {:style {:position "relative"}}
     [:div {:style {:height 30}}]
     [:div {:style {:position  "absolute"
