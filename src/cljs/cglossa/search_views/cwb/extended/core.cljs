@@ -173,7 +173,7 @@
 
 
 (defn- tag-description-label [value description tooltip path wrapped-term show-attr-popup?]
-  (let [excluded? (str/starts-with? description "!")]
+  (let [excluded? (or (str/starts-with? description "!") (str/includes? description ":!"))]
     [b/label {:bs-style    (if excluded? "danger" "primary")
               :data-toggle (when tooltip "tooltip")
               :title       tooltip
@@ -231,6 +231,14 @@
         (for [{:keys [pos description tooltip]} descriptions]
           ^{:key description}
           [tag-description-label pos description tooltip [:features]
+           wrapped-term show-attr-popup?])
+        (for [[attr forms] (:extra-forms @wrapped-term)
+              form forms
+              :let [description (if (= attr "word")
+                                  form
+                                  (str attr ":" form))]]
+          ^{:key (str attr "_" form)}
+          [tag-description-label form description "" [:extra-forms attr]
            wrapped-term show-attr-popup?])
         (map (fn [attr desc]
                (for [{:keys [pos description tooltip]} desc]
