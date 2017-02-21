@@ -201,7 +201,10 @@
        [:div {:style {:display "table"}}
         [:div {:style {:display "table-cell"}}
          [b/inputgroup {:bs-size "small" :style {:width 250}}
-          [b/formcontrol {:type "text" :value @text :on-change #(reset! text (.-target.value %))}]
+          [b/formcontrol {:type      "text"
+                          :value     @text
+                          :on-change #(reset! text (.-target.value %))
+                          :on-click  #(.select (.-target %))}]
           [b/dropdownbutton {:component-class js/ReactBootstrap.InputGroup.Button
                              :bs-size         "small"
                              :id              "additional-word"
