@@ -5,7 +5,8 @@
             [cglossa.search-views.shared :refer [has-phonetic? has-original?]]
             [cglossa.search-views.cwb.extended.shared :refer [language-data language-menu-data
                                                               language-config
-                                                              language-corpus-specific-attrs]]
+                                                              language-corpus-specific-attrs
+                                                              tag-description-label]]
             [clojure.string :as str]))
 
 (defn- pos-panel [wrapped-term menu-data]
@@ -139,10 +140,9 @@
                                             dissoc attr*)))}
                    (or title (str/capitalize attr-value))]))]))))
 
-(defn- additional-words-panel [corpus wrapped-query wrapped-term]
+(defn- additional-words-panel [corpus wrapped-query wrapped-term show-attr-popup?]
   (r/with-let [text (r/atom "")]
     (let [on-select (fn [event-key _]
-                      #_(swap! wrapped-term update-in [:a :b] (fn [h] "asdf"))
                       (let [[key val] (if (str/starts-with? event-key "!")
                                         ;; Move the exclamation point from the key to the value
                                         [(subs event-key 1) (str "!" @text)]
@@ -198,14 +198,25 @@
                                           :exclude-word :exclude-lemma]))]
       ^{:key (str "additional-words")}
       [b/panel
-       [b/inputgroup {:bs-size "small" :style {:width 250}}
-        [b/formcontrol {:type "text" :value @text :on-change #(reset! text (.-target.value %))}]
-        [b/dropdownbutton {:component-class js/ReactBootstrap.InputGroup.Button
-                           :bs-size         "small"
-                           :id              "additional-word"
-                           :title           "Add or exclude"
-                           :disabled        (str/blank? @text)}
-         (vals sel-items)]]])))
+       [:div {:style {:display "table"}}
+        [:div {:style {:display "table-cell"}}
+         [b/inputgroup {:bs-size "small" :style {:width 250}}
+          [b/formcontrol {:type "text" :value @text :on-change #(reset! text (.-target.value %))}]
+          [b/dropdownbutton {:component-class js/ReactBootstrap.InputGroup.Button
+                             :bs-size         "small"
+                             :id              "additional-word"
+                             :title           "Add or exclude"
+                             :disabled        (str/blank? @text)}
+           (vals sel-items)]]]
+        [:div {:style {:display "table-cell" :padding-left 10}}
+         (for [[attr forms] (:extra-forms @wrapped-term)
+               form forms
+               :let [description (if (= attr "word")
+                                   form
+                                   (str attr ":" form))]]
+           ^{:key (str attr "_" form)}
+           [tag-description-label form description "" [:extra-forms attr]
+            wrapped-term show-attr-popup?])]]])))
 
 (defn- attribute-modal [a {:keys [corpus] :as m}
                         wrapped-query wrapped-term menu-data show-attr-popup?]
@@ -219,7 +230,7 @@
       (when menu-data (pos-panel wrapped-term menu-data))
       (when menu-data (morphsyn-panel wrapped-term menu-data))
       (corpus-specific-panel corpus wrapped-query wrapped-term)
-      (additional-words-panel corpus wrapped-query wrapped-term))]
+      (additional-words-panel corpus wrapped-query wrapped-term show-attr-popup?))]
    [b/modalfooter {:style {:position "relative"}}
     [:div {:style {:height 30}}]
     [:div {:style {:position  "absolute"
