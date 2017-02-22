@@ -214,10 +214,10 @@
                 lemma-index       (first (keep-indexed #(when (= %2 :lemma) (inc %1)) attrs))
                 remaining-indexes (remove #(#{ort-index phon-index lemma-index} %)
                                           (range (count attrs)))
-                ort-tip-indexes   (filter identity
-                                          (into (filter identity [phon-index lemma-index])
-                                                remaining-indexes))
-                phon-tip-indexes  (into (filter identity [ort-index lemma-index])
+                ort-tip-indexes   (filterv identity
+                                           (into (filterv identity [phon-index lemma-index])
+                                                 remaining-indexes))
+                phon-tip-indexes  (into (filterv identity [ort-index lemma-index])
                                         remaining-indexes)]
             (doall (map (partial single-result-rows a m
                                  ort-index phon-index ort-tip-indexes phon-tip-indexes)
