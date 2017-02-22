@@ -208,12 +208,13 @@
          [:tbody
           (let [attrs             (->> @corpus :languages first :config :displayed-attrs (map first))
                 ort-index         0     ; orthographic form is always the first attribute
-                ;; We need to inc phon-index and lemma-index since the first attribute ('word') is
-                ;; not in the list because it is shown by default by CQP
+                ;; We need to inc phon-index and lemma-index, as well as the total count below,
+                ;; since the first attribute ('word') is not in the list because it is shown by
+                ;; default by CQP
                 phon-index        (first (keep-indexed #(when (= %2 :phon) (inc %1)) attrs))
                 lemma-index       (first (keep-indexed #(when (= %2 :lemma) (inc %1)) attrs))
                 remaining-indexes (remove #(#{ort-index phon-index lemma-index} %)
-                                          (range (count attrs)))
+                                          (range (inc (count attrs))))
                 ort-tip-indexes   (filterv identity
                                            (into (filterv identity [phon-index lemma-index])
                                                  remaining-indexes))
