@@ -90,15 +90,16 @@
      :more?   more?}))
 
 (defn show-texts [selected-metadata ncats page]
-  (let [pagesize  (* show-texts-pagesize ncats)
+  (let [mdata     (remove (fn [[_ ids]] (nil? ids)) selected-metadata)
+        pagesize  (* show-texts-pagesize ncats)
         offs      (* (dec page) pagesize)
         lim       pagesize
         res       (-> (select* metadata-value)
                       (fields :j0.text_id :metadata_category_id :text_value)
                       (modifier "SQL_CALC_FOUND_ROWS")
                       (join :inner [metadata-value-text :j0] (= :j0.metadata_value_id :id))
-                      (join-selected-values selected-metadata)
-                      (where-selected-values selected-metadata)
+                      (join-selected-values mdata)
+                      (where-selected-values mdata)
                       (order :j0.text_id)
                       (order :metadata_category_id)
                       (limit lim)
