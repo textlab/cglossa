@@ -5,19 +5,29 @@
             [cglossa.results :refer [concordance-table]]
             [cglossa.result-views.cwb.shared :as shared]))
 
-(defn- process-field [displayed-field-index field]
+(defn- process-field [displayed-field-index origcorr-index lemma-index field]
   "Processes a pre-match, match, or post-match field."
   (as-> field $
         (str/split $ #"\s+")
         (keep-indexed (fn [index token]
                         (if (str/includes? token \/)
                           (let [attrs    (str/split token #"/")
-                                tip-text (str/join " " (as-> attrs $
-                                                             (rest $)
-                                                             (remove #(get #{"__UNDEF__" "-"} %) $)
-                                                             (vec $)
-                                                             ;; Show the lemma in quotes
-                                                             (update $ 0 #(str "\"" % "\""))))]
+                                attrs*   (cond-> attrs
+                                                 ;; Show the corrected or original
+                                                 ;; form in italics, if present
+                                                 origcorr-index
+                                                 (update origcorr-index #(str "<i>" % "</i>"))
+
+                                                 ;; Show the lemma in quotes, if
+                                                 ;; present
+                                                 lemma-index
+                                                 (update lemma-index #(str "\"" % "\"")))
+                                tip-text (str/join " " (remove (fn [attr]
+                                                                 (get #{"__UNDEF__"
+                                                                        "\"__UNDEF__\""
+                                                                        "-"}
+                                                                      attr))
+                                                               attrs*))]
                             ^{:key index}
                             [:span {:data-toggle "tooltip"
                                     :title       tip-text
@@ -30,7 +40,7 @@
                           ^{:key index} [:span token " "]))
                       $)))
 
-(defn- non-first-multilingual [index line]
+(defn- non-first-multilingual [orig-index lemma-index index line]
   ;; Extract the IDs of all s-units (typically sentences)
   ;; and put them in front of their respective s-units.
   (let [matches    (re-seq #"<(\w+_id)\s*(.+?)>(.*?)</\1>" line)
@@ -38,7 +48,7 @@
                      (map (fn [m]
                             (list [:span.aligned-id (nth m 2)] ": " (nth m 3)))
                           matches)
-                     (process-field 0 line))]
+                     (process-field 0 orig-index lemma-index line))]
     ^{:key index} [:tr [:td] [:td {:col-span 3} components]]))
 
 (defn- extract-fields [res]
@@ -59,13 +69,15 @@
    [:td {:style {:vertical-align "middle"}}]
    (shared/text-columns result)])
 
-(defn single-result-rows [a m word-index orig-index res index]
+(defn single-result-rows [a m word-index orig-index lemma-index res index]
   "Returns one or more rows representing a single search result."
   (let [[main-line & other-lines] (:text res)
         [s-id fields] (extract-fields main-line)
-        [pre match post] (map (partial process-field word-index) fields)
+        [pre match post] (map (partial process-field word-index orig-index lemma-index) fields)
         [orig-pre orig-match orig-post] (when orig-index
-                                          (map (partial process-field orig-index) fields))
+                                          (map (partial process-field orig-index
+                                                        word-index lemma-index)
+                                               fields))
         res-info {:word {:s-id       s-id
                          :pre-match  pre
                          :match      match
@@ -79,7 +91,8 @@
                    [(original-row a m (:orig res-info) index)
                     (shared/separator-row index)])
         others   (when (seq other-lines)
-                   (conj (vec (map-indexed non-first-multilingual other-lines))
+                   (conj (vec (map-indexed (partial non-first-multilingual orig-index lemma-index)
+                                           other-lines))
                          (shared/separator-row index)))]
     ;; Assume that we have EITHER an attribute with original text OR several other langage rows
     (cons main (or orig others))))
@@ -90,11 +103,12 @@
     [:div.row>div.col-sm-12.search-result-table-container
      [b/table {:bordered true}
       [:tbody
-       (let [attrs      (->> @corpus :languages first :config :displayed-attrs (map first))
-             word-index 0               ; word form is always the first attribute
-             ;; We need to inc orig-index since the first attribute ('word') is
+       (let [attrs       (->> @corpus :languages first :config :displayed-attrs (map first))
+             word-index  0              ; word form is always the first attribute
+             ;; We need to inc lemma-index and orig-index since the first attribute ('word') is
              ;; not in the list because it is shown by default by CQP
-             orig-index (first (keep-indexed #(when (= %2 :orig) (inc %1)) attrs))]
-         (doall (map (partial single-result-rows a m word-index orig-index)
+             lemma-index (first (keep-indexed #(when (= %2 :lemma) (inc %1)) attrs))
+             orig-index  (first (keep-indexed #(when (= %2 :orig) (inc %1)) attrs))]
+         (doall (map (partial single-result-rows a m word-index orig-index lemma-index)
                      res
                      (range (count res)))))]]]))
