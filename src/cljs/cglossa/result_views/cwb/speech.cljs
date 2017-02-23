@@ -90,24 +90,27 @@
    [:td [:a {:href "http://translate.google.com/" :target "_blank"} [:img {:src "img/attr1-2.png"}]]]
    [:td {:col-span 3 :style {:color "#737373"}} translation]])
 
-(defn- process-token [token index displayed-field-index tip-field-indexes]
+(defn- process-token [token index displayed-field-index ortphon-index lemma-index tip-field-indexes]
   (when-not (str/blank? token)
     (let [attrs     (str/split token #"/")
+          attrs*    (cond-> attrs
+                            ;; Show the orthographic or phonetic form in italics
+                            ;; if present
+                            ortphon-index (update ortphon-index #(str "<i>" % "</i>"))
+                            ;; Show the lemma in quotes, if present
+                            lemma-index (update lemma-index #(str "\"" % "\""))
+                            )
           tip-attrs (->> tip-field-indexes
-                         (map #(nth attrs %))
-                         (remove #(get #{"__UNDEF__" "-"} %)))
-          tip-text  (str/join " " (-> tip-attrs vec
-                                      ;; Show the (orthographic or phonetic) form in italics
-                                      (update 0 #(str "<i>" % "</i>"))
-                                      ;; Show the lemma in quotes
-                                      (update 1 #(str "\"" % "\""))))]
+                         (map #(nth attrs* %))
+                         (remove #(get #{"__UNDEF__" "\"__UNDEF__\"" "-"} %)))
+          tip-text  (str/join " " tip-attrs)]
       ^{:key index}
       [:span {:data-toggle "tooltip"
               :title       tip-text
               :data-html   true}
        (nth attrs displayed-field-index) " "])))
 
-(defn- process-field [displayed-field-index tip-field-indexes field]
+(defn- process-field [displayed-field-index ortphon-index lemma-index tip-field-indexes field]
   "Processes a pre-match, match, or post-match field."
   (let [tokens (-> field
                    (str/replace #"<who_name\s+(.+?)>\s*" "<who_name_$1> ")
@@ -119,18 +122,22 @@
                       ^{:key index} [:span.speaker-id (str "<" speaker-id ">") " "]
                       ;; Ignore end-of-segment tags; process all other tokens
                       (when-not (re-find #"</who_name>" token)
-                        (process-token token index displayed-field-index tip-field-indexes))))
+                        (process-token token index displayed-field-index
+                                       ortphon-index lemma-index tip-field-indexes))))
                   tokens)))
 
 (defn single-result-rows [{{:keys [page-no translations]} :results-view :as a} m
-                          ort-index phon-index ort-tip-indexes phon-tip-indexes res row-index]
+                          ort-index phon-index lemma-index
+                          ort-tip-indexes phon-tip-indexes res row-index]
   "Returns one or more rows representing a single search result."
   (let [line         (first (:text res))
         [s-id fields] (extract-fields line)
-        [ort-pre ort-match ort-post] (map (partial process-field ort-index ort-tip-indexes)
+        [ort-pre ort-match ort-post] (map (partial process-field ort-index phon-index
+                                                   lemma-index ort-tip-indexes)
                                           fields)
         [phon-pre phon-match phon-post] (when phon-index
-                                          (map (partial process-field phon-index phon-tip-indexes)
+                                          (map (partial process-field phon-index ort-index
+                                                        lemma-index phon-tip-indexes)
                                                fields))
         ort-text     (concat
                        (map #(nth % 2) ort-pre)
@@ -221,6 +228,6 @@
                 phon-tip-indexes  (into (filterv identity [ort-index lemma-index])
                                         remaining-indexes)]
             (doall (map (partial single-result-rows a m
-                                 ort-index phon-index ort-tip-indexes phon-tip-indexes)
+                                 ort-index phon-index lemma-index ort-tip-indexes phon-tip-indexes)
                         res
                         (range (count res)))))]]]])))
