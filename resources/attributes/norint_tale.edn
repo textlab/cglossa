@@ -1,0 +1,4 @@
+[{:displayed-attrs [[:lemma "Lemma"] [:pos "Part-of-speech"]
+                    [:gender "Gender"] [:num "Number"] [:type "Type"] [:defn "Definiteness"]
+                    [:temp "Tense"] [:pers "Person"] [:case "Case"] [:degr "Degree"]
+                    [:nlex "Non-lexical"] [:mood "Mood"] [:voice "Voice"] [:annot "Annotations"]]}]
