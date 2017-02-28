@@ -161,7 +161,9 @@
      "Click to select; shift-click to exclude"]
     [:div {:style {:position "absolute" :display "inline-block" :top 8 :right 15}}
      [b/button {:bs-style "danger"
-                :on-click #(swap! wrapped-term assoc :features nil)} "Clear"]
+                :on-click (fn [_]
+                            (swap! wrapped-term assoc :features nil)
+                            (swap! wrapped-term assoc :corpus-specific-attrs nil))} "Clear"]
      [b/button {:bs-style "success"
                 :on-click (fn [_] (reset! show-attr-popup? false) (search! a m))} "Search"]
      [b/button {:bs-style "info"
