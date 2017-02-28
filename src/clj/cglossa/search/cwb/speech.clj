@@ -201,14 +201,15 @@
         (fn [lines]
           (let [ls (map
                      (fn [line]
-                       ;; Get rid of spaces in multiword expressions. Replace two or
-                       ;; three spaces depending on how many underscores we find in the
-                       ;; lemma (provided we have lemmas - otherwise the regexes won't match
-                       ;; anyway).
+                       ;; Get rid of spaces in multiword expressions. Assuming that attribute
+                       ;; values never contain spaces, we can further assume that if we find
+                       ;; several spaces between slashes, only the first one separates tokens
+                       ;; and the remaining ones are actually inside the token and should be
+                       ;; replaced by underscores.
                        (-> line
-                           (str/replace #" ([^/\s]+) ([^/\s]+) ([^/\s]+)(/[^/\s]+_[^/\s]+_[^/\s]+/)"
+                           (str/replace #" ([^/<>\s]+) ([^/<>\s]+) ([^/<>\s]+)(/\S+/)"
                                         " $1_$2_$3$4")
-                           (str/replace #" ([^/\s]+) ([^/\s]+)(/[^/\s]+_[^/\s]+/)"
+                           (str/replace #" ([^/<>\s]+) ([^/<>\s]+)(/\S+/)"
                                         " $1_$2$3")))
                      lines)]
             {:text ls}))
