@@ -25,7 +25,11 @@
                                 tip-text (str/join " " (remove (fn [attr]
                                                                  (get #{"__UNDEF__"
                                                                         "\"__UNDEF__\""
-                                                                        "-"}
+                                                                        "-"
+                                                                        "_"
+                                                                        "\"_\""
+                                                                        "<i>_</i>"
+                                                                        }
                                                                       attr))
                                                                attrs*))]
                             ^{:key index}

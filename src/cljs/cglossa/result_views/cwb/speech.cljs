@@ -102,7 +102,8 @@
                             )
           tip-attrs (->> tip-field-indexes
                          (map #(nth attrs* %))
-                         (remove #(get #{"__UNDEF__" "\"__UNDEF__\"" "-"} %)))
+                         (remove #(get #{"__UNDEF__" "\"__UNDEF__\"" "-" "_" "\"_\"" "<i>_</i>"}
+                                       %)))
           tip-text  (str/join " " tip-attrs)]
       ^{:key index}
       [:span {:data-toggle "tooltip"
