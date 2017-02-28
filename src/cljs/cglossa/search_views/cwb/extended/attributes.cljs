@@ -141,76 +141,54 @@
                    (or title (str/capitalize attr-value))]))]))))
 
 (defn- additional-words-panel [corpus wrapped-query wrapped-term show-attr-popup?]
-  (r/with-let [text (r/atom "")]
-    (let [on-select (fn [event-key _]
-                      (let [[key val] (if (str/starts-with? event-key "!")
-                                        ;; Move the exclamation point from the key to the value
-                                        [(subs event-key 1) (str "!" @text)]
-                                        [event-key @text])]
-                        (swap! wrapped-term update-in [:extra-forms key]
-                               (fn [vals]
-                                 (if vals
-                                   (conj vals val)
-                                   (set [val]))))))
-          items     {:add-word      [b/menuitem {:key       :add-word
-                                                 :event-key "word"
-                                                 :on-select on-select}
-                                     "Add word form"]
-                     :add-lemma     [b/menuitem {:key       :add-lemma
-                                                 :event-key "lemma"
-                                                 :on-select on-select}
-                                     "Add lemma"]
-                     :add-phon      [b/menuitem {:key       :add-phon
-                                                 :event-key "phon"
-                                                 :on-select on-select}
-                                     "Add phonetic form"]
-                     :add-orig      [b/menuitem {:key       :add-orig
-                                                 :event-key "orig"
-                                                 :on-select on-select}
-                                     "Add original form"]
-                     :exclude-word  [b/menuitem {:key       :exclude-word
-                                                 :event-key "!word"
-                                                 :on-select on-select}
-                                     "Exclude word form"]
-                     :exclude-lemma [b/menuitem {:key       :exclude-lemma
-                                                 :event-key "!lemma"
-                                                 :on-select on-select}
-                                     "Exclude lemma"]
-                     :exclude-phon  [b/menuitem {:key       :exclude-phon
-                                                 :event-key "!phon"
-                                                 :on-select on-select}
-                                     "Exclude phonetic form"]
-                     :exclude-orig  [b/menuitem {:key       :exclude-orig
-                                                 :event-key "!orig"
-                                                 :on-select on-select}
-                                     "Exclude original form"]}
-          sel-items (cond
-                      (has-phonetic? @corpus)
-                      (select-keys items [:add-word :add-lemma :add-phon
-                                          :exclude-word :exclude-lemma :exclude-phon])
+  (r/with-let [attribute (r/atom "word")
+               text (r/atom "")]
+    (let [ok-clicked (fn [_]
+                       (.log js/console @attribute)
+                       (.log js/console @text)
+                       (let [[key val] (if (str/starts-with? @attribute "!")
+                                         ;; Move the exclamation point from the key to the value
+                                         [(subs @attribute 1) (str "!" @text)]
+                                         [@attribute @text])]
+                         (swap! wrapped-term update-in [:extra-forms key]
+                                (fn [vals]
+                                  (if vals
+                                    (conj vals val)
+                                    (set [val]))))))
+          items      {:spec-word     [:option {:value "word" :key "word"} "Specify word form"]
+                      :spec-lemma    [:option {:value "lemma" :key "lemma"} "Specify lemma"]
+                      :spec-phon     [:option {:value "phon" :key "phon"} "Specify phonetic form"]
+                      :spec-orig     [:option {:value "orig" :key "orig"} "Specify original form"]
+                      :exclude-word  [:option {:value "!word" :key "!word"} "Exclude word form"]
+                      :exclude-lemma [:option {:value "!lemma" :key "!lemma"} "Exclude lemma"]
+                      :exclude-phon  [:option {:value "!phon" :key "!phon"} "Exclude phonetic form"]
+                      :exclude-orig  [:option {:value "!orig" :key "!orig"} "Exclude original form"]}
+          sel-items  (cond
+                       (has-phonetic? @corpus)
+                       (select-keys items [:spec-word :spec-lemma :spec-phon
+                                           :exclude-word :exclude-lemma :exclude-phon])
 
-                      (has-original? @corpus)
-                      (select-keys items [:add-word :add-lemma :add-orig
-                                          :exclude-word :exclude-lemma :exclude-orig])
+                       (has-original? @corpus)
+                       (select-keys items [:spec-word :spec-lemma :spec-orig
+                                           :exclude-word :exclude-lemma :exclude-orig])
 
-                      :else
-                      (select-keys items [:add-word :add-lemma
-                                          :exclude-word :exclude-lemma]))]
+                       :else
+                       (select-keys items [:spec-word :spec-lemma :exclude-word :exclude-lemma]))]
       ^{:key (str "additional-words")}
       [b/panel
        [:div {:style {:display "table"}}
         [:div {:style {:display "table-cell"}}
-         [b/inputgroup {:bs-size "small" :style {:width 250}}
-          [b/formcontrol {:type      "text"
-                          :value     @text
-                          :on-change #(reset! text (.-target.value %))
-                          :on-click  #(.select (.-target %))}]
-          [b/dropdownbutton {:component-class js/ReactBootstrap.InputGroup.Button
-                             :bs-size         "small"
-                             :id              "additional-word"
-                             :title           "Add or exclude"
-                             :disabled        (str/blank? @text)}
-           (vals sel-items)]]]
+         [b/form {:inline true}
+          [b/formgroup {:bs-size "small"}
+           [b/formcontrol {:component-class "select"
+                           :on-change       #(reset! attribute (.-target.value %))}
+            (vals sel-items)]
+           [b/inputgroup {:bs-size "small" :style {:width 200 :margin-left 5}}
+            [b/formcontrol {:type      "text"
+                            :value     @text
+                            :on-change #(reset! text (.-target.value %))
+                            :on-click  #(.select (.-target %))}]
+            [b/inputgroup-button [b/button {:on-click ok-clicked} "OK"]]]]]]
         [:div {:style {:display "table-cell" :padding-left 10}}
          (for [[attr forms] (:extra-forms @wrapped-term)
                form forms
