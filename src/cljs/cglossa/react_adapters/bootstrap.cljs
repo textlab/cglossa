@@ -17,6 +17,7 @@
         "Dropdown.Menu"
         "Dropdown.Toggle"
         "DropdownButton"
+        "Form"
         "FormControl"
         "FormGroup"
         "Glyphicon"

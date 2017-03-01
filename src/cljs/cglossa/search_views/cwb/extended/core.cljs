@@ -9,7 +9,8 @@
             [cglossa.search-views.shared :refer [has-phonetic? has-original?]]
             [cglossa.search-views.cwb.extended.shared :refer [language-data language-menu-data
                                                               language-config
-                                                              language-corpus-specific-attrs]]
+                                                              language-corpus-specific-attrs
+                                                              tag-description-label]]
             [cglossa.search-views.cwb.extended.cqp :refer [set-pos-attr query->terms
                                                            terms->query]]
             [cglossa.search-views.cwb.extended.attributes :refer [menu-button]]))
@@ -172,40 +173,6 @@
        :tooltip     tooltip})))
 
 
-(defn- tag-description-label [value description tooltip path wrapped-term show-attr-popup?]
-  (let [excluded? (str/starts-with? description "!")]
-    [b/label {:bs-style    (if excluded? "danger" "primary")
-              :data-toggle (when tooltip "tooltip")
-              :title       tooltip
-              :style       {:float        "left"
-                            :margin-top   3
-                            :margin-right 3
-                            :cursor       "pointer"}
-              :on-click    #(reset! show-attr-popup? true)}
-     description [:span {:style    {:margin-left 6 :cursor "pointer"}
-                         :on-click (fn [e]
-                                     (.stopPropagation e)
-                                     ;; Need to manually remove the tooltip of our parent
-                                     ;; label; otherwise the tooltip may persist after
-                                     ;; the label has been removed (and then there is no way
-                                     ;; to remove it).
-                                     (-> (.-target e)
-                                         js/$
-                                         (.closest "[data-toggle]")
-                                         (.tooltip "destroy"))
-                                     (swap! wrapped-term update-in path (fn [o]
-                                                                          (if (map? o)
-                                                                            (dissoc o value)
-                                                                            (disj o value))))
-                                     ;; Remove the entire category (e.g. a specific POS) if it
-                                     ;; became empty after the update we just did
-                                     (when (empty? (get-in @wrapped-term path))
-                                       (let [path*     (butlast path)
-                                             attr-name (last path)]
-                                         (swap! wrapped-term update-in path* dissoc attr-name))))}
-                  "x"]]))
-
-
 (defn- taglist [{:keys [corpus]} wrapped-term lang-code show-attr-popup?]
   ;; Ideally, hovering? should be initialized to true if the mouse is already hovering over the
   ;; component when it is mounted, but that seems tricky. For the time being, we accept the
@@ -231,6 +198,14 @@
         (for [{:keys [pos description tooltip]} descriptions]
           ^{:key description}
           [tag-description-label pos description tooltip [:features]
+           wrapped-term show-attr-popup?])
+        (for [[attr forms] (:extra-forms @wrapped-term)
+              form forms
+              :let [description (if (= attr "word")
+                                  form
+                                  (str attr ":" form))]]
+          ^{:key (str attr "_" form)}
+          [tag-description-label form description "" [:extra-forms attr]
            wrapped-term show-attr-popup?])
         (map (fn [attr desc]
                (for [{:keys [pos description tooltip]} desc]

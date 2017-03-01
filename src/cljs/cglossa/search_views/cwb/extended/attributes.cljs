@@ -2,9 +2,11 @@
   (:require [reagent.core :as r]
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.shared :refer [search!]]
+            [cglossa.search-views.shared :refer [has-phonetic? has-original?]]
             [cglossa.search-views.cwb.extended.shared :refer [language-data language-menu-data
                                                               language-config
-                                                              language-corpus-specific-attrs]]
+                                                              language-corpus-specific-attrs
+                                                              tag-description-label]]
             [clojure.string :as str]))
 
 (defn- pos-panel [wrapped-term menu-data]
@@ -138,6 +140,65 @@
                                             dissoc attr*)))}
                    (or title (str/capitalize attr-value))]))]))))
 
+(defn- additional-words-panel [corpus wrapped-query wrapped-term show-attr-popup?]
+  (r/with-let [attribute (r/atom "word")
+               text (r/atom "")]
+    (let [ok-clicked (fn [_]
+                       (.log js/console @attribute)
+                       (.log js/console @text)
+                       (let [[key val] (if (str/starts-with? @attribute "!")
+                                         ;; Move the exclamation point from the key to the value
+                                         [(subs @attribute 1) (str "!" @text)]
+                                         [@attribute @text])]
+                         (swap! wrapped-term update-in [:extra-forms key]
+                                (fn [vals]
+                                  (if vals
+                                    (conj vals val)
+                                    (set [val]))))))
+          items      {:spec-word     [:option {:value "word" :key "word"} "Specify word form"]
+                      :spec-lemma    [:option {:value "lemma" :key "lemma"} "Specify lemma"]
+                      :spec-phon     [:option {:value "phon" :key "phon"} "Specify phonetic form"]
+                      :spec-orig     [:option {:value "orig" :key "orig"} "Specify original form"]
+                      :exclude-word  [:option {:value "!word" :key "!word"} "Exclude word form"]
+                      :exclude-lemma [:option {:value "!lemma" :key "!lemma"} "Exclude lemma"]
+                      :exclude-phon  [:option {:value "!phon" :key "!phon"} "Exclude phonetic form"]
+                      :exclude-orig  [:option {:value "!orig" :key "!orig"} "Exclude original form"]}
+          sel-items  (cond
+                       (has-phonetic? @corpus)
+                       (select-keys items [:spec-word :spec-lemma :spec-phon
+                                           :exclude-word :exclude-lemma :exclude-phon])
+
+                       (has-original? @corpus)
+                       (select-keys items [:spec-word :spec-lemma :spec-orig
+                                           :exclude-word :exclude-lemma :exclude-orig])
+
+                       :else
+                       (select-keys items [:spec-word :spec-lemma :exclude-word :exclude-lemma]))]
+      ^{:key (str "additional-words")}
+      [b/panel
+       [:div {:style {:display "table"}}
+        [:div {:style {:display "table-cell"}}
+         [b/form {:inline true}
+          [b/formgroup {:bs-size "small"}
+           [b/formcontrol {:component-class "select"
+                           :on-change       #(reset! attribute (.-target.value %))}
+            (vals sel-items)]
+           [b/inputgroup {:bs-size "small" :style {:width 200 :margin-left 5}}
+            [b/formcontrol {:type      "text"
+                            :value     @text
+                            :on-change #(reset! text (.-target.value %))
+                            :on-click  #(.select (.-target %))}]
+            [b/inputgroup-button [b/button {:on-click ok-clicked} "OK"]]]]]]
+        [:div {:style {:display "table-cell" :padding-left 10}}
+         (for [[attr forms] (:extra-forms @wrapped-term)
+               form forms
+               :let [description (if (= attr "word")
+                                   form
+                                   (str attr ":" form))]]
+           ^{:key (str attr "_" form)}
+           [tag-description-label form description "" [:extra-forms attr]
+            wrapped-term show-attr-popup?])]]])))
+
 (defn- attribute-modal [a {:keys [corpus] :as m}
                         wrapped-query wrapped-term menu-data show-attr-popup?]
   [b/modal {:class-name "attr-modal"
@@ -149,7 +210,8 @@
     (list
       (when menu-data (pos-panel wrapped-term menu-data))
       (when menu-data (morphsyn-panel wrapped-term menu-data))
-      (corpus-specific-panel corpus wrapped-query wrapped-term))]
+      (corpus-specific-panel corpus wrapped-query wrapped-term)
+      (additional-words-panel corpus wrapped-query wrapped-term show-attr-popup?))]
    [b/modalfooter {:style {:position "relative"}}
     [:div {:style {:height 30}}]
     [:div {:style {:position  "absolute"
