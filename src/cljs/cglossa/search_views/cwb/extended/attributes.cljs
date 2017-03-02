@@ -144,8 +144,6 @@
   (r/with-let [attribute (r/atom "word")
                text (r/atom "")]
     (let [ok-clicked (fn [_]
-                       (.log js/console @attribute)
-                       (.log js/console @text)
                        (let [[key val] (if (str/starts-with? @attribute "!")
                                          ;; Move the exclamation point from the key to the value
                                          [(subs @attribute 1) (str "!" @text)]
@@ -154,7 +152,8 @@
                                 (fn [vals]
                                   (if vals
                                     (conj vals val)
-                                    (set [val]))))))
+                                    (set [val]))))
+                         (reset! text "")))
           items      {:spec-word     [:option {:value "word" :key "word"} "Specify word form"]
                       :spec-lemma    [:option {:value "lemma" :key "lemma"} "Specify lemma"]
                       :spec-phon     [:option {:value "phon" :key "phon"} "Specify phonetic form"]
