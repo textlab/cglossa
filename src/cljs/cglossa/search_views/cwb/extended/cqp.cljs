@@ -119,9 +119,10 @@
                                   $))
                             (if-let [pos-exprs (re-seq #"\(pos\s*(!?=)\s*\"(.+?)\"(.*?)\)" (last part))]
                               (reduce (fn [t [_ pos-op pos rest]]
-                                        ;; Allow attribute values to contain Norwegian chars, -, <, > and /
+                                        ;; Allow attribute values to contain Norwegian chars,
+                                        ;; -, <, >, :, ., and /
                                         ;; in addition to alphanumeric characters
-                                        (let [others (re-seq #"(\w+)\s*(!?=)\s*\"([\w\|\-\<\>/æøå]+)\""
+                                        (let [others (re-seq #"(\w+)\s*(!?=)\s*\"([\w\|\-\<\>:\./æøå]+)\""
                                                              rest)]
                                           (assoc-in t [:features (if (= pos-op "!=") (str "!" pos) pos)]
                                                     (into {} (map (fn [[_ name val-op vals]]
