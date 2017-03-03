@@ -2,7 +2,7 @@
                     [:gender "Gender"] [:num "Number"] [:type "Type"] [:defn "Definiteness"]
                     [:temp "Tense"] [:pers "Person"] [:case "Case"] [:degr "Degree"]
                     [:descr "Description"] [:nlex "Non-lexical"] [:mood "Mood"] [:voice "Voice"]]}
- ["n" "noun" nil
+ ["noun" "noun" nil
   ["Number" [[:num "pl" "plural"]
              [:num "sg" "singular"]
              [:num "sg:pl" "singular/plural"]]
@@ -15,7 +15,7 @@
              [:gender "masc:neut" "masculine/neuter"]]
    "Case" [[:case "gen" "genitive"]]
    "Proper" [[:type "prop" "proper"]]]]
- ["v" "verb" nil
+ ["verb" "verb" nil
   ["Tense" [[:temp "pret" "past"]
             [:temp "pres" "present"]
             [:temp "pres:inf" "present/infinitive"]
