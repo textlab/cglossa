@@ -4,7 +4,7 @@
             [reagent.core :as r]
             [cljs-http.client :as http]
             [cljs.core.async :refer [<!]]
-            [cglossa.shared :refer [page-size geo-map-colors spinner-overlay search! top-toolbar
+            [cglossa.shared :refer [page-size geo-map-colors spinner-overlay search! all-displayed-attrs stats! top-toolbar
                                     selected-metadata-ids cleanup-result reset-results!
                                     queries->param]]
             [cglossa.search-views.shared :refer [search-inputs]]
@@ -141,7 +141,7 @@
    {:keys [corpus search] :as m}]
   (r/with-let
     [hide-popup #(reset! showing-download-popup? false)
-     attrs (cons [:word "Word form"] (->> @corpus :languages first :config :displayed-attrs))
+     attrs (all-displayed-attrs corpus)
      form-field-vals (r/atom {:format   "excel"
                               :headers? true
                               :attrs    (zipmap attrs (cons true (repeat false)))})
@@ -210,14 +210,32 @@
           [b/button {:bs-style "success" :on-click download :disabled @downloading?} "Download"]]]
         [b/button {:on-click hide-popup} "Close"]]])))
 
-#_(defn- statistics-button [{{freq-attr :freq-attr} :results-view} m]
-    (let [on-select #(reset! freq-attr (keyword %1))]
-      [b/dropdownbutton {:title "Statistics"}
-       [b/menuitem {:header true} "Frequencies"]
-       [b/menuitem {:event-key :word, :on-select on-select} "Word forms"]
-       [b/menuitem {:event-key :lemma, :on-select on-select} "Lemmas"]
-       [b/menuitem {:event-key :pos, :on-select on-select} "Parts-of-speech"]]))
-
+(defn- statistics-button [{{:keys [freq-attr freq-attr-sorted freq-res]} :results-view :as a}
+                          {:keys [corpus] :as m}]
+  (let [on-checkbox-changed (fn [event attr]
+                              (if (.-target.checked event)
+                                (swap! freq-attr conj attr)
+                                (swap! freq-attr disj attr)))
+        attr-checkbox       (fn [[id name]]
+                              ^{:key id}
+                              [:label.checkbox-inline {:style {:padding-left 18}}
+                               [:input {:name      id
+                                        :type      "checkbox"
+                                        :style     {:margin-left -18}
+                                        :on-change #(on-checkbox-changed % id)}] name])]
+    [:div
+      [:div.checkbox {:style {:display "table-cell" :padding-top 7}}
+         (map attr-checkbox (all-displayed-attrs corpus))]
+      [b/button {:on-click #(stats! a m)} "Update stats"]
+      [b/table {:bordered true}
+        [:tr
+          [:th "Count"]
+          (map (fn [attr] [:th (->> attr second name)]) @freq-attr-sorted)]
+        (when (seq? @freq-res)
+          (let [process-col (fn [col] [:td (str/replace col #"^__UNDEF__$" "")])
+                process-row (fn [row] [:tr (map process-col (str/split row #"[ \t]+"))])]
+            (map process-row (take 2500 @freq-res))))]
+        (when (string? @freq-res) @freq-res)]))
 
 (defn- context-size-selector [{{:keys [results
                                        context-size
@@ -510,10 +528,15 @@
              :active-key @view-type
              :on-select  #(reset! view-type %)}
      [b/tab {:title "Concordance" :event-key :concordance}
-      [results-info a]
-      [concordances a m]]
+       [results-info a]
+       [concordances a m]]
      (when (:geo-coords @corpus)
        [b/tab {:title "Map" :event-key :geo-map}
-        [results-info a]
-        [geo-map a m view-type]])
-     #_[b/tab {:title "Statistics" :event-key :statistics :disabled true}]]]])
+         [results-info a]
+         [geo-map a m view-type]])
+     [b/tab {:title "Statistics" :event-key :statistics :disabled false}
+       [results-info a]
+       [:div.row {:style {:margin-top 15}}
+         [:div.col-sm-12
+           [b/buttontoolbar {:style {:height 44}}
+             [statistics-button a m]]]]]]]])

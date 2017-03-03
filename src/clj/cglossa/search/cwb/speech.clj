@@ -49,7 +49,7 @@
   sql)
 
 (defmethod run-queries "cwb_speech" [corpus search-id queries metadata-ids _
-                                     page-size _ _ sort-key]
+                                     page-size _ _ sort-key cmd]
   (let [named-query (cwb-query-name corpus search-id)
         startpos    0
         endpos      (corpus-size corpus queries)
@@ -68,13 +68,12 @@
                      ;; Return the total number of search results...
                      "size Last"
                      ;; ...as well as two pages of actual results
-                     (str "cat Last 0 " (dec (* 2 page-size)))]
+                     (if cmd cmd (str "cat Last 0 " (dec (* 2 page-size))))]
         [hits cnt-str] (run-cqp-commands corpus (filter identity (flatten commands)) true)
         cnt         (Integer/parseInt cnt-str)]
     ;; Since we dont't currently do multi-cpu processing of speech corpora,
     ;; the sequence of counts only contains the count we get by the single cpu.
     [hits cnt [cnt]]))
-
 
 (defmethod get-results ["cwb_speech" nil] [corpus search queries start end _ _ sort-key attrs]
   (let [named-query (cwb-query-name corpus (:id search))

@@ -42,10 +42,10 @@
           endpos (where (<= :endpos endpos))))
 
 (defmethod run-queries :default [corpus search-id queries metadata-ids step
-                                 page-size last-count context-size sort-key]
+                                 page-size last-count context-size sort-key cmd]
   (let [step-index (dec step)
         num-ret    (* 2 page-size)      ; number of results to return initially
-        parts      (if-let [bounds (get-in corpus [:multicpu_bounds step-index])]
+        parts      (if-let [bounds (and (not cmd) (get-in corpus [:multicpu_bounds step-index]))]
                      ;; Multicpu bounds have been defined for this corpus. The startpos for the
                      ;; first cpu in the current step should be one above the last bounds value
                      ;; (i.e., the last endpos) in the previous step.
@@ -65,7 +65,7 @@
                                     bounds))
                      ;; No multicpu bounds defined; in that case, we search the whole
                      ;; corpus in one go in the first step and just return if step != 1.
-                     (when (= step 1)
+                     (when (or (= step 1) cmd)
                        [[0
                          (dec (get-in corpus [:extra-info :size
                                               (str/lower-case (cwb-corpus-name corpus queries))]))]]))
@@ -98,8 +98,9 @@
                                           ;; managed to fill those two pages, and if not we return
                                           ;; results in order to keep filling them.
                                           (when (or (nil? last-count)
-                                                    (< last-count num-ret))
-                                            (str "cat Last 0 " (dec num-ret)))]]
+                                                    (< last-count num-ret)
+                                                    cmd)
+                                            (if cmd cmd (str "cat Last 0 " (dec num-ret))))]]
                          (filter identity (flatten commands))))
                      parts)
         res-ch     (async/chan)

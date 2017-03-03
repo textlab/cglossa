@@ -1,7 +1,7 @@
 (ns cglossa.shared
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [clojure.string :as str]
-            [cljs.core.async :as async :refer [<!]]
+            [cljs.core.async :as async :refer [<! promise-chan]]
             [cljs-http.client :as http]
             react-spinner
             [cglossa.react-adapters.bootstrap :as b]
@@ -158,6 +158,65 @@
             queries)]
     (for [qu q]
       (update qu :query str/replace "\"__QUOTE__\"" "'\"'"))))
+
+(defn all-displayed-attrs [corpus]
+  (cons [:word "Word form"] (->> @corpus :languages first :config :displayed-attrs)))
+
+(defn stats!
+  ([a {:keys [corpus] :as m}]
+    ;; Do three search steps only if multicpu_bounds is defined for this corpus
+   (stats! a m (if (:multicpu-bounds @corpus) 3 1)))
+  ([{{queries :queries}                                                :search-view
+     {:keys [total context-size sort-key freq-attr freq-attr-sorted freq-res] {:keys [geo-data]} :geo-map} :results-view
+     searching?                                                        :searching?
+     show-results?                                                     :show-results?
+     :as                                                               a}
+    {:keys [corpus search] :as m}
+    nsteps]
+   (let [first-query (:query (first @queries))
+         freq-attr-sorted-val (filter #((first %) @freq-attr) (all-displayed-attrs corpus))]
+     (reset! freq-attr-sorted freq-attr-sorted-val)
+     (reset! freq-res "Please wait... (frequency counting may take some time)")
+     (when (and first-query
+                (not (str/blank? first-query))
+                (not= first-query "\"\""))
+       ;; Start by cancelling any already ongoing search.
+       (async/offer! cancel-search-ch true)
+       (let [q            (queries->param @corpus @queries)
+             url          "stats"
+             corpus-id    (:id @corpus)
+             sel-metadata (selected-metadata-ids search)
+             params       {:corpus-id    corpus-id
+                           :queries      q
+                           :metadata-ids sel-metadata
+                           :page-size    page-size
+                           :context-size @context-size
+                           :sort-key     @sort-key
+                           :freq-attr    (map first freq-attr-sorted-val)}]
+         (go
+           ;; Wait for the search to finish before fetching geo-map data
+           (<! (let [json-params (cond-> params
+                                         @total (assoc :last-count @total)
+                                         ;; If the currently specified queries differ from the ones on
+                                         ;; the search that was last received from the server, leave the
+                                         ;; ID blank in order to generate a new search; otherwise regard
+                                         ;; this request as a refinement of the latest search and hence
+                                         ;; keep its ID.
+                                         (= (:queries @search) (str @queries)) (assoc :search-id (:id @search)))
+                     ;; Fire off a search query
+                     results-ch  (http/post url {:json-params json-params})
+                     ;; Wait for either the results of the query or a message to cancel the query
+                     ;; because we have started another search
+                     [val ch] (async/alts! [cancel-search-ch results-ch] :priority true)]
+                    (when (= ch results-ch)
+                      (let [{:keys [status success] {resp-search     :search
+                                                     resp-results    :results
+                                                     resp-count      :count
+                                                     resp-cpu-counts :cpu-counts} :body} val]
+                        (when (= status 401)
+                          (reset! (:authenticated-user m) nil))
+                        (reset! freq-res resp-results)
+                        (promise-chan nil)))))))))))
 
 (defn search!
   ([a {:keys [corpus] :as m}]
