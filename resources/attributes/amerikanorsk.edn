@@ -89,4 +89,5 @@
  ["noun:adj" "noun/adjective" nil []]
  ["prep:subjunc" "preposition/subjunction" nil []]
  ["pron:det" "pronoun/determiner" nil []]
- ["verb:noun" "verb/noun" nil []]]
+ ["verb:noun" "verb/noun" nil []]
+ ["pause" "pause" nil []]]
