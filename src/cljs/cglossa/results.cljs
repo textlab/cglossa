@@ -228,13 +228,18 @@
          (map attr-checkbox (all-displayed-attrs corpus))]
       [b/button {:on-click #(stats! a m)} "Update stats"]
       [b/table {:bordered true}
+       [:tbody
         [:tr
-          [:th "Count"]
-          (map (fn [attr] [:th (->> attr second name)]) @freq-attr-sorted)]
+         [:th "Count"]
+         (map (fn [attr] ^{:key (first attr)} [:th (->> attr second name)]) @freq-attr-sorted)]
         (when (seq? @freq-res)
-          (let [process-col (fn [col] [:td (str/replace col #"^__UNDEF__$" "")])
-                process-row (fn [row] [:tr (map process-col (str/split row #"[ \t]+"))])]
-            (map process-row (take 2500 @freq-res))))]
+          (let [process-col (fn [index col]
+                              ^{:key index}
+                              [:td (str/replace col #"^__UNDEF__$" "")])
+                process-row (fn [index row]
+                              ^{:key index}
+                              [:tr (map-indexed process-col (str/split row #"[ \t]+"))])]
+            (map-indexed process-row (take 2500 @freq-res))))]]
         (when (string? @freq-res) @freq-res)]))
 
 (defn- context-size-selector [{{:keys [results
