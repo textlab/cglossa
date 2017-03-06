@@ -75,7 +75,7 @@
    {:type        "text"
     :bs-size     "small"
     :class-name  "interval"
-    :value       (get-in @wrapped-term [:interval index])
+    :value       (or (get-in @wrapped-term [:interval index]) "")
     :on-change   #(swap! wrapped-term
                          assoc-in [:interval index] (.-target.value %))
     :on-key-down #(on-key-down % a m)}])
