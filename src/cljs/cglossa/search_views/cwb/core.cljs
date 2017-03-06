@@ -100,8 +100,7 @@
                              (->headword-query $)
                              (->non-headword-query $))
                            ;; Simplify the query (".*" is used in the simple search instead of [])
-                           (str/replace $ #"\[\(?word=\"\.\*\"(?:\s+%c)?\)?\]" "[]")
-                           (str/replace $ #"^\s*\[\]\s*$" ""))
+                           (str/replace $ #"\[\(?word=\"\.\*\"(?:\s+%c)?\)?\]" "[]"))
           query*     (assoc query :query query-expr)]
       (swap! queries assoc index query*))))
 
@@ -143,7 +142,6 @@
   [b/button {:bs-size  "small"
              :style    {:margin-right 10
                         :margin-top   (if (= view extended) -15 0)}
-             :disabled (-> @queries first :query str/blank?)
              :on-click on-click}
    text])
 
@@ -155,13 +153,13 @@
            ;; The default language for the new row will be the first available
            ;; language that has not been used so far
            lang       (first (set/difference all-langs used-langs))]
-       (add-row queries query-ids {:query "" :lang lang})))])
+       (add-row queries query-ids {:query "[]" :lang lang})))])
 
 (defn- add-phrase-button [{{:keys [queries query-ids]} :search-view} {:keys [corpus]} view]
   [add-row-button queries view "Or..."
    (fn [_]
      (let [lang (-> @corpus :languages first :code)]
-       (add-row queries query-ids {:query "" :lang lang})))])
+       (add-row queries query-ids {:query "[]" :lang lang})))])
 
 (defn- show-texts-button [{:keys [show-texts?]} {:keys [corpus]} view]
   [b/button {:bs-size  "small"
@@ -179,7 +177,7 @@
       :bs-size         "small"
       :style           {:width 166}
       :default-value   selected-language
-      :on-change       #(reset! wrapped-query {:query "" :lang (keyword (.-target.value %))})}
+      :on-change       #(reset! wrapped-query {:query "[]" :lang (keyword (.-target.value %))})}
      (for [{:keys [code name]} languages
            :when (not (get previously-used-langs code))]
        [:option {:key code :value code} name])]))
