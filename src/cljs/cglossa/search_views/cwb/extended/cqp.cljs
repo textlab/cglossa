@@ -231,7 +231,10 @@
                                        original? "orig"
                                        :else "word")
                         form*        (if (empty? form)
-                                       (when (and (empty? features) (empty? corpus-specific-attrs)) ".*")
+                                       (when (and (empty? features)
+                                                  (empty? extra-forms)
+                                                  (empty? corpus-specific-attrs))
+                                         ".*")
                                        (cond-> form
                                                ;; Escape special characters using a regex from
                                                ;; https://developer.mozilla.org/en-US/docs/Web/JavaScript/
