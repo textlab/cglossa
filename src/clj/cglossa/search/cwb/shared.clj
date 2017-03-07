@@ -205,7 +205,10 @@
                        (map #(str % \;))
                        (str/join \newline))
         encoding  (:encoding corpus "UTF-8")
-        cqp       (sh/proc "cqp" "-c" :env {"LC_ALL" (str/replace encoding #"^latin" "en_US.ISO8859-")})
+        cqp       (sh/proc "cqp" "-c" :env {"LC_ALL" (-> encoding
+                                                         (str/replace-first #"^latin1$" "en_US.ISO8859-1")
+                                                         (str/replace-first #"^utf-8$" "en_US.UTF-8"))})
+
         ;; Run the CQP commands and capture the output
         out       (do
                     ;; We need to use our own implementation of feed-from-string here because
