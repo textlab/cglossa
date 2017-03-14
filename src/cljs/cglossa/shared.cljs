@@ -166,13 +166,14 @@
   ([a {:keys [corpus] :as m}]
     ;; Do three search steps only if multicpu_bounds is defined for this corpus
    (stats! a m (if (:multicpu-bounds @corpus) 3 1)))
-  ([{{queries :queries}                                              :search-view
+  ([{{queries :queries}                                        :search-view
      {:keys [total context-size
              sort-key freq-attr
-             freq-attr-sorted freq-res] {:keys [geo-data]} :geo-map} :results-view
-     searching?                                                      :searching?
-     show-results?                                                   :show-results?
-     :as                                                             a}
+             freq-attr-sorted freq-res
+             freq-case-sensitive] {:keys [geo-data]} :geo-map} :results-view
+     searching?                                                :searching?
+     show-results?                                             :show-results?
+     :as                                                       a}
     {:keys [corpus search] :as m}
     nsteps]
    (let [first-query          (:query (first @queries))
@@ -192,7 +193,8 @@
                            :page-size    page-size
                            :context-size @context-size
                            :sort-key     @sort-key
-                           :freq-attr    (map first freq-attr-sorted-val)}]
+                           :freq-attr    (map first freq-attr-sorted-val)
+                           :freq-case-sensitive @freq-case-sensitive}]
          (go
            ;; Wait for the search to finish before fetching geo-map data
            (<! (let [json-params (cond-> params

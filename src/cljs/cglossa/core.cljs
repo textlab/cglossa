@@ -49,6 +49,7 @@
                                           :freq-attr               (r/atom #{})
                                           :freq-attr-sorted        (r/atom nil)
                                           :freq-res                (r/atom nil)
+                                          :freq-case-sensitive     (r/atom false)
                                           :translations            (r/atom nil)
                                           :showing-download-popup? (r/atom false)
                                           :downloading?            (r/atom false)

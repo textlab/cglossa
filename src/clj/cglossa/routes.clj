@@ -153,9 +153,9 @@
                                      num-random-hits random-hits-seed) false))
 
   (POST "/:corpus-code/stats" [corpus-code search-id queries metadata-ids step page-size last-count
-                               context-size sort-key freq-attr]
+                               context-size sort-key freq-attr freq-case-sensitive]
     (transit-response (stats-corpus corpus-code search-id queries metadata-ids
-                                    step page-size last-count context-size sort-key freq-attr)
+                                    step page-size last-count context-size sort-key freq-attr freq-case-sensitive)
                       false))
 
   (GET "/:corpus-code/results" [corpus-code search-id start end cpu-counts context-size sort-key]

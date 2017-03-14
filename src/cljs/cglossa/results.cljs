@@ -215,6 +215,11 @@
                               (if (.-target.checked event)
                                 (swap! freq-attr conj attr)
                                 (swap! freq-attr disj attr)))
+        on-case-sensitive-checkbox-changed
+                            (fn [event]
+                              (if (.-target.checked event)
+                                (reset! freq-case-sensitive true)
+                                (reset! freq-case-sensitive false)))
         attr-checkbox       (fn [[id name]]
                               ^{:key id}
                               [:label.checkbox-inline {:style {:padding-left 0 :padding-right 18}}
@@ -223,9 +228,24 @@
                                         :style     {:margin-left -18}
                                         :on-change #(on-checkbox-changed % id)}] name])]
     [:div
-     [:div.checkbox {:style {:display "table-cell" :padding-top 7 :padding-left 10}}
-      (cons ^{:key "spacer"} [:div {:style {:display "inline-block" :width 10}}]
-            (map attr-checkbox (all-displayed-attrs corpus)))]
+      (let [attrs           (all-displayed-attrs corpus)
+            attr-set        #{:word :lemma :ordkl :pos :orig}
+            important-attrs (filter #(attr-set (first %)) attrs)
+            other-attrs     (remove #(attr-set (first %)) attrs)]
+        [:div
+          [:div.checkbox {:style {:display "table-cell" :padding-top 7 :padding-left 10}}
+           (cons ^{:key "spacer"} [:div {:style {:display "inline-block" :width 10}}]
+                 (map attr-checkbox important-attrs))]
+          [:div]
+          [:div.checkbox {:style {:display "table-cell" :padding-top 7 :padding-left 10}}
+           (cons ^{:key "spacer"} [:div {:style {:display "inline-block" :width 10}}]
+                 (map attr-checkbox other-attrs))]])
+      [:div.checkbox [:label.checkbox-inline {:style {:padding-left 18}}
+                               [:input {:name      "case-sensitive"
+                                        :type      "checkbox"
+                                        :style     {:margin-left -18}
+                                        :on-change #(on-case-sensitive-checkbox-changed %)}] "Case sensitive"]]
+
      [b/button {:style {:margin-top 5 :margin-bottom 10} :on-click #(stats! a m)} "Update stats"]
      [b/table {:bordered true}
       [:tbody

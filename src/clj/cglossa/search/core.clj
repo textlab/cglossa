@@ -18,13 +18,13 @@
   (fn [corpus _ _] (:search_engine corpus)))
 
 (defn stats-corpus [corpus-code search-id queries metadata-ids step page-size last-count
-                    context-size sort-key freq-attr]
+                    context-size sort-key freq-attr freq-case-sensitive]
   (let [corpus     (get-corpus {:code corpus-code})
         search-id* (or search-id (:generated_key (create-search! corpus-code queries)))
         [hits cnt cnts] (run-queries corpus search-id* queries metadata-ids 1
                                      1000000 nil context-size sort-key nil nil
                                      (str "tabulate Last "
-                                          (str/join ", " (map #(str "match .. matchend " (name %)) freq-attr))
+                                          (str/join ", " (map #(str "match .. matchend " (name %) (if freq-case-sensitive "" " %c")) freq-attr))
                                           " >\"|LC_ALL=C awk '{f[$0]++}END{for(k in f){print f[k], k}}' |LC_ALL=C sort -nr\""))
         s          (search-by-id search-id*)]
     {:search     s
