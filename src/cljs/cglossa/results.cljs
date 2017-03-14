@@ -256,7 +256,7 @@
        (when (seq? @freq-res)
          (let [process-col (fn [index col]
                              ^{:key index}
-                             [:td (str/replace col #"^__UNDEF__$" "")])
+                             [:td (str/replace col #"^__(UNDEF|undef)__$" "")])
                process-row (fn [index row]
                              ^{:key index}
                              [:tr (map-indexed process-col (str/split
