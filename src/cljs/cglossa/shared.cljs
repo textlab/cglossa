@@ -53,7 +53,7 @@
 
 (defn reset-queries! [{{:keys [queries]} :search-view} {:keys [corpus]}]
   (let [language-code (-> @corpus :languages first :code)]
-    (reset! queries [{:query "[]" :lang language-code}])))
+    (reset! queries [{:query "[]" :lang language-code :exclude? false}])))
 
 (def ^:private cancel-search-ch
   "Core.async channel used to cancel any already ongoing search when we start a new one."

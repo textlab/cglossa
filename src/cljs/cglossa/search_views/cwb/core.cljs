@@ -90,17 +90,30 @@
   the appropriate position in the vector of queries that constitutes the
   current search. If the query is nil, removes it from the vector instead."
   (if (nil? query)
-    (do
+    (when (> (count @queries) 1)
       (swap! query-ids #(into (subvec % 0 index)
                               (subvec % (inc index))))
       (swap! queries #(into (subvec % 0 index)
-                            (subvec % (inc index)))))
+                            (subvec % (inc index))))
+      (when (= (count @queries) 1)
+        ;; If removing the query left only a single remaining query, that one cannot be
+        ;; excluded from the search
+        (swap! queries update 0 (fn [q]
+                                  (-> q
+                                      (assoc :exclude? false)
+                                      (update :query str/replace #"^!" ""))))))
     (let [query-expr (as-> (:query query) $
                            (if (:headword-search query)
                              (->headword-query $)
                              (->non-headword-query $))
                            ;; Simplify the query (".*" is used in the simple search instead of [])
-                           (str/replace $ #"\[\(?word=\"\.\*\"(?:\s+%c)?\)?\]" "[]"))
+                           (str/replace $ #"\[\(?word=\"\.\*\"(?:\s+%c)?\)?\]" "[]")
+                           ;; If the entire query should be excluded, put a ! in front of it;
+                           ;; otherwise, remove the ! if present
+                           (cond
+                             (and (:exclude? query) (not (str/starts-with? $ "!"))) (str "!" $)
+                             (and (not (:exclude? query)) (str/starts-with? $ "!")) (subs $ 1)
+                             :else $))
           query*     (assoc query :query query-expr)]
       (swap! queries assoc index query*))))
 
@@ -153,13 +166,13 @@
            ;; The default language for the new row will be the first available
            ;; language that has not been used so far
            lang       (first (set/difference all-langs used-langs))]
-       (add-row queries query-ids {:query "[]" :lang lang})))])
+       (add-row queries query-ids {:query "[]" :lang lang :exclude? false})))])
 
 (defn- add-phrase-button [{{:keys [queries query-ids]} :search-view} {:keys [corpus]} view]
   [add-row-button queries view "Or..."
    (fn [_]
      (let [lang (-> @corpus :languages first :code)]
-       (add-row queries query-ids {:query "[]" :lang lang})))])
+       (add-row queries query-ids {:query "[]" :lang lang :exclude? false})))])
 
 (defn- show-texts-button [{:keys [show-texts?]} {:keys [corpus]} view]
   [b/button {:bs-size  "small"
@@ -177,7 +190,9 @@
       :bs-size         "small"
       :style           {:width 166}
       :default-value   selected-language
-      :on-change       #(reset! wrapped-query {:query "[]" :lang (keyword (.-target.value %))})}
+      :on-change       #(reset! wrapped-query {:query    "[]"
+                                               :lang     (keyword (.-target.value %))
+                                               :exclude? false})}
      (for [{:keys [code name]} languages
            :when (not (get previously-used-langs code))]
        [:option {:key code :value code} name])]))
@@ -255,6 +270,7 @@
                             (str/replace #"\"([^\s=]+)\"" "$1")
                             (str/replace #"\s*\[\]\s*" " .* ")
                             (str/replace #"^\s*\.\*\s*$" "")
+                            (str/replace #"^!" "")
                             (str/replace "__QUOTE__" "\""))
         on-text-changed (fn [event wrapped-query phonetic? original?]
                           (let [value (.-target.value event)
@@ -278,8 +294,12 @@
                                                (str/replace "word=\"\\\"\"" "word=\"__QUOTE__\"")
                                                (str/replace "^\\\"$" "[word=\"__QUOTE__\"]"))
                                 query      (->non-headword-query value)
-                                hw-search? (= (->headword-query query) value)]
-                            (swap! wrapped-query assoc :query query :headword-search hw-search?)))]
+                                hw-search? (= (->headword-query query) value)
+                                exclude?   (str/starts-with? query "!")]
+                            (swap! wrapped-query assoc
+                                   :query query
+                                   :headword-search hw-search?
+                                   :exclude? exclude?)))]
     [single-input-view a m "textarea" wrapped-query displayed-query show-remove-row-btn?
      false on-text-changed]))
 
@@ -363,7 +383,16 @@
                        [:div.row
                         [:div.col-sm-12
                          (when multilingual?
-                           [language-select wrapped-query languages queries])
+                           [b/form {:inline true}
+                            [language-select wrapped-query languages queries]
+                            (when (and (> index 0) (not= @view-type :cqp))
+                              [b/checkbox
+                               {:checked   (:exclude? @wrapped-query)
+                                :inline    true
+                                :style     {:margin-left 20}
+                                :on-change #(swap! wrapped-query
+                                                   assoc :exclude? (.-target.checked %))}
+                               "Exclude this phrase"])])
                          [view a m wrapped-query show-remove-row-btn?]]]))))
           (if multilingual?
             [add-language-button a m view]
