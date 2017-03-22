@@ -10,6 +10,12 @@
 (defn- check-attr [corpus attr]
   (->> corpus :languages first :config :displayed-attrs (map first) (some #{attr})))
 
+(defn has-lemma? [corpus]
+  "Determines whether a corpus contains lemmas by checking if its first language includes 'lemma'
+  among its displayed attributes. This assumes that, in a multilingual corpus, either all languages
+  are tagged (possibly using dummy lemmas and tags) or they are all untagged."
+  (check-attr corpus :lemma))
+
 (defn has-phonetic? [corpus]
   "Determines whether a corpus contains phonetic transcriptions by checking if
    its first (and probably only) language includes 'phon' among its displayed
