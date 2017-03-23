@@ -16,10 +16,10 @@
                           results loading? mxpages cur-page page]
   (reset! loading? true)
   (go (let [response (<! (http/post "texts" {:json-params
-                                              {:corpus-id         (:id @corpus)
-                                               :selected-metadata (:metadata @search)
-                                               :ncats             (count @metadata-categories)
-                                               :page              page}}))
+                                             {:corpus-id         (:id @corpus)
+                                              :selected-metadata (:metadata @search)
+                                              :ncats             (count @metadata-categories)
+                                              :page              page}}))
             {:keys [rows max-pages] :as body} (:body response)]
         (if (http/unexceptional-status? (:status response))
           (let [rows* (for [row rows]
@@ -62,8 +62,8 @@
        (fn [a {:keys [corpus metadata-categories]}]
          (let [fetched-pages (atom #{})]
            [:div.show-texts-popup
-            [b/modal {:show    true
-                      :on-hide hide
+            [b/modal {:show              true
+                      :on-hide           hide
                       :dialog-class-name "show-texts-popup"}
              [b/modalheader {:close-button true}
               [b/modaltitle (if (= (:search-engine @corpus) "cwb_speech")

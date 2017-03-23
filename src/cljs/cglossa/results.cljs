@@ -76,12 +76,12 @@
               first-result (* page-size (dec (first page-nos)))
               last-result  (dec (* page-size (last page-nos)))
               results-ch   (http/get "results" {:query-params {:corpus-id    (:id @corpus)
-                                                                :search-id    (:id @search)
-                                                                :start        first-result
-                                                                :end          last-result
-                                                                :cpu-counts   (str (vec @cpu-counts))
-                                                                :context-size @context-size
-                                                                :sort-key     (name @sort-key)}})
+                                                               :search-id    (:id @search)
+                                                               :start        first-result
+                                                               :end          last-result
+                                                               :cpu-counts   (str (vec @cpu-counts))
+                                                               :context-size @context-size
+                                                               :sort-key     (name @sort-key)}})
               ;; Park until results are available on the core.async channel
               {:keys [status success] req-result :body} (<! results-ch)]
           (when (= status 401)
@@ -160,7 +160,7 @@
                                                                                (when v (first k)))
                                                                              attrs)
                                                              :context-size @context-size}})
-                        results          (<! results-ch)
+                        results    (<! results-ch)
                         {file-url :body} results]
                     (reset! downloading? false)
                     (reset! showing-download-popup? false)
@@ -224,23 +224,23 @@
                                         :style     {:margin-left -18}
                                         :on-change #(on-checkbox-changed % id)}] name])]
     [:div
-      [:div.checkbox {:style {:display "table-cell" :padding-top 7}}
-         (map attr-checkbox (all-displayed-attrs corpus))]
-      [b/button {:on-click #(stats! a m)} "Update stats"]
-      [b/table {:bordered true}
-       [:tbody
-        [:tr
-         [:th "Count"]
-         (map (fn [attr] ^{:key (first attr)} [:th (->> attr second name)]) @freq-attr-sorted)]
-        (when (seq? @freq-res)
-          (let [process-col (fn [index col]
-                              ^{:key index}
-                              [:td (str/replace col #"^__UNDEF__$" "")])
-                process-row (fn [index row]
-                              ^{:key index}
-                              [:tr (map-indexed process-col (str/split (str/replace-first row #"^(\d+)\s+" "$1\t") #"\t"))])]
-            (map-indexed process-row (take 2500 @freq-res))))]]
-        (when (string? @freq-res) [spinner-overlay {:spin? true :width 45 :height 45 :top 5} [:div @freq-res]])]))
+     [:div.checkbox {:style {:display "table-cell" :padding-top 7}}
+      (map attr-checkbox (all-displayed-attrs corpus))]
+     [b/button {:on-click #(stats! a m)} "Update stats"]
+     [b/table {:bordered true}
+      [:tbody
+       [:tr
+        [:th "Count"]
+        (map (fn [attr] ^{:key (first attr)} [:th (->> attr second name)]) @freq-attr-sorted)]
+       (when (seq? @freq-res)
+         (let [process-col (fn [index col]
+                             ^{:key index}
+                             [:td (str/replace col #"^__UNDEF__$" "")])
+               process-row (fn [index row]
+                             ^{:key index}
+                             [:tr (map-indexed process-col (str/split (str/replace-first row #"^(\d+)\s+" "$1\t") #"\t"))])]
+           (map-indexed process-row (take 2500 @freq-res))))]]
+     (when (string? @freq-res) [spinner-overlay {:spin? true :width 45 :height 45 :top 5} [:div @freq-res]])]))
 
 (defn- context-size-selector [{{:keys [results
                                        context-size
@@ -533,15 +533,15 @@
              :active-key @view-type
              :on-select  #(reset! view-type %)}
      [b/tab {:title "Concordance" :event-key :concordance}
-       [results-info a]
-       [concordances a m]]
+      [results-info a]
+      [concordances a m]]
      (when (:geo-coords @corpus)
        [b/tab {:title "Map" :event-key :geo-map}
-         [results-info a]
-         [geo-map a m view-type]])
+        [results-info a]
+        [geo-map a m view-type]])
      [b/tab {:title "Statistics" :event-key :statistics :disabled false}
-       [results-info a]
-       [:div.row {:style {:margin-top 15}}
-         [:div.col-sm-12
-           [b/buttontoolbar {:style {:height 44}}
-             [statistics-button a m]]]]]]]])
+      [results-info a]
+      [:div.row {:style {:margin-top 15}}
+       [:div.col-sm-12
+        [b/buttontoolbar {:style {:height 44}}
+         [statistics-button a m]]]]]]]])
