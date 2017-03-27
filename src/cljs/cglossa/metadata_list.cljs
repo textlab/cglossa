@@ -117,6 +117,7 @@
       [text-selection a m]]
      (doall
        (for [cat @metadata-categories
+             :when (not (str/ends-with? (:code cat) "_hd"))
              :let [cat-id   (:id cat)
                    selected (r/cursor search [:metadata cat-id])
                    ;; Show the select2 component for this category if the user has
