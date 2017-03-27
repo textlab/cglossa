@@ -2,7 +2,7 @@
   (:require [reagent.core :as r]
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.shared :refer [search!]]
-            [cglossa.search-views.shared :refer [has-phonetic? has-original?]]
+            [cglossa.search-views.shared :refer [has-lemma? has-phonetic? has-original?]]
             [cglossa.search-views.cwb.extended.shared :refer [language-data language-menu-data
                                                               language-config
                                                               language-corpus-specific-attrs
@@ -172,7 +172,10 @@
                                            :exclude-word :exclude-lemma :exclude-orig])
 
                        :else
-                       (select-keys items [:spec-word :spec-lemma :exclude-word :exclude-lemma]))]
+                       (select-keys items [:spec-word :spec-lemma :exclude-word :exclude-lemma]))
+          sel-items* (if-not (has-lemma? @corpus)
+                       (dissoc sel-items :spec-lemma :exclude-lemma)
+                       sel-items)]
       ^{:key (str "additional-words")}
       [b/panel
        [:div {:style {:display "table"}}
@@ -181,7 +184,7 @@
           [b/formgroup {:bs-size "small"}
            [b/formcontrol {:component-class "select"
                            :on-change       #(reset! attribute (.-target.value %))}
-            (vals sel-items)]
+            (vals sel-items*)]
            [b/inputgroup {:bs-size "small" :style {:width 200 :margin-left 5}}
             [b/formcontrol {:type      "text"
                             :value     @text
