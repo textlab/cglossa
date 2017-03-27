@@ -387,6 +387,19 @@
 
 (defmethod result-links :default [_ _ _ _] nil)
 
+(defmulti show-texts-extra-col-name
+  "Multimethod for the name of an extra corpus-specific column to be displayed
+  in the show-texts popup."
+  (fn [corpus] (:code @corpus)))
+
+(defmulti show-texts-extra-col-comp
+  "Multimethod for the data in an extra corpus-specific column to be displayed
+  in the show-texts popup, given a particular page of corpus texts."
+  (fn [corpus] (:code @corpus)))
+
+(defmethod show-texts-extra-col-name :default [_] nil)
+(defmethod show-texts-extra-col-comp :default [_] nil)
+
 (defmulti concordance-table
   "Multimethod that accepts two arguments - an app state map and a
   model/domain state map - and dispatches to the correct method based

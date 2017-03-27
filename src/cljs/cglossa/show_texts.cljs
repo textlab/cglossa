@@ -5,7 +5,8 @@
             [cljs-http.client :as http]
             griddle
             [cglossa.react-adapters.bootstrap :as b]
-            [cglossa.metadata-list :refer [text-selection]])
+            [cglossa.metadata-list :refer [text-selection]]
+            [cglossa.results :refer [show-texts-extra-col-name show-texts-extra-col-comp]])
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:import [goog.dom ViewportSizeMonitor]))
 
@@ -22,10 +23,15 @@
                                               :page              page}}))
             {:keys [rows max-pages] :as body} (:body response)]
         (if (http/unexceptional-status? (:status response))
-          (let [rows* (for [row rows]
-                        (into {"__dummy" " "} (map (fn [cat]
-                                                     [(category-name cat) (get row (:id cat))])
-                                                   @metadata-categories)))]
+          (let [extra-col-name (:name (show-texts-extra-col-name corpus))
+                rows*          (for [row rows]
+                                 (let [standard-cols       (map (fn [cat]
+                                                                  [(category-name cat)
+                                                                   (get row (:id cat))])
+                                                                @metadata-categories)
+                                       corpus-specific-col {extra-col-name
+                                                            (show-texts-extra-col-comp corpus row)}]
+                                   (into {"__dummy" " "} (cons corpus-specific-col standard-cols))))]
             (when (= (:status response) 401)
               (reset! (:authenticated-user m) nil))
             (reset! loading? false)
@@ -60,7 +66,8 @@
 
        :reagent-render
        (fn [a {:keys [corpus metadata-categories]}]
-         (let [fetched-pages (atom #{})]
+         (let [fetched-pages     (atom #{})
+               extra-column-name (show-texts-extra-col-name corpus)]
            [:div.show-texts-popup
             [b/modal {:show              true
                       :on-hide           hide
@@ -74,14 +81,22 @@
               [:> js/Griddle
                {:use-griddle-styles         false
                 :columns                    (->> @metadata-categories
+                                                 (cons extra-column-name)
+                                                 (filter #(:code %))
                                                  (remove #(str/starts-with? (name (:code %)) "hd_"))
                                                  (mapv category-name)
                                                  ;; Add dummy column to fill remaining space
                                                  (#(conj % "__dummy")))
-                :column-metadata            (conj (for [cat @metadata-categories]
-                                                    {:columnName   (category-name cat)
-                                                     :cssClassName (str "column-" (:code cat))})
-                                                  {:columnName "__dummy" :displayName " "})
+                :column-metadata            (concat (for [cat @metadata-categories]
+                                                      {:columnName   (category-name cat)
+                                                       :cssClassName (str "column-" (:code cat))})
+                                                    [{:columnName  "__dummy"
+                                                      :displayName " "}
+                                                     {:columnName      (:name extra-column-name)
+                                                      :cssClassName    "extra-text-column"
+                                                      :customComponent (r/as-element
+                                                                         (show-texts-extra-col-comp
+                                                                           corpus))}])
                 :use-external               true
                 :external-set-page          (fn [page]
                                               (when-not (contains? @fetched-pages page)
