@@ -1,6 +1,8 @@
 (ns cglossa.corpora.norint-tekst
-  (:require [cglossa.react-adapters.bootstrap :as b]
-            [cglossa.results :refer [result-links]]))
+  (:require [reagent.core :as r]
+            [cglossa.react-adapters.bootstrap :as b]
+            [cglossa.results :refer [result-links show-texts-extra-col-name
+                                     show-texts-extra-col-comp]]))
 
 (defmethod result-links "norint_tekst" [_ _ result _]
   (let [text-id  (re-find #"^\d+" (:s-id result))
@@ -23,3 +25,16 @@
                               text-id "/" text-id ".pdf")
                 :target  "_blank"}
       [b/glyphicon {:glyph "file"}]]]))
+
+(defmethod show-texts-extra-col-name "norint_tekst" [_]
+  {:code "extra-col" :name "Besvarelse"})
+
+(defmethod show-texts-extra-col-comp "norint_tekst" [_]
+  (r/create-class
+    {:render
+     (fn [this]
+       (let [text-id (get (js->clj (:rowData (r/props this))) "Informantnummer")]
+         [:a {:href   (str "http://tekstlab.uio.no/norint_tekst/"
+                           text-id "/" text-id ".pdf")
+              :target "_blank"}
+          [b/glyphicon {:glyph "file"}]]))}))
