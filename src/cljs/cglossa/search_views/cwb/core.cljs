@@ -191,7 +191,7 @@
       :style           {:width 166}
       :default-value   selected-language
       :on-change       #(reset! wrapped-query {:query    "[]"
-                                               :lang     (keyword (.-target.value %))
+                                               :lang     (.-target.value %)
                                                :exclude? false})}
      (for [{:keys [code name]} languages
            :when (not (get previously-used-langs code))]
