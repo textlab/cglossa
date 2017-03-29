@@ -229,10 +229,12 @@
      :as                                                               a}
     {:keys [corpus search] :as m}
     nsteps]
-   (let [first-query (:query (first @queries))]
+   (let [first-query (-> @queries first :query str/trim)]
      (when (and first-query
                 (not (str/blank? first-query))
-                (not= first-query "\"\""))
+                (not= first-query "\"\"")
+                ;; Check for one or more empty terms possibly separated by intervals
+                (not (re-matches #"\[\](\s*\[\](\{\d*,\d*\})?)*" first-query)))
        ;; Start by cancelling any already ongoing search.
        (async/offer! cancel-search-ch true)
        (let [q            (queries->param @corpus @queries)
