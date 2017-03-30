@@ -4,7 +4,8 @@
             [me.raynes.fs :as fs]
             [korma.core :as korma :refer [defentity table entity-fields select select* modifier
                                           fields where]]
-            [cglossa.db.corpus :refer [get-corpus]]
+            [cglossa.shared :refer [corpus-connections]]
+            [cglossa.db.corpus :refer [extra-info get-corpus]]
             [cglossa.search.core :refer [run-queries get-results transform-results
                                          geo-distr-queries]]
             [cglossa.search.cwb.shared :refer [cwb-query-name cwb-corpus-name run-cqp-commands
@@ -12,9 +13,29 @@
                                                position-fields-for-outfile
                                                order-position-fields displayed-attrs-command
                                                aligned-languages-command sort-command
-                                               text join-metadata where-metadata]]))
+                                               text join-metadata where-metadata]]
+            [korma.db :as kdb]))
 
 (defentity media-file (table :media_file) (entity-fields :basename))
+
+(defn- accumulate-bounds [bounds]
+  (->> bounds
+       (map :bounds)
+       (mapcat #(str/split % #":"))
+       (map #(str/split % #"-"))
+       (map (fn [b]
+              [(Integer/parseInt (first b)) (Integer/parseInt (second b))]))
+       (map #(inc (- (second %) (first %))))
+       (reduce +)))
+
+(defmethod extra-info "cwb_speech" [corpus]
+  ;; Speech corpora may include material (typically speech by interviewers) that should
+  ;; not be included in the corpus size, so instead of asking CWB for the size, we need
+  ;; to use the accumulated token counts given by the bounds for all speakers (which
+  ;; does not include the interviewers if they should be excluded from search).
+  (kdb/with-db (get @corpus-connections (:id corpus))
+    (let [bounds (select text (fields :bounds))]
+      {:size {(:code corpus) (accumulate-bounds bounds)}})))
 
 (defn- corpus-size [corpus queries]
   (get-in corpus [:extra-info :size (str/lower-case (cwb-corpus-name corpus queries))]))
@@ -27,14 +48,7 @@
                      (join-metadata metadata-ids)
                      (where-metadata metadata-ids)
                      (select))]
-      (->> bounds
-           (map :bounds)
-           (mapcat #(str/split % #":"))
-           (map #(str/split % #"-"))
-           (map (fn [b]
-                  [(Integer/parseInt (first b)) (Integer/parseInt (second b))]))
-           (map #(inc (- (second %) (first %))))
-           (reduce +)))
+      (accumulate-bounds bounds))
     ;; No metadata selected, so just return the corpus size
     (let [sizes       (get-in corpus [:extra-info :size])
           corpus-name (str/lower-case (cwb-corpus-name corpus queries))]
