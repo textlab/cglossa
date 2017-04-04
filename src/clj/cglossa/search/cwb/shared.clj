@@ -106,6 +106,23 @@
   relationship between categories."
   (fn [corpus _ _] (:search_engine corpus)))
 
+(defmulti print-empty-metadata-selection-positions
+  "Prints to file the corpus positions to search when no metadata is selected."
+  (fn [corpus _ _ _ _] (:search_engine corpus)))
+
+;; The default implementation searches in the entire corpus by just printing the start and end
+;; positions specified in the request, making sure that the end position does not exceed the size
+;; of the corpus
+(defmethod print-empty-metadata-selection-positions :default
+  [corpus queries startpos endpos positions-filename]
+  (let [sizes       (get-in corpus [:extra-info :size])
+        corpus-name (str/lower-case (cwb-corpus-name corpus queries))
+        corpus-size (get sizes corpus-name)
+        endpos*     (if endpos
+                      (min endpos (dec corpus-size))
+                      (dec corpus-size))]
+    (spit positions-filename (str startpos \tab endpos* \newline))))
+
 (defn- print-positions-matching-metadata
   "Prints to file the start and stop positions of all corpus texts that are
   associated with the metadata values that have the given database ids, with an
@@ -113,14 +130,14 @@
   relationship between categories. Also restricts the positions to the start
   and end positions provided in the request."
   [corpus queries metadata-ids startpos endpos positions-filename]
+  (fs/delete positions-filename)
   ;; It seems impossible to prevent Korma (or rather the underlying Java library)
   ;; from throwing an exception when we do a SELECT that does not return any results
   ;; because they are written to file instead using INTO OUTFILE. However, the
   ;; results are written to the file just fine despite the exception (which happens
   ;; after the query has run), so we can just catch and ignore the exception.
-  (fs/delete positions-filename)
-  (if (seq metadata-ids)
-    (try
+  (try
+    (if (seq metadata-ids)
       (-> (select* [text :t])
           (modifier "DISTINCT")
           (fields (position-fields-for-outfile corpus positions-filename))
@@ -130,22 +147,15 @@
           (where-limits corpus startpos endpos)
           (order-position-fields corpus)
           (select))
-      ;; TODO: Use NullPointerException instead of SQLException when we
-      ;; can upgrade the MySQL connector to version 6 (requires Java 1.8
-      ;; or more recent MySQL than we have on our server (5.1)?)
-      ;(catch NullPointerException e
-      (catch SQLException e
-        (when-not (.contains (str e) "ResultSet is from UPDATE")
-          (println e))))
-    ;; No metadata selected, so just print the start and end positions specified in the
-    ;; request, making sure that the end position does not exceed the size of the corpus.
-    (let [sizes       (get-in corpus [:extra-info :size])
-          corpus-name (str/lower-case (cwb-corpus-name corpus queries))
-          corpus-size (get sizes corpus-name)
-          endpos*     (if endpos
-                        (min endpos (dec corpus-size))
-                        (dec corpus-size))]
-      (spit positions-filename (str startpos \tab endpos* \newline)))))
+      ;; No metadata selected
+      (print-empty-metadata-selection-positions corpus queries startpos endpos positions-filename))
+    ;; TODO: Use NullPointerException instead of SQLException when we
+    ;; can upgrade the MySQL connector to version 6 (requires Java 1.8
+    ;; or more recent MySQL than we have on our server (5.1)?)
+    ;(catch NullPointerException e
+    (catch SQLException e
+      (when-not (.contains (str e) "ResultSet is from UPDATE")
+        (println e)))))
 
 (defn displayed-attrs-command [corpus queries attrs]
   ;; NOTE: CWB doesn't seem to allow different attributes to be specified for each aligned

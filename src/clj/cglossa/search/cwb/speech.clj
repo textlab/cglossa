@@ -10,6 +10,7 @@
                                          geo-distr-queries]]
             [cglossa.search.cwb.shared :refer [cwb-query-name cwb-corpus-name run-cqp-commands
                                                construct-query-commands token-count-matching-metadata
+                                               print-empty-metadata-selection-positions
                                                position-fields-for-outfile
                                                order-position-fields displayed-attrs-command
                                                aligned-languages-command sort-command
@@ -53,6 +54,14 @@
     (let [sizes       (get-in corpus [:extra-info :size])
           corpus-name (str/lower-case (cwb-corpus-name corpus queries))]
       (get sizes corpus-name))))
+
+(defmethod print-empty-metadata-selection-positions "cwb_speech"
+  [corpus _ _ _ positions-filename]
+  ;; Speech corpora may include material (typically speech by interviewers) that should
+  ;; not be searchable, so when no metadata is selected, we search within the bounds for all
+  ;; speakers (which does not include the interviewers if they should be excluded from search).
+  (let [bounds (select text
+                       (fields (position-fields-for-outfile corpus positions-filename)))]))
 
 (defmethod position-fields-for-outfile "cwb_speech" [_ positions-filename]
   (korma/raw (str "replace(replace(`bounds`, '-', '\t'), ':', '\n') INTO OUTFILE '"
