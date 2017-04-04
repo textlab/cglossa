@@ -218,15 +218,16 @@
                                 (swap! freq-attr disj attr)))
         attr-checkbox       (fn [[id name]]
                               ^{:key id}
-                              [:label.checkbox-inline {:style {:padding-left 18}}
+                              [:label.checkbox-inline {:style {:padding-left 0 :padding-right 18}}
                                [:input {:name      id
                                         :type      "checkbox"
                                         :style     {:margin-left -18}
                                         :on-change #(on-checkbox-changed % id)}] name])]
     [:div
-     [:div.checkbox {:style {:display "table-cell" :padding-top 7}}
-      (map attr-checkbox (all-displayed-attrs corpus))]
-     [b/button {:on-click #(stats! a m)} "Update stats"]
+     [:div.checkbox {:style {:display "table-cell" :padding-top 7 :padding-left 10}}
+      (cons ^{:key "spacer"} [:div {:style {:display "inline-block" :width 10}}]
+            (map attr-checkbox (all-displayed-attrs corpus)))]
+     [b/button {:style {:margin-top 5 :margin-bottom 10} :on-click #(stats! a m)} "Update stats"]
      [b/table {:bordered true}
       [:tbody
        [:tr
