@@ -240,9 +240,12 @@
                              [:td (str/replace col #"^__UNDEF__$" "")])
                process-row (fn [index row]
                              ^{:key index}
-                             [:tr (map-indexed process-col (str/split (str/replace-first row #"^(\d+)\s+" "$1\t") #"\t"))])]
+                             [:tr (map-indexed process-col (str/split
+                                                             (str/replace-first
+                                                               row #"^(\d+)\s+" "$1\t") #"\t"))])]
            (map-indexed process-row (take 2500 @freq-res))))]]
-     (when (string? @freq-res) [spinner-overlay {:spin? true :width 45 :height 45 :top 5} [:div @freq-res]])]))
+     (when (string? @freq-res)
+       [spinner-overlay {:spin? true :width 45 :height 45 :top 5} [:div @freq-res]])]))
 
 (defn- context-size-selector [{{:keys [results
                                        context-size
