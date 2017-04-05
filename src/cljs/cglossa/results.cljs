@@ -232,7 +232,8 @@
       [:tbody
        [:tr
         [:th "Count"]
-        (map (fn [attr] ^{:key (first attr)} [:th (->> attr second name)]) @freq-attr-sorted)]
+        (doall
+          (map (fn [attr] ^{:key (first attr)} [:th (->> attr second name)]) @freq-attr-sorted))]
        (when (seq? @freq-res)
          (let [process-col (fn [index col]
                              ^{:key index}
