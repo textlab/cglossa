@@ -183,7 +183,7 @@
        ;; Start by cancelling any already ongoing search.
        (async/offer! cancel-search-ch true)
        (let [q            (queries->param @corpus @queries)
-             url          "stats"
+             url          (str (:code @corpus) "/stats")
              sel-metadata (selected-metadata-ids search)
              params       {:queries      q
                            :metadata-ids sel-metadata
@@ -236,7 +236,7 @@
        ;; Start by cancelling any already ongoing search.
        (async/offer! cancel-search-ch true)
        (let [q            (queries->param @corpus @queries)
-             url          "search"
+             url          (str (:code @corpus) "/search")
              sel-metadata (selected-metadata-ids search)
              params       {:queries      q
                            :metadata-ids sel-metadata
@@ -252,7 +252,7 @@
            ;; Wait for the search to finish before fetching geo-map data
            (<! (do-search-steps! a m url params nsteps))
            (when (:geo-coords @corpus)
-             (let [geo-results-ch (http/post "geo-distr"
+             (let [geo-results-ch (http/post (str (:code @corpus) "/geo-distr")
                                              {:json-params {:search-id    (:id @search)
                                                             :metadata-ids sel-metadata}})
                    {{geo-results :results} :body} (<! geo-results-ch)]

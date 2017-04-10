@@ -61,7 +61,7 @@
 (deftemplate front (io/resource "front.html") []
   [:#corpus-entry] (clone-for [corp (kdb/with-db core-db (select corpus (fields :code :name)))]
                               [:li :a] (content (:name corp))
-                              [:li :a] (set-attr :href (str (:code corp) "/home"))))
+                              [:li :a] (set-attr :href (:code corp))))
 
 (deftemplate admin (io/resource "admin.html") []
   [:#corpus-table]
@@ -76,8 +76,7 @@
   (resources "/:corpus-code/" {:mime-types {"tsv" "text/tab-separated-values"}})
   (GET "/:corpus-code/request" [] handle-dump)
   ;(GET "/admin" req (admin))
-  (GET "/" [] (front))
-  (GET "/:corpus-code/home" [] (page)))
+  (GET "/" [] (front)))
 
 (defroutes db-routes
   (GET "/:corpus-code/corpus" [corpus-code :as {user-data :user-data}]
@@ -155,3 +154,8 @@
   (POST "/:corpus-code/download-results" [corpus-code search-id cpu-counts format headers?
                                           attrs context-size]
     (download-results corpus-code search-id cpu-counts format headers? attrs context-size)))
+
+;; NOTE: Since this route does not specify anything other than the fact that the URL only contains
+;; one part, it should be the last route we attempt to match to avoid "swallowing" other URLs
+(defroutes corpus-home
+ (GET "/:corpus-code" [] (page)))

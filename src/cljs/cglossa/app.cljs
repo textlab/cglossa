@@ -53,19 +53,20 @@
          (doseq [[model-name data] body]
            (if (http/unexceptional-status? (:status response))
              (reset! (get model-state model-name) data)
-             (if (= (:status response) 401)
-               (reset! (:authenticated-user model-state) nil))
-               (reset! (:show-fatal-error app-state) (str body))))))))
+             (when (= (:status response) 401)
+               (reset! (:authenticated-user model-state) nil)
+               (reset! (:show-fatal-error app-state) (str body)))))))))
 
 (defn- init [app-state model-state]
-  (if (re-find #"\w+/home" (.-location.href js/window))
+  (if-let [corpus (second (re-find #"(\w+)#?$" (.-location.href js/window)))]
     (go
-      (<! (get-models "corpus" model-state app-state))
+      (<! (get-models (str corpus "/corpus") model-state app-state))
       (reset-queries! app-state model-state)
       (reset-results! app-state model-state))
-    (reset! (:show-fatal-error app-state) "Please provide a corpus in the url (on the form /mycorpus/home)")))
+    (reset! (:show-fatal-error app-state) "Please provide a corpus at the end of the url")))
 
-(defn app [{:keys [show-fatal-error show-results? show-texts? show-login?] :as a} {:keys [corpus authenticated-user] :as m}]
+(defn app [{:keys [show-fatal-error show-results? show-texts? show-login?] :as a}
+           {:keys [corpus authenticated-user] :as m}]
   (let [width (if (showing-metadata? a m) 170 0)]
     [:div
      [header a m]
@@ -83,7 +84,9 @@
                local-login? (r/atom false)
                submit
                #(go
-                  (let [auth (<! (http/post "auth" {:json-params {:mail @mail :password @password}}))]
+                  (let [corpus-code (second (re-find #"(\w+)#?$" (.-location.href js/window)))
+                        auth (<! (http/post (str corpus-code "/auth")
+                                            {:json-params {:mail @mail :password @password}}))]
                      (if (= (:status auth) 403)
                        (reset! msg [:p {:style {:color "red"}} (:body auth)])
                        (do

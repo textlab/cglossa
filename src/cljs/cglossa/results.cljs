@@ -75,12 +75,13 @@
               ;; Calculate the first and last result index (zero-based) to request from the server
               first-result (* page-size (dec (first page-nos)))
               last-result  (dec (* page-size (last page-nos)))
-              results-ch   (http/get "results" {:query-params {:search-id    (:id @search)
-                                                               :start        first-result
-                                                               :end          last-result
-                                                               :cpu-counts   (str (vec @cpu-counts))
-                                                               :context-size @context-size
-                                                               :sort-key     (name @sort-key)}})
+              results-ch   (http/get (str (:code @corpus) "/results")
+                                     {:query-params {:search-id    (:id @search)
+                                                     :start        first-result
+                                                     :end          last-result
+                                                     :cpu-counts   (str (vec @cpu-counts))
+                                                     :context-size @context-size
+                                                     :sort-key     (name @sort-key)}})
               ;; Park until results are available on the core.async channel
               {:keys [status success] req-result :body} (<! results-ch)]
           (when (= status 401)
@@ -148,7 +149,7 @@
                 (reset! downloading? true)
                 (go
                   (let [{:keys [format headers? attrs]} @form-field-vals
-                        results-ch (http/post "download-results"
+                        results-ch (http/post (str (:code @corpus) "/download-results")
                                               {:json-params {:search-id    (:id @search)
                                                              :cpu-counts   (vec @cpu-counts)
                                                              :format       format

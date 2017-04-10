@@ -48,7 +48,8 @@
     ;; for a different result with the same s-id).
     (reset! result-showing-metadata (assoc metadata :node (find-result-node result-hash)))
     (go
-      (let [{:keys [body]} (<! (http/get "result-metadata" {:query-params {:text-id text-id}}))
+      (let [{:keys [body]} (<! (http/get (str corpus-code "/result-metadata")
+                                         {:query-params {:text-id text-id}}))
             cat-names (into {} (map (fn [{:keys [id code name]}]
                                       (let [name* (or name (-> code
                                                                (str/replace "_" " ")

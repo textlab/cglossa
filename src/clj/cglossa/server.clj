@@ -12,7 +12,7 @@
             [korma.db :as kdb]
             [korma.core :refer [defentity table select insert delete values fields where raw join]]
             [cglossa.shared :refer [corpus-connections mysql core-db]]
-            [cglossa.routes :refer [app-routes db-routes search-routes]]
+            [cglossa.routes :refer [app-routes db-routes search-routes corpus-home]]
             [cglossa.db.corpus :refer [corpus]]
             [cglossa.search-engines])
   (:gen-class))
@@ -39,7 +39,6 @@
   the core database is used."
   [handler]
   (fn [request]
-    (println request)
     (let [corpus-code (->> request :uri (re-find #"^/?(.+?)/") second)
           db          (if (and corpus-code (contains? @corpus-connections corpus-code))
                         (get @corpus-connections corpus-code)
@@ -50,7 +49,7 @@
 (defentity user (table :user))
 (defn wrap-auth [handler]
   (fn [request]
-    (if (re-find #"^(/|/auth|/css/.*|/js/.*|/img/.*)$" (:uri request))
+    (if (re-find #"^(/|/\w+|(?:/\w+)?/(?:auth|css/.*|js/.*|img/.*|tmp/.*))$" (:uri request))
       (handler request)
       (let [session_id (:value (get (:cookies request) "session_id"))]
         (if-let [user-data (first (kdb/with-db core-db (select session (join user (= :session.user_id :user.id))
@@ -62,7 +61,9 @@
            :body   "Unauthorised"})))))
 
 (def http-handler
-  (let [r (routes #'db-routes #'search-routes #'app-routes)
+  ;; NOTE: Make sure corpus-home is the last attempted match, since it does not specify anything
+  ;; other than the fact that the URL only contains one part
+  (let [r (routes #'db-routes #'search-routes #'app-routes #'corpus-home)
         r (if (:is-dev env) (reload/wrap-reload r) r)]
     (-> r
         wrap-with-logger

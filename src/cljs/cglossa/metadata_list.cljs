@@ -10,7 +10,7 @@
 
 (defn- count-selected-texts! [{:keys [num-selected-texts]} {:keys [corpus search] :as m}]
   (go
-    (let [results-ch (http/post "num-texts"
+    (let [results-ch (http/post (str (:code @corpus) "/num-texts")
                                 {:json-params
                                  {:selected-metadata-ids (selected-metadata-ids search)}})
           {:keys [status success body]} (<! results-ch)]
@@ -28,7 +28,7 @@
                                 {:keys [queries]} :search-view}
                                {:keys [corpus search] :as m}]
   (go
-    (let [results-ch (http/post "num-tokens"
+    (let [results-ch (http/post (str (:code @corpus) "/num-tokens")
                                 {:json-params
                                  {:queries               (queries->param @corpus @queries)
                                   :selected-metadata-ids (selected-metadata-ids search)}})
@@ -81,7 +81,7 @@
        ;; state ratom.
        [sel/select2 nil selected
         {:placeholder "Click to select..."
-         :ajax        {:url  "metadata-values"
+         :ajax        {:url  (str (:code @corpus) "/metadata-values")
                        :data (fn [params]
                                (let [md           (as-> @search $
                                                         (:metadata $)

@@ -16,10 +16,11 @@
 (defn- get-external-data [{:keys [corpus metadata-categories search] :as m}
                           results loading? mxpages cur-page page]
   (reset! loading? true)
-  (go (let [response (<! (http/post "texts" {:json-params
-                                             {:selected-metadata (:metadata @search)
-                                              :ncats             (count @metadata-categories)
-                                              :page              page}}))
+  (go (let [response (<! (http/post (str (:code @corpus) "/texts")
+                                    {:json-params
+                                     {:selected-metadata (:metadata @search)
+                                      :ncats             (count @metadata-categories)
+                                      :page              page}}))
             {:keys [rows max-pages] :as body} (:body response)]
         (if (http/unexceptional-status? (:status response))
           (let [extra-col-name (:name (show-texts-extra-col-name corpus))
