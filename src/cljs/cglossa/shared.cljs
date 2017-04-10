@@ -184,10 +184,8 @@
        (async/offer! cancel-search-ch true)
        (let [q            (queries->param @corpus @queries)
              url          "stats"
-             corpus-id    (:id @corpus)
              sel-metadata (selected-metadata-ids search)
-             params       {:corpus-id    corpus-id
-                           :queries      q
+             params       {:queries      q
                            :metadata-ids sel-metadata
                            :page-size    page-size
                            :context-size @context-size
@@ -239,10 +237,8 @@
        (async/offer! cancel-search-ch true)
        (let [q            (queries->param @corpus @queries)
              url          "search"
-             corpus-id    (:id @corpus)
              sel-metadata (selected-metadata-ids search)
-             params       {:corpus-id    corpus-id
-                           :queries      q
+             params       {:queries      q
                            :metadata-ids sel-metadata
                            :page-size    page-size
                            :context-size @context-size
@@ -257,8 +253,7 @@
            (<! (do-search-steps! a m url params nsteps))
            (when (:geo-coords @corpus)
              (let [geo-results-ch (http/post "geo-distr"
-                                             {:json-params {:corpus-id    corpus-id
-                                                            :search-id    (:id @search)
+                                             {:json-params {:search-id    (:id @search)
                                                             :metadata-ids sel-metadata}})
                    {{geo-results :results} :body} (<! geo-results-ch)]
                (reset! geo-data geo-results)))))))))

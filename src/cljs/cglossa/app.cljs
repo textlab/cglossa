@@ -47,9 +47,8 @@
       [start a m])]])
 
 (defn- get-models
-  ([url model-state app-state] (get-models url model-state app-state {}))
-  ([url model-state app-state params]
-   (go (let [response (<! (http/get url {:query-params params}))
+  ([url model-state app-state]
+   (go (let [response (<! (http/get url))
              body     (:body response)]
          (doseq [[model-name data] body]
            (if (http/unexceptional-status? (:status response))
@@ -59,12 +58,12 @@
                (reset! (:show-fatal-error app-state) (str body))))))))
 
 (defn- init [app-state model-state]
-  (if-let [corpus (second (re-find #"corpus=(\w+)" (.-location.search js/window)))]
+  (if (re-find #"\w+/home" (.-location.href js/window))
     (go
-      (<! (get-models "corpus" model-state app-state {:code corpus}))
+      (<! (get-models "corpus" model-state app-state))
       (reset-queries! app-state model-state)
       (reset-results! app-state model-state))
-    (reset! (:show-fatal-error app-state) "Please provide a corpus in the query string (on the form corpus=mycorpus)")))
+    (reset! (:show-fatal-error app-state) "Please provide a corpus in the url (on the form /mycorpus/home)")))
 
 (defn app [{:keys [show-fatal-error show-results? show-texts? show-login?] :as a} {:keys [corpus authenticated-user] :as m}]
   (let [width (if (showing-metadata? a m) 170 0)]

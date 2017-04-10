@@ -24,27 +24,26 @@
           (str "Please set the DB password for connecting to Glossa databases in the "
                "GLOSSA_DB_PASSWORD environment variable before starting the application."))
   (reset! connections
-          (into {} (for [c (select corpus (fields :id :code))]
-                     [(:id c)
-                      (kdb/create-db (mysql {:user     (:glossa-db-user env "glossa")
-                                             :password (:glossa-db-password env)
-                                             :useUnicode true
+          (into {} (for [c (select corpus (fields :code))]
+                     [(:code c)
+                      (kdb/create-db (mysql {:user              (:glossa-db-user env "glossa")
+                                             :password          (:glossa-db-password env)
+                                             :useUnicode        true
                                              :characterEncoding "UTF-8"
-                                             :db       (str (get env :glossa-prefix "glossa")
-                                                            "_"
-                                                            (:code c))}))]))))
+                                             :db                (str (get env :glossa-prefix "glossa")
+                                                                     "_"
+                                                                     (:code c))}))]))))
 (defn wrap-db
-  "Middleware that checks if the request contains a corpus-id key, and if so,
+  "Middleware that checks if the url starts with a valid corpus code, and if so,
   sets the database for the given corpus as the default for the request. Otherwise
   the core database is used."
   [handler]
   (fn [request]
-    (let [corpus-id (get-in request [:params :corpus-id])
-          db        (if corpus-id
-                      (get @corpus-connections (if (string? corpus-id)
-                                                 (Integer/parseInt corpus-id)
-                                                 corpus-id))
-                      core-db)]
+    (println request)
+    (let [corpus-code (->> request :uri (re-find #"^/?(.+?)/") second)
+          db          (if (and corpus-code (contains? @corpus-connections corpus-code))
+                        (get @corpus-connections corpus-code)
+                        core-db)]
       (kdb/with-db db (handler request)))))
 
 (defentity session (table :session))
@@ -55,12 +54,12 @@
       (handler request)
       (let [session_id (:value (get (:cookies request) "session_id"))]
         (if-let [user-data (first (kdb/with-db core-db (select session (join user (= :session.user_id :user.id))
-                                                           (fields :user.id :user.mail :user.eduPersonPrincipalName :user.displayName)
-                                                           (where {:session.id session_id})
-                                                           (where (raw "session.expire_time >= NOW()")))))]
+                                                               (fields :user.id :user.mail :user.eduPersonPrincipalName :user.displayName)
+                                                               (where {:session.id session_id})
+                                                               (where (raw "session.expire_time >= NOW()")))))]
           (handler (assoc request :user-data user-data))
           {:status 401
-           :body "Unauthorised"})))))
+           :body   "Unauthorised"})))))
 
 (def http-handler
   (let [r (routes #'db-routes #'search-routes #'app-routes)

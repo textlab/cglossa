@@ -39,7 +39,7 @@
 (defn- find-result-node [result-hash]
   (.get (js/$ (str "#" result-hash)) 0))
 
-(defn- get-result-metadata [e result-showing-metadata metadata-categories corpus-id
+(defn- get-result-metadata [e result-showing-metadata metadata-categories corpus-code
                             text-id result-hash]
   (.preventDefault e)
   (if-let [metadata (get @metadata-cache text-id)]
@@ -48,8 +48,7 @@
     ;; for a different result with the same s-id).
     (reset! result-showing-metadata (assoc metadata :node (find-result-node result-hash)))
     (go
-      (let [{:keys [body]} (<! (http/get "result-metadata" {:query-params {:corpus-id corpus-id
-                                                                           :text-id   text-id}}))
+      (let [{:keys [body]} (<! (http/get "result-metadata" {:query-params {:text-id text-id}}))
             cat-names (into {} (map (fn [{:keys [id code name]}]
                                       (let [name* (or name (-> code
                                                                (str/replace "_" " ")
@@ -79,7 +78,7 @@
       [:div
        [:a {:href     ""
             :on-click #(get-result-metadata % result-showing-metadata metadata-categories
-                                            (:id @corpus) text-id result-hash)}
+                                            (:code @corpus) text-id result-hash)}
         [:span {:id result-hash} s-id]]
        (metadata-overlay result-showing-metadata)
        [result-links a m result row-index]])))

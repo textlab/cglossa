@@ -34,7 +34,7 @@
   ;; not be included in the corpus size, so instead of asking CWB for the size, we need
   ;; to use the accumulated token counts given by the bounds for all speakers (which
   ;; does not include the interviewers if they should be excluded from search).
-  (kdb/with-db (get @corpus-connections (:id corpus))
+  (kdb/with-db (get @corpus-connections (:code corpus))
     (let [bounds (select text (fields :bounds))]
       {:size {(:code corpus) (accumulate-bounds bounds)}})))
 
@@ -202,8 +202,8 @@
        :line-key  line-key})))
 
 
-(defn play-video [corpus-id search-id result-index context-size]
-  (let [corpus      (get-corpus {:id corpus-id})
+(defn play-video [corpus-code search-id result-index context-size]
+  (let [corpus      (get-corpus {:code corpus-code})
         named-query (cwb-query-name corpus search-id)
         commands    [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
                      (str/upper-case (:code corpus))

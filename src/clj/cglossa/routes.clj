@@ -25,7 +25,7 @@
             [cglossa.search.cwb.speech :refer [play-video]])
   (:import (java.io ByteArrayOutputStream)))
 
-(def max-session-age 86400) ; in seconds
+(def max-session-age 86400)             ; in seconds
 (defentity session (table :session))
 (defentity user (table :user))
 
@@ -61,7 +61,7 @@
 (deftemplate front (io/resource "front.html") []
   [:#corpus-entry] (clone-for [corp (kdb/with-db core-db (select corpus (fields :code :name)))]
                               [:li :a] (content (:name corp))
-                              [:li :a] (set-attr :href (str "./?corpus=" (:code corp)))))
+                              [:li :a] (set-attr :href (str (:code corp) "/home"))))
 
 (deftemplate admin (io/resource "admin.html") []
   [:#corpus-table]
@@ -71,40 +71,42 @@
 
 (defroutes app-routes
   (files "/" {:root "resources/public" :mime-types {"tsv" "text/tab-separated-values"}})
+  (files "/:corpus-code/" {:root "resources/public" :mime-types {"tsv" "text/tab-separated-values"}})
   (resources "/" {:mime-types {"tsv" "text/tab-separated-values"}})
-  (GET "/request" [] handle-dump)
+  (resources "/:corpus-code/" {:mime-types {"tsv" "text/tab-separated-values"}})
+  (GET "/:corpus-code/request" [] handle-dump)
   ;(GET "/admin" req (admin))
-  (GET "/" {{corpus :corpus} :params} (if corpus (page) (front))))
+  (GET "/" [] (front))
+  (GET "/:corpus-code/home" [] (page)))
 
 (defroutes db-routes
-  (GET "/corpus" {user-data :user-data params :params}
-    (let [code (:code params)
-          c    (get-corpus {:code code})]
+  (GET "/:corpus-code/corpus" [corpus-code :as {user-data :user-data}]
+    (let [c (get-corpus {:code corpus-code})]
       (if (:id c)
-        (let [cats (kdb/with-db (get @corpus-connections (:id c)) (get-metadata-categories))]
+        (let [cats (kdb/with-db (get @corpus-connections corpus-code) (get-metadata-categories))]
           (transit-response {:corpus              c
                              :metadata-categories cats
                              :authenticated-user  (or (:displayName user-data) (:mail user-data))}))
         {:status 404
-         :body   (str "Corpus '" code "' not found.")})))
+         :body   (str "Corpus '" corpus-code "' not found.")})))
 
-  (POST "/auth" [mail password]
+  (POST "/:corpus-code/auth" [mail password]
     (let [user_data (first (kdb/with-db core-db (select user (fields :id :password) (where {:mail mail :password [not= "SAML"]}))))]
       (if (hashers/check password (:password user_data))
         (let [session_id (reduce str (take 64 (repeatedly #(rand-nth (map char (range (int \a) (inc (int \z))))))))]
           (kdb/with-db core-db
             (delete session (where (raw "expire_time < NOW()")))
             (insert session (values {:id session_id :user_id (:id user_data) :expire_time (raw (str "DATE_ADD(NOW(), INTERVAL " max-session-age " SECOND)"))})))
-          {:status 200
+          {:status  200
            :cookies {"session_id" {:value session_id}}
            :max-age max-session-age})
         {:status 403
-         :body (str "Wrong username or password.")})))
+         :body   (str "Wrong username or password.")})))
 
-  (POST "/corpus" [zipfile]
-    (println zipfile))
+  #_(POST "/corpus" [zipfile]
+      (println zipfile))
 
-  (GET "/metadata-values" [category-id value-filter selected-ids page]
+  (GET "/:corpus-code/metadata-values" [category-id value-filter selected-ids page]
     (let [selected-ids* (when selected-ids (cheshire/parse-string selected-ids))
           page*         (if page (Integer/parseInt page) 1)
           data          (get-metadata-values category-id value-filter selected-ids* page*)]
@@ -113,40 +115,43 @@
           (response/content-type "application/json")
           (response/charset "utf-8"))))
 
-  (POST "/texts" [selected-metadata ncats page]
+  (POST "/:corpus-code/texts" [selected-metadata ncats page]
     (let [ncats* (or ncats 1)
           page*  (or page 1)]
       (transit-response (show-texts selected-metadata ncats* page*) false)))
 
-  (POST "/num-texts" [selected-metadata-ids]
+  (POST "/:corpus-code/num-texts" [selected-metadata-ids]
     (transit-response (num-selected-texts selected-metadata-ids)))
 
-  (POST "/num-tokens" [corpus-id queries selected-metadata-ids]
-    (let [corpus (get-corpus {:id corpus-id})]
+  (POST "/:corpus-code/num-tokens" [corpus-code queries selected-metadata-ids]
+    (let [corpus (get-corpus {:code corpus-code})]
       (transit-response (token-count-matching-metadata corpus queries selected-metadata-ids)))))
 
 (defroutes search-routes
-  (POST "/search" [corpus-id search-id queries metadata-ids step page-size last-count
-                   context-size sort-key]
-    (transit-response (search-corpus corpus-id search-id queries metadata-ids
+  (POST "/:corpus-code/search" [corpus-code search-id queries metadata-ids step page-size last-count
+                                context-size sort-key]
+    (transit-response (search-corpus corpus-code search-id queries metadata-ids
                                      step page-size last-count context-size sort-key) false))
 
-  (POST "/stats" [corpus-id search-id queries metadata-ids step page-size last-count
-                   context-size sort-key freq-attr]
-    (transit-response (stats-corpus corpus-id search-id queries metadata-ids
-                                     step page-size last-count context-size sort-key freq-attr) false))
+  (POST "/:corpus-code/stats" [corpus-code search-id queries metadata-ids step page-size last-count
+                               context-size sort-key freq-attr]
+    (transit-response (stats-corpus corpus-code search-id queries metadata-ids
+                                    step page-size last-count context-size sort-key freq-attr)
+                      false))
 
-  (GET "/results" [corpus-id search-id start end cpu-counts context-size sort-key]
-    (transit-response (results corpus-id search-id start end cpu-counts context-size sort-key) false))
+  (GET "/:corpus-code/results" [corpus-code search-id start end cpu-counts context-size sort-key]
+    (transit-response (results corpus-code search-id start end cpu-counts context-size sort-key)
+                      false))
 
-  (GET "/result-metadata" [corpus-id text-id]
-    (transit-response (result-metadata (Integer/parseInt corpus-id) text-id) false))
+  (GET "/:corpus-code/result-metadata" [corpus-code text-id]
+    (transit-response (result-metadata corpus-code text-id) false))
 
-  (GET "/play-video" [corpus-id search-id result-index context-size]
-    (transit-response (play-video corpus-id search-id result-index context-size) false))
+  (GET "/:corpus-code/play-video" [corpus-code search-id result-index context-size]
+    (transit-response (play-video corpus-code search-id result-index context-size) false))
 
-  (POST "/geo-distr" [corpus-id search-id metadata-ids]
-    (transit-response (geo-distr corpus-id search-id metadata-ids) false))
+  (POST "/:corpus-code/geo-distr" [corpus-code search-id metadata-ids]
+    (transit-response (geo-distr corpus-code search-id metadata-ids) false))
 
-  (POST "/download-results" [corpus-id search-id cpu-counts format headers? attrs context-size]
-    (download-results corpus-id search-id cpu-counts format headers? attrs context-size)))
+  (POST "/:corpus-code/download-results" [corpus-code search-id cpu-counts format headers?
+                                          attrs context-size]
+    (download-results corpus-code search-id cpu-counts format headers? attrs context-size)))

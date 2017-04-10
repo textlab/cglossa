@@ -1,12 +1,13 @@
 (ns cglossa.search.core
   (:require [clojure.string :as str]
             [korma.db :as kdb]
-            [korma.core :refer [defentity table select where insert values]]
+            [korma.core :refer [defentity table select fields where insert values]]
             [clojure.edn :as edn]
             [cglossa.shared :refer [core-db]]
             [cglossa.db.corpus :refer [get-corpus]]
             [cglossa.search.download :as download]))
 
+(defentity corpus)
 (defentity search)
 
 (defmulti run-queries
@@ -27,25 +28,26 @@
    results."
   (fn [corpus _ _] (:search_engine corpus)))
 
-(defn- create-search! [corpus-id queries]
+(defn- create-search! [corpus-code queries]
   (kdb/with-db core-db
-    (insert search (values {:corpus_id corpus-id
-                            :user_id   1
-                            :queries   (pr-str queries)}))))
+    (let [{corpus-id :id} (first (select corpus (fields :id) (where {:code corpus-code})))]
+      (insert search (values {:corpus_id corpus-id
+                              :user_id   1
+                              :queries   (pr-str queries)})))))
 
 (defn- search-by-id [id]
   (kdb/with-db core-db
     (first (select search (where {:id id})))))
 
-(defn stats-corpus [corpus-id search-id queries metadata-ids step page-size last-count
-                     context-size sort-key freq-attr]
-  (let [corpus     (get-corpus {:id corpus-id})
-        search-id* (or search-id (:generated_key (create-search! corpus-id queries)))
+(defn stats-corpus [corpus-code search-id queries metadata-ids step page-size last-count
+                    context-size sort-key freq-attr]
+  (let [corpus     (get-corpus {:code corpus-code})
+        search-id* (or search-id (:generated_key (create-search! corpus-code queries)))
         [hits cnt cnts] (run-queries corpus search-id* queries metadata-ids 1
                                      1000000 last-count context-size sort-key
-                         (str "tabulate Last "
-                              (str/join ", " (map #(str "match .. matchend " (name %)) freq-attr))
-                              " >\"|LC_ALL=C awk '{f[$0]++}END{for(k in f){print f[k], k}}' |LC_ALL=C sort -nr\""))
+                                     (str "tabulate Last "
+                                          (str/join ", " (map #(str "match .. matchend " (name %)) freq-attr))
+                                          " >\"|LC_ALL=C awk '{f[$0]++}END{for(k in f){print f[k], k}}' |LC_ALL=C sort -nr\""))
         s          (search-by-id search-id*)]
     {:search     s
      :results    hits
@@ -54,10 +56,10 @@
      ;; Number of hits found by each cpus in this search step
      :cpu-counts cnts}))
 
-(defn search-corpus [corpus-id search-id queries metadata-ids step page-size last-count
+(defn search-corpus [corpus-code search-id queries metadata-ids step page-size last-count
                      context-size sort-key]
-  (let [corpus     (get-corpus {:id corpus-id})
-        search-id* (or search-id (:generated_key (create-search! corpus-id queries)))
+  (let [corpus     (get-corpus {:code corpus-code})
+        search-id* (or search-id (:generated_key (create-search! corpus-code queries)))
         [hits cnt cnts] (run-queries corpus search-id* queries metadata-ids step
                                      page-size last-count context-size sort-key nil)
         results    (transform-results corpus queries hits)
@@ -69,8 +71,8 @@
      ;; Number of hits found by each cpus in this search step
      :cpu-counts cnts}))
 
-(defn results [corpus-id search-id start end cpu-counts context-size sort-key]
-  (let [corpus      (get-corpus {:id corpus-id})
+(defn results [corpus-code search-id start end cpu-counts context-size sort-key]
+  (let [corpus      (get-corpus {:code corpus-code})
         s           (search-by-id search-id)
         queries     (edn/read-string (:queries s))
         start*      (Integer/parseInt start)
@@ -80,15 +82,15 @@
     (transform-results corpus queries results)))
 
 
-(defn geo-distr [corpus-id search-id metadata-ids]
-  (let [corpus  (get-corpus {:id corpus-id})
+(defn geo-distr [corpus-code search-id metadata-ids]
+  (let [corpus  (get-corpus {:code corpus-code})
         results (geo-distr-queries corpus search-id metadata-ids)
         s       (search-by-id search-id)]
     {:search  s
      :results results}))
 
-(defn download-results [corpus-id search-id cpu-counts format headers? attrs context-size]
-  (let [corpus   (get-corpus {:id corpus-id})
+(defn download-results [corpus-code search-id cpu-counts format headers? attrs context-size]
+  (let [corpus   (get-corpus {:code corpus-code})
         s        (search-by-id search-id)
         queries  (edn/read-string (:queries s))
         start    0

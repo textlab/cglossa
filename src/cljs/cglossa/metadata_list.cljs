@@ -12,8 +12,7 @@
   (go
     (let [results-ch (http/post "num-texts"
                                 {:json-params
-                                 {:corpus-id             (:id @corpus)
-                                  :selected-metadata-ids (selected-metadata-ids search)}})
+                                 {:selected-metadata-ids (selected-metadata-ids search)}})
           {:keys [status success body]} (<! results-ch)]
       (when (= status 401)
         (reset! (:authenticated-user m) nil))
@@ -31,8 +30,7 @@
   (go
     (let [results-ch (http/post "num-tokens"
                                 {:json-params
-                                 {:corpus-id             (:id @corpus)
-                                  :queries               (queries->param @corpus @queries)
+                                 {:queries               (queries->param @corpus @queries)
                                   :selected-metadata-ids (selected-metadata-ids search)}})
           {:keys [status success body]} (<! results-ch)]
       (when (= status 401)
@@ -96,8 +94,7 @@
                                      selected-ids (if (empty? md)
                                                     js/undefined
                                                     (js/JSON.stringify (clj->js md)))]
-                                 #js {:corpus-id    (:id @corpus)
-                                      :category-id  cat-id
+                                 #js {:category-id  cat-id
                                       :value-filter value-filter
                                       :selected-ids selected-ids
                                       :page         (.-page params)}))}}

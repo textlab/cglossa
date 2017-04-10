@@ -81,7 +81,7 @@
 
 
 (defn- num-texts [c]
-  (kdb/with-db (get @corpus-connections (:id c))
+  (kdb/with-db (get @corpus-connections (:code c))
     (-> (select* metadata-value)
         (aggregate (count :metadata_value.id) :cnt)
         (with metadata-category (where {:code "tid"}))

@@ -134,8 +134,8 @@
           first
           :cnt))))
 
-(defn result-metadata [corpus-id text-id]
-  (kdb/with-db (get @corpus-connections corpus-id)
+(defn result-metadata [corpus-code text-id]
+  (kdb/with-db (get @corpus-connections corpus-code)
     (-> (select* [metadata-value :v1])
         (modifier "DISTINCT")
         (fields :v1.metadata_category_id :v1.text_value)
