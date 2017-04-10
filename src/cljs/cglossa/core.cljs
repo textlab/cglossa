@@ -25,8 +25,6 @@
                     :num-selected-tokens (r/atom nil)
                     :show-texts?         (r/atom false)
                     :show-results?       (r/atom false)
-                    :show-login?         (r/atom false)
-                    :show-fatal-error    (r/atom nil)
                     :results-view        {:view-type               (r/atom :concordance)
                                           :results                 (r/atom nil)
                                           :total                   (r/atom nil)

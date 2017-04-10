@@ -15,10 +15,9 @@
 
 (env/def
   SAML_LOGIN_URL nil
-  SAML_LOGOUT_URL nil
-  SAML_LOGIN_IMG nil)
+  SAML_LOGOUT_URL nil)
 
-(defn- header [{:keys [show-results? show-login?]} {:keys [corpus authenticated-user]}]
+(defn- header [{:keys [show-results?]} {:keys [corpus authenticated-user]}]
   [b/navbar {:fixed-top true}
    [b/navbar-brand "Glossa"]
    (when @show-results?
@@ -65,69 +64,13 @@
       (reset-results! app-state model-state))
     (reset! (:show-fatal-error app-state) "Please provide a corpus at the end of the url")))
 
-(defn app [{:keys [show-fatal-error show-results? show-texts? show-login?] :as a}
+(defn app [{:keys [show-results? show-texts?] :as a}
            {:keys [corpus authenticated-user] :as m}]
   (let [width (if (showing-metadata? a m) 170 0)]
     [:div
      [header a m]
-     (when @show-fatal-error
-        [b/modal
-          {:bs-size "large" :show true}
-          [b/modalheader [b/modaltitle "Error"]]
-          [b/modalbody @show-fatal-error]])
      (when @show-texts?
        [show-texts-modal a m])
-     (when @show-login?
-        [(let [mail (r/atom nil)
-               password (r/atom nil)
-               msg (r/atom nil)
-               local-login? (r/atom false)
-               submit
-               #(go
-                  (let [corpus-code (second (re-find #"(\w+)#?$" (.-location.href js/window)))
-                        auth (<! (http/post (str corpus-code "/auth")
-                                            {:json-params {:mail @mail :password @password}}))]
-                     (if (= (:status auth) 403)
-                       (reset! msg [:p {:style {:color "red"}} (:body auth)])
-                       (do
-                         (reset! show-login? false)
-                         (init a m)))))]
-            (fn [_]
-              [b/modal
-                {:bs-size "large" :show true}
-                [b/modalheader [b/modaltitle "Login"]]
-                [b/modalbody
-                  {:style {:width 350}}
-                  (when (not-empty SAML_LOGIN_URL)
-                    [:div
-                      [:br]
-                      [:a {:href SAML_LOGIN_URL}
-                        (if (not-empty SAML_LOGIN_IMG)
-                          [:img {:src SAML_LOGIN_IMG}]
-                          "External login")]])
-                  [:div
-                    [:a {:href "#" :on-click #(do (.blur (.-target %))
-                                                  (swap! local-login? not))}
-                        "Login with registered e-mail and password"]]
-                  (when @local-login?
-                    [(r/create-class
-                      {:component-did-mount
-                       #(.focus (.get (js/$ (str "#login")) 0))
-                       :render
-                        (fn [_]
-                         [:div
-                           [b/formgroup
-                             "E-mail:" [b/formcontrol {:type "text" :name "login" :id "login" :style {:width 450}
-                                                       :on-change #(do (reset! mail (.-target.value %)) (reset! msg nil))
-                                                       :on-key-down #(when (= "Enter" (.-key %)) (submit))}]
-                             "Password:" [b/formcontrol {:type "password" :name "password" :style {:width 450}
-                                                         :on-change #(do (reset! password (.-target.value %)) (reset! msg nil))
-                                                         :on-key-down #(when (= "Enter" (.-key %)) (submit))}]]
-                           @msg
-                           [b/button {:bs-style "success" :on-click #(submit)} "Log in"]])})])
-                    [:br]
-                    [:a {:href "./"} "< Back"]]]))])
-
      (when @corpus
        [:div.table-display {:style {:margin-bottom 10}}
         [:div.table-row

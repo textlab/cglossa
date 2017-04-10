@@ -14,7 +14,6 @@
             [cognitect.transit :as transit]
             [net.cgrand.enlive-html :refer [deftemplate html-content clone-for set-attr content]]
             [taoensso.timbre :as timbre]
-            [buddy.hashers :as hashers]
             [cglossa.shared :refer [core-db corpus-connections]]
             [cglossa.search.cwb.shared :refer [token-count-matching-metadata]]
             [cglossa.db.corpus :refer [get-corpus]]
@@ -25,7 +24,6 @@
             [cglossa.search.cwb.speech :refer [play-video]])
   (:import (java.io ByteArrayOutputStream)))
 
-(def max-session-age 86400)             ; in seconds
 (defentity session (table :session))
 (defentity user (table :user))
 
@@ -88,19 +86,6 @@
                              :authenticated-user  (or (:displayName user-data) (:mail user-data))}))
         {:status 404
          :body   (str "Corpus '" corpus-code "' not found.")})))
-
-  (POST "/:corpus-code/auth" [mail password]
-    (let [user_data (first (kdb/with-db core-db (select user (fields :id :password) (where {:mail mail :password [not= "SAML"]}))))]
-      (if (hashers/check password (:password user_data))
-        (let [session_id (reduce str (take 64 (repeatedly #(rand-nth (map char (range (int \a) (inc (int \z))))))))]
-          (kdb/with-db core-db
-            (delete session (where (raw "expire_time < NOW()")))
-            (insert session (values {:id session_id :user_id (:id user_data) :expire_time (raw (str "DATE_ADD(NOW(), INTERVAL " max-session-age " SECOND)"))})))
-          {:status  200
-           :cookies {"session_id" {:value session_id}}
-           :max-age max-session-age})
-        {:status 403
-         :body   (str "Wrong username or password.")})))
 
   #_(POST "/corpus" [zipfile]
       (println zipfile))
