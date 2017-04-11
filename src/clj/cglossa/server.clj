@@ -49,16 +49,14 @@
 (defentity user (table :user))
 (defn wrap-auth [handler]
   (fn [request]
-    (if (re-find #"^(/|/\w+|(?:/\w+)?/(?:auth|css/.*|js/.*|img/.*|tmp/.*))$" (:uri request))
-      (handler request)
-      (let [session_id (:value (get (:cookies request) "session_id"))]
-        (if-let [user-data (first (kdb/with-db core-db (select session (join user (= :session.user_id :user.id))
-                                                               (fields :user.id :user.mail :user.eduPersonPrincipalName :user.displayName)
-                                                               (where {:session.id session_id})
-                                                               (where (raw "session.expire_time >= NOW()")))))]
-          (handler (assoc request :user-data user-data))
-          {:status 401
-           :body   "Unauthorised"})))))
+    (if-let [user-data (and (re-find #"^/[^/]+/corpus$" (:uri request))
+                            (if-let [session_id (:value (get (:cookies request) "session_id"))]
+                              (first (kdb/with-db core-db (select session (join user (= :session.user_id :user.id))
+                                                                  (fields :user.id :user.mail :user.eduPersonPrincipalName :user.displayName)
+                                                                  (where {:session.id session_id})
+                                                                  (where (raw "session.expire_time >= NOW()")))))))]
+      (handler (assoc request :user-data user-data))
+      (handler request))))
 
 (def http-handler
   ;; NOTE: Make sure corpus-home is the last attempted match, since it does not specify anything
