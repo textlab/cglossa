@@ -10,7 +10,7 @@
             [taoensso.timbre.appenders.3rd-party.rotor :refer [rotor-appender]]
             [ring.logger.timbre :refer [wrap-with-logger]]
             [korma.db :as kdb]
-            [korma.core :refer [defentity table select insert delete values fields where raw join]]
+            [korma.core :refer [defentity table select fields where]]
             [cglossa.shared :refer [corpus-connections mysql core-db]]
             [cglossa.routes :refer [app-routes db-routes search-routes corpus-home]]
             [cglossa.db.corpus :refer [corpus]]
@@ -45,16 +45,16 @@
                         core-db)]
       (kdb/with-db db (handler request)))))
 
-(defentity session (table :session))
 (defentity user (table :user))
 (defn wrap-auth [handler]
   (fn [request]
     (if-let [user-data (and (re-find #"^/[^/]+/corpus$" (:uri request))
-                            (if-let [session_id (:value (get (:cookies request) "session_id"))]
-                              (first (kdb/with-db core-db (select session (join user (= :session.user_id :user.id))
-                                                                  (fields :user.id :user.mail :user.eduPersonPrincipalName :user.displayName)
-                                                                  (where {:session.id session_id})
-                                                                  (where (raw "session.expire_time >= NOW()")))))))]
+                            (if-let [username (get-in request [:headers "x-remote-user"])]
+                              (first (kdb/with-db core-db (select user
+                                                                  (fields :id :mail :eduPersonTargetedID
+                                                                          :eduPersonPrincipalName :displayName)
+                                                                  (where (or {:eduPersonPrincipalName username}
+                                                                             {:eduPersonTargetedID username})))))))]
       (handler (assoc request :user-data user-data))
       (handler request))))
 
@@ -82,7 +82,8 @@
   (defonce ^:private server
     (let [port (Integer. (or port (env :port) 10555))]
       (print "Starting web server on port" port ".\n")
-      (run-server http-handler {:port     port
+      (run-server http-handler {:ip	  "127.0.0.1"
+                                :port     port
                                 :max-line 8192
                                 :join?    false})))
   server)
