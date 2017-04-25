@@ -24,15 +24,17 @@
      ;; it is shown in big letters on the front page
      [b/navbar-text (:name @corpus)])
    [extra-navbar-items corpus]
-     [:span.navbar-right.hidden-xs {:style {:margin-top 10}}
-      (if (nil? @authenticated-user)
-        "Not logged in"
-        [:span (str "Logged in as " @authenticated-user " ")
-               [b/button {:bs-size "small" :on-click #(do (set! document.cookie "session_id=; expires=Thu, 01 Jan 1970 00:00:01 GMT;")
-                                                          (if (not-empty SAML_LOGOUT_URL)
-                                                            (set! window.location SAML_LOGOUT_URL)
-                                                            (reset! authenticated-user nil)))}
-                     "Log out"]])]
+   [:span.navbar-right.hidden-xs {:style {:margin-top 10}}
+    (if (nil? @authenticated-user)
+      "Not logged in"
+      [:span (str "Logged in as " @authenticated-user " ")
+       [b/button {:bs-size  "small"
+                  :on-click #(do (set! document.cookie
+                                       "session_id=; expires=Thu, 01 Jan 1970 00:00:01 GMT;")
+                                 (if (not-empty SAML_LOGOUT_URL)
+                                   (set! window.location SAML_LOGOUT_URL)
+                                   (reset! authenticated-user nil)))}
+        "Log out"]])]
    [:img.navbar-right.hidden-xs {:src "img/logo.png" :style {:margin-top 13}}]
    [:img.navbar-right.hidden-xs {:src "img/clarino_duo-219.png" :style {:width 80 :margin-top 15}}]
    ])
