@@ -42,6 +42,7 @@
 (defn- get-result-metadata [e result-showing-metadata metadata-categories corpus-code
                             text-id result-hash]
   (.preventDefault e)
+  (.stopPropagation e)
   (if-let [metadata (get @metadata-cache text-id)]
     ;; Use the metadata values from the cache, but set the DOM node to be the one
     ;; for the currently selected result (since the data in the cache may have been

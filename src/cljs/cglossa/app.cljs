@@ -65,10 +65,14 @@
       (reset-results! app-state model-state))
     (reset! (:show-fatal-error app-state) "Please provide a corpus at the end of the url")))
 
-(defn app [{:keys [show-results? show-texts?] :as a}
+(defn app [{:keys [show-results? show-texts?] {:keys [result-showing-metadata]} :results-view :as a}
            {:keys [corpus authenticated-user] :as m}]
   (let [width (if (showing-metadata? a m) 170 0)]
-    [:div
+    [:div {:on-click (fn []
+                       ;; If we are showing metadata for a search result, hide it when we click
+                       ;; anywhere else
+                       (when @result-showing-metadata
+                         (reset! result-showing-metadata nil)))}
      [header a m]
      (when @show-texts?
        [show-texts-modal a m])
