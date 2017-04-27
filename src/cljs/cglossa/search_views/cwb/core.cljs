@@ -201,7 +201,7 @@
   "HTML that is shared by the search views that only show a single text input,
   i.e., the simple and CQP views."
   [a {:keys [corpus] :as m} input-type wrapped-query displayed-query
-   show-remove-row-btn? show-checkboxes? on-text-changed]
+   show-remove-row-btn? on-text-changed]
   (let [query     (:query @wrapped-query)
         speech?   (= (:search-engine @corpus) "cwb_speech")
         phonetic? (not= -1 (.indexOf query "phon="))
@@ -216,43 +216,7 @@
         :type             input-type
         :default-value    displayed-query
         :on-change        #(on-text-changed % wrapped-query phonetic? original?)
-        :on-key-down      #(on-key-down % a m)}]]
-     (when show-checkboxes?
-       (list ^{:key 1}
-             [:div.table-row
-              [:div.table-cell]
-              ;; ReactBootstrap doesn't seem to allow several checkboxes within the same
-              ;; div.checkbox, since each [input {:type "checkbox"}] generates its own div.checkbox
-              ;; wrapper (or is it possible somehow?), so we create the markup manually instead.
-              [:div.checkbox {:style {:display "table-cell" :padding-top 7}}
-               (list
-                 (when (has-phonetic? @corpus)
-                   ^{:key "phon"}
-                   [:label.checkbox-inline {:style {:padding-left 18}}
-                    [:input {:name      "phonetic"
-                             :type      "checkbox"
-                             :style     {:margin-left -18}
-                             :checked   phonetic?
-                             :on-change #(on-phonetic-changed % wrapped-query)}] " Phonetic form"])
-                 ^{:key "seg-init"}
-                 [segment-initial-checkbox wrapped-query speech?]
-                 ^{:key "seg-final"}
-                 [segment-final-checkbox wrapped-query speech?])
-               (when (has-original? @corpus)
-                 (list
-                   ^{:key "orig"}
-                   [:label.checkbox-inline {:style {:padding-left 18}}
-                    [:input {:name      "original"
-                             :type      "checkbox"
-                             :style     {:margin-left -18}
-                             :checked   original?
-                             :on-change #(on-original-changed % wrapped-query)}] " Original form"]))]]
-             (when (:has-headword-search @corpus)
-               ^{:key 2}
-               [:div.table-row
-                [:div.table-cell]
-                [:div.table-cell {:style {:padding-left 20}}
-                 [headword-search-checkbox wrapped-query]]])))]))
+        :on-key-down      #(on-key-down % a m)}]]]))
 
 ;;; The three different CWB interfaces: simple, extended and cqp
 
@@ -280,7 +244,7 @@
                                                      original? @corpus))]
                             (swap! wrapped-query assoc :query query)))]
     [single-input-view a m "text" wrapped-query displayed-query show-remove-row-btn?
-     true on-text-changed]))
+     on-text-changed]))
 
 
 (defn- cqp
@@ -301,7 +265,7 @@
                                    :headword-search hw-search?
                                    :exclude? exclude?)))]
     [single-input-view a m "textarea" wrapped-query displayed-query show-remove-row-btn?
-     false on-text-changed]))
+     on-text-changed]))
 
 (defmethod search-inputs :default [_ _]
   "Component that lets the user select a search view (simple, extended
