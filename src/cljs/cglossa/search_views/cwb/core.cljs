@@ -60,7 +60,7 @@
                          (map #(str/replace % #"[\.\*\+\?\^\$\{\}\(\)\|\[\]\\]" "\\$&") $)
                          (map #(if (= % "")
                                  ""
-                                 (str "[" attr "=\"" % "\" %c]"))
+                                 (str "[" attr "=\"" % "\"" (when-not phonetic? " %c") "]"))
                               $)
                          (str/join " " $)
                          (str/replace $
@@ -77,7 +77,7 @@
                             (:segment-initial? @wrapped-query) (str "<" s-tag ">")
                             (:segment-final? @wrapped-query) (#(str % "</" s-tag ">")))]
     (if (str/blank? p3)
-      (str "[" attr "=\".*\" %c]")
+      (str "[" attr "=\".*\"]")
       p3)))
 
 (defn- focus-text-input [c]
@@ -131,7 +131,7 @@
         checked? (.-target.checked event)
         query    (if checked?
                    (if (str/blank? q)
-                     (str "[" attr "=\".*\" %c]")
+                     (str "[" attr "=\".*\"]")
                      (str/replace q "word=" (str attr "=")))
                    (str/replace q (str attr "=") "word="))]
     (swap! wrapped-query assoc :query query)))

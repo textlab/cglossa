@@ -244,7 +244,7 @@
                                                start? (str ".*")
                                                end? (#(str ".*" %))))
                         main         (when form*
-                                       (str attr "=\"" form* "\" %c"))
+                                       (str attr "=\"" form* "\"" (when-not phonetic? " %c")))
                         feats        (when (seq features)
                                        ;; If we want to exclude parts of speech, join them with &
                                        ;; (e.g. [pos != "noun" & pos != "verb"]), otherwise with |
