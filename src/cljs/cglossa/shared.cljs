@@ -333,7 +333,7 @@
 
 (defn top-toolbar [{:keys              [num-resets show-results? show-metadata?
                                         num-selected-texts num-selected-tokens]
-                    {:keys [queries]}  :search-view
+                    {:keys [view-type queries]}  :search-view
                     {:keys [sort-key]} :results-view
                     :as                a}
                    {:keys [search metadata-categories] :as m}]
@@ -358,6 +358,7 @@
                :title    "Reset form"
                :on-click (fn []
                            (reset-queries! a m)
+                           (reset! view-type :simple)
                            (reset! search {})
                            (reset! show-results? false)
                            (reset! sort-key :position)
