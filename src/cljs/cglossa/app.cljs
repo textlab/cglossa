@@ -6,7 +6,7 @@
             [cljs-http.client :as http]
             [cljs.core.async :refer [<!]]
             [cglossa.shared :refer [showing-metadata? extra-navbar-items]]
-            [cglossa.metadata-list :refer [metadata-list]]
+            [cglossa.metadata-list :refer [metadata-list get-text-selection-info!]]
             [cglossa.start :refer [start]]
             [cglossa.results :refer [results]]
             [cglossa.show-texts :refer [show-texts-modal]]
@@ -61,6 +61,7 @@
   (if-let [corpus (second (re-find #"(\w+)#?$" (.-location.href js/window)))]
     (go
       (<! (get-models (str corpus "/corpus") model-state app-state))
+      (get-text-selection-info! app-state model-state)
       (reset-queries! app-state model-state)
       (reset-results! app-state model-state))
     (reset! (:show-fatal-error app-state) "Please provide a corpus at the end of the url")))

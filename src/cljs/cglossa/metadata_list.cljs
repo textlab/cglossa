@@ -40,7 +40,7 @@
         (reset! num-selected-tokens (when body
                                       (js/parseInt body)))))))
 
-(defn- get-text-selection-info! [{:keys [text-selection-info]} {:keys [corpus search] :as m}]
+(defn get-text-selection-info! [{:keys [text-selection-info]} {:keys [corpus search] :as m}]
   (go
     (let [results-ch (http/post (str (:code @corpus) "/text-selection-info")
                                 {:json-params
