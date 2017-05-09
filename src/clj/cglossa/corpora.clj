@@ -1,5 +1,5 @@
 (ns cglossa.corpora
-  (:require [korma.core :refer [select* select fields modifier join where raw]]
+  (:require [korma.core :refer [select* select subselect fields modifier join where raw]]
             [cglossa.db.metadata :refer [metadata-category metadata-value metadata-value-text
                                          join-selected-values where-selected-values]]
             [korma.core :as korma]
@@ -21,8 +21,14 @@
                          (join :inner [metadata-value-text :j0] (= :j0.metadata_value_id :c.id))
                          (join :inner [metadata-value-text :j00] (= :j00.text_id :j0.text_id))
                          (join :inner [metadata-value :p] (= :j00.metadata_value_id :p.id))
-                         (where {:c.metadata_category_id 12})
-                         (where {:p.metadata_category_id 9})
+                         (where {:c.metadata_category_id
+                                 (subselect metadata-category
+                                            (fields :id)
+                                            (where {:code "country"}))})
+                         (where {:p.metadata_category_id
+                                 (subselect metadata-category
+                                            (fields :id)
+                                            (where {:code "place"}))})
                          (join-selected-values selected-metadata-ids)
                          (where-selected-values selected-metadata-ids)
                          select
