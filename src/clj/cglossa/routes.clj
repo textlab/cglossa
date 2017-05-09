@@ -21,7 +21,8 @@
                                          show-texts num-selected-texts result-metadata]]
             [cglossa.search.core :refer [search-corpus stats-corpus results geo-distr download-results]]
             [cglossa.db.corpus :refer [corpus]]
-            [cglossa.search.cwb.speech :refer [play-video]])
+            [cglossa.search.cwb.speech :refer [play-video]]
+            [cglossa.corpora :refer [text-selection-info]])
   (:import (java.io ByteArrayOutputStream)))
 
 (defn- hyphenize-keys
@@ -110,7 +111,11 @@
 
   (POST "/:corpus-code/num-tokens" [corpus-code queries selected-metadata-ids]
     (let [corpus (get-corpus {:code corpus-code})]
-      (transit-response (token-count-matching-metadata corpus queries selected-metadata-ids)))))
+      (transit-response (token-count-matching-metadata corpus queries selected-metadata-ids))))
+
+  (POST "/:corpus-code/text-selection-info" [corpus-code selected-metadata-ids]
+    (let [corpus (get-corpus {:code corpus-code})]
+      (transit-response (text-selection-info corpus selected-metadata-ids)))))
 
 (defroutes search-routes
   (POST "/:corpus-code/search" [corpus-code search-id queries metadata-ids step page-size last-count

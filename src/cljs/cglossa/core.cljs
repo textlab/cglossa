@@ -23,6 +23,7 @@
                     :show-metadata?      (r/atom nil)
                     :num-selected-texts  (r/atom nil)
                     :num-selected-tokens (r/atom nil)
+                    :text-selection-info (r/atom nil)
                     :show-texts?         (r/atom false)
                     :show-results?       (r/atom false)
                     :results-view        {:view-type               (r/atom :concordance)

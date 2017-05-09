@@ -40,12 +40,26 @@
         (reset! num-selected-tokens (when body
                                       (js/parseInt body)))))))
 
+(defn- get-text-selection-info! [{:keys [text-selection-info]} {:keys [corpus search] :as m}]
+  (go
+    (let [results-ch (http/post (str (:code @corpus) "/text-selection-info")
+                                {:json-params
+                                 {:selected-metadata-ids (selected-metadata-ids search)}})
+          {:keys [status success body]} (<! results-ch)]
+      (when (= status 401)
+        (reset! (:authenticated-user m) nil))
+      (if-not success
+        (.log js/console status)
+        (reset! text-selection-info body)))))
+
 (defn- metadata-selection-changed [a m]
   (count-selected-texts! a m)
   (count-selected-tokens! a m)
+  (get-text-selection-info! a m)
   (search! a m))
 
-(defn text-selection [{:keys [num-selected-texts num-selected-tokens]} {:keys [corpus]}]
+(defn text-selection [{:keys [num-selected-texts num-selected-tokens text-selection-info]}
+                      {:keys [corpus]}]
   (let [tid-type    (if (= (:search-engine @corpus) "cwb_speech") "informants" "texts")
         sel-texts   (if (or (nil? @num-selected-texts)
                             (= @num-selected-texts (:num-texts @corpus)))
@@ -57,7 +71,8 @@
                       corpus-size
                       (str @num-selected-tokens " of " corpus-size))]
     [:div {:style {:color "#676767"}}
-     (str sel-texts (:num-texts @corpus) " " tid-type " (" sel-tokens " tokens) selected")]))
+     (str sel-texts (:num-texts @corpus) " " tid-type " (" sel-tokens " tokens) selected"
+          @text-selection-info)]))
 
 (defn- metadata-select [a m corpus cat-id search selected open-metadata-cat]
   (r/create-class
