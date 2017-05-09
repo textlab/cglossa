@@ -80,9 +80,11 @@
         (let [cats (kdb/with-db (get @corpus-connections corpus-code) (get-metadata-categories))]
           (transit-response {:corpus              c
                              :metadata-categories cats
-                             :authenticated-user  (or (:displayName user-data) (:mail user-data)
-						      (:eduPersonPrincipalName user-data)
-						      (:eduPersonTargetedID user-data) (:id user-data))}))
+                             :authenticated-user  (or (:displayName user-data)
+                                                      (:mail user-data)
+                                                      (:eduPersonPrincipalName user-data)
+                                                      (:eduPersonTargetedID user-data)
+                                                      (:id user-data))}))
         {:status 404
          :body   (str "Corpus '" corpus-code "' not found.")})))
 
@@ -142,4 +144,4 @@
 ;; NOTE: Since this route does not specify anything other than the fact that the URL only contains
 ;; one part, it should be the last route we attempt to match to avoid "swallowing" other URLs
 (defroutes corpus-home
- (GET "/:corpus-code" [] (page)))
+  (GET "/:corpus-code" [] (page)))
