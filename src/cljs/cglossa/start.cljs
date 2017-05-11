@@ -27,5 +27,5 @@
    ;; query as their value.
    ^{:key @num-resets} [search-inputs a m]
    (when (:corpus-info @corpus)
-     [:div {:style {:margin-top 30}
+     [:div {:style {:margin-top 40}
             :dangerouslySetInnerHTML {"__html" (:corpus-info @corpus)}}])])
