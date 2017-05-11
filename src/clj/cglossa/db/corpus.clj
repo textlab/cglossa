@@ -14,6 +14,12 @@
   (> (-> corpus :languages count) 1))
 
 
+(defn- read-corpus-info [corpus]
+  (let [corpus-info-file (str "resources/corpus_info/" (:code corpus) ".html")]
+    (when (fs/exists? corpus-info-file)
+      (slurp corpus-info-file))))
+
+
 (defmulti extra-info
   "Allows additional info besides the one residing in the database to be
   gathered using a procedure determined by the corpus type."
@@ -97,6 +103,7 @@
                (if languages
                  (let [c*    (as-> c $
                                    (assoc $ :languages (edn/read-string languages))
+                                   (assoc $ :corpus-info (read-corpus-info $))
                                    (assoc $ :extra-info (extra-info $))
                                    (assoc $ :multicpu_bounds (edn/read-string multicpu_bounds))
                                    (assoc $ :num-texts (num-texts $))
@@ -106,8 +113,8 @@
                                                                      (:code $) "/video")))
                                    (assoc $ :geo-coords (let [path (str "resources/geo_coords/"
                                                                         (:code $) ".edn")]
-                                                         (when (fs/exists? path)
-                                                           (edn/read-string (slurp path))))))
+                                                          (when (fs/exists? path)
+                                                            (edn/read-string (slurp path))))))
                        mb    (:multicpu_bounds c*)
                        ncpus (.availableProcessors (Runtime/getRuntime))]
                    (if (and

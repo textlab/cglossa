@@ -14,7 +14,7 @@
        (let [logo-path (if (re-find #"^https?:" logo) logo (str "img/" logo))]
          [:img.corpus-logo {:src (str logo-path)}]))]]])
 
-(defn start [{:keys [num-resets] :as a} m]
+(defn start [{:keys [num-resets] :as a} {:keys [corpus] :as m}]
   [:div
    [:div.row
     [top-toolbar a m]]
@@ -25,4 +25,7 @@
    ;; (to prevent the cursor from jumping to the end when we edit them)
    ;; we need to re-mount them in order for them to set the new, blank
    ;; query as their value.
-   ^{:key @num-resets} [search-inputs a m]])
+   ^{:key @num-resets} [search-inputs a m]
+   (when (:corpus-info @corpus)
+     [:div {:style {:margin-top 30}
+            :dangerouslySetInnerHTML {"__html" (:corpus-info @corpus)}}])])
