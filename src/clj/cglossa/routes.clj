@@ -101,10 +101,9 @@
           (response/content-type "application/json")
           (response/charset "utf-8"))))
 
-  (POST "/:corpus-code/texts" [selected-metadata ncats page]
-    (let [ncats* (or ncats 1)
-          page*  (or page 1)]
-      (transit-response (show-texts selected-metadata ncats* page*) false)))
+  (POST "/:corpus-code/texts" [selected-metadata page]
+    (let [page*  (or page 1)]
+      (transit-response (show-texts selected-metadata page*) false)))
 
   (POST "/:corpus-code/num-texts" [selected-metadata-ids]
     (transit-response (num-selected-texts selected-metadata-ids)))

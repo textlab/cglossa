@@ -19,7 +19,6 @@
   (go (let [response (<! (http/post (str (:code @corpus) "/texts")
                                     {:json-params
                                      {:selected-metadata (:metadata @search)
-                                      :ncats             (count @metadata-categories)
                                       :page              page}}))
             {:keys [rows max-pages] :as body} (:body response)]
         (if (http/unexceptional-status? (:status response))

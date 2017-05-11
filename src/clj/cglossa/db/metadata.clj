@@ -89,31 +89,27 @@
     {:results res
      :more?   more?}))
 
-(defn show-texts [selected-metadata ncats page]
+(defn show-texts [selected-metadata page]
   (let [mdata     (remove (fn [[_ ids]] (nil? ids)) selected-metadata)
-        pagesize  (* show-texts-pagesize ncats)
-        offs      (* (dec page) pagesize)
-        lim       pagesize
+        offs      (* (dec page) show-texts-pagesize)
         res       (-> (select* metadata-value)
                       (fields :j0.text_id :metadata_category_id :text_value)
-                      (modifier "SQL_CALC_FOUND_ROWS")
                       (join :inner [metadata-value-text :j0] (= :j0.metadata_value_id :id))
                       (join-selected-values mdata)
                       (where-selected-values mdata)
                       (order :j0.text_id)
                       (order :metadata_category_id)
-                      (limit lim)
-                      (offset offs)
                       (select))
         rows      (->> res
                        (partition-by :text_id)
                        (map (fn [text]
                               (into {} (map (fn [value]
                                               [(:metadata_category_id value) (:text_value value)])
-                                            text)))))
-        total     (-> (korma.core/exec-raw "SELECT FOUND_ROWS() AS total" :results) first :total)
-        max-pages (-> (/ total pagesize) Math/ceil int)]
-    {:rows      rows
+                                            text))))
+                       (sort-by #(get % 1)))
+        total     (count rows)
+        max-pages (-> (/ total show-texts-pagesize) Math/ceil int)]
+    {:rows      (->> rows (drop offs) (take show-texts-pagesize))
      :max-pages max-pages}))
 
 (defn num-selected-texts [selected-metadata-ids]
