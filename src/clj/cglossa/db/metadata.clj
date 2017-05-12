@@ -89,7 +89,7 @@
     {:results res
      :more?   more?}))
 
-(defn show-texts [selected-metadata page]
+(defn show-texts [selected-metadata page sort-column-id sort-ascending?]
   (let [mdata     (remove (fn [[_ ids]] (nil? ids)) selected-metadata)
         offs      (* (dec page) show-texts-pagesize)
         res       (-> (select* metadata-value)
@@ -106,7 +106,8 @@
                               (into {} (map (fn [value]
                                               [(:metadata_category_id value) (:text_value value)])
                                             text))))
-                       (sort-by #(get % 1)))
+                       (sort-by #(get % (or sort-column-id 1))
+                                (if sort-ascending? compare #(compare %2 %1))))
         total     (count rows)
         max-pages (-> (/ total show-texts-pagesize) Math/ceil int)]
     {:rows      (->> rows (drop offs) (take show-texts-pagesize))

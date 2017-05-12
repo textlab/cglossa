@@ -14,12 +14,18 @@
   (or name (-> code (str/replace "_" " ") str/capitalize)))
 
 (defn- get-external-data [{:keys [corpus metadata-categories search] :as m}
-                          results loading? mxpages cur-page page]
+                          sort-column sort-ascending? results loading? mxpages cur-page page]
   (reset! loading? true)
-  (go (let [response (<! (http/post (str (:code @corpus) "/texts")
-                                    {:json-params
-                                     {:selected-metadata (:metadata @search)
-                                      :page              page}}))
+  (go (let [sort-column-id (->> @metadata-categories
+                                (filter #(= (:name %) @sort-column))
+                                first
+                                :id)
+            response       (<! (http/post (str (:code @corpus) "/texts")
+                                          {:json-params
+                                           {:selected-metadata (:metadata @search)
+                                            :page              page
+                                            :sort-column-id    sort-column-id
+                                            :sort-ascending?   @sort-ascending?}}))
             {:keys [rows max-pages] :as body} (:body response)]
         (if (http/unexceptional-status? (:status response))
           (let [extra-col-name (:name (show-texts-extra-col-name corpus))
@@ -55,6 +61,7 @@
         external-sort-column      (r/atom nil)
         external-sort-ascending   (r/atom true)
         get-data                  (partial get-external-data m
+                                           external-sort-column external-sort-ascending
                                            results loading? max-pages current-page)]
     (r/create-class
       {:display-name
@@ -65,8 +72,8 @@
 
        :reagent-render
        (fn [a {:keys [corpus metadata-categories]}]
-         (let [fetched-pages     (atom #{})
-               extra-column-name (show-texts-extra-col-name corpus)]
+         (r/with-let [fetched-pages (atom #{})
+                      extra-column-name (show-texts-extra-col-name corpus)]
            [:div.show-texts-popup
             [b/modal {:show              true
                       :on-hide           hide
@@ -101,10 +108,15 @@
                                               (when-not (contains? @fetched-pages page)
                                                 (swap! fetched-pages conj page)
                                                 (get-data page)))
-                :enable-sort                false
+                :enable-sort                true
                 :external-set-page-size     #()
                 :external-max-page          (inc @max-pages)
-                :external-change-sort       #()
+                :external-change-sort       (fn [column, ascending?]
+                                              (reset! external-sort-column column)
+                                              (reset! external-sort-ascending ascending?)
+                                              (reset! results [])
+                                              (reset! fetched-pages #{})
+                                              (reset! current-page 0))
                 :external-set-filter        #()
                 :external-current-page      @current-page
                 :results                    @results
