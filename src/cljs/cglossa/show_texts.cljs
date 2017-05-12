@@ -16,10 +16,10 @@
 (defn- get-external-data [{:keys [corpus metadata-categories search] :as m}
                           sort-column sort-ascending? results loading? mxpages cur-page page]
   (reset! loading? true)
-  (go (let [sort-column-id (->> @metadata-categories
-                                (filter #(= (:name %) @sort-column))
-                                first
-                                :id)
+  (go (let [sort-column-id (and @sort-column (->> @metadata-categories
+                                                  (filter #(= (:name %) @sort-column))
+                                                  first
+                                                  :id))
             response       (<! (http/post (str (:code @corpus) "/texts")
                                           {:json-params
                                            {:selected-metadata (:metadata @search)
