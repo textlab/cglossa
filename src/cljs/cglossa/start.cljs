@@ -1,5 +1,6 @@
 (ns cglossa.start
-  (:require [cglossa.search-views.shared :refer [search-inputs]]
+  (:require [clojure.string :as str]
+            [cglossa.search-views.shared :refer [search-inputs]]
             [cglossa.shared :refer [top-toolbar]]
             [cglossa.react-adapters.bootstrap :as b]))
 
@@ -9,7 +10,8 @@
   [:div.row.corpus-info>div.col-sm-12
    [:div.well {:style {:background-image "url()"}}
     [:h2
-     (:name @corpus)
+     (for [part (-> @corpus :name (str/split #"<br/?>"))]
+       ^{:key part} [:div {:style {:margin-bottom 8}} part])
      (when-let [logo (:logo @corpus)]
        (let [logo-path (if (re-find #"^https?:" logo) logo (str "img/" logo))]
          [:img.corpus-logo {:src (str logo-path)}]))]]])
