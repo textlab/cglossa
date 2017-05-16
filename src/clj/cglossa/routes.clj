@@ -23,6 +23,8 @@
             [cglossa.db.corpus :refer [corpus]]
             [cglossa.search.cwb.speech :refer [play-video]]
             [cglossa.corpora :refer [text-selection-info]])
+            [cglossa.search.cwb.speech :refer [play-video]]
+            [cglossa.search.fcs :as fcs])
   (:import (java.io ByteArrayOutputStream)))
 
 (defn- hyphenize-keys
@@ -143,7 +145,10 @@
 
   (POST "/:corpus-code/download-results" [corpus-code search-id cpu-counts format headers?
                                           attrs context-size]
-    (download-results corpus-code search-id cpu-counts format headers? attrs context-size)))
+    (download-results corpus-code search-id cpu-counts format headers? attrs context-size))
+
+  (GET "/fcs/:corpus-code" [corpus-code operation query maximumRecords]
+    (fcs/search-local corpus-code operation query maximumRecords)))
 
 ;; NOTE: Since this route does not specify anything other than the fact that the URL only contains
 ;; one part, it should be the last route we attempt to match to avoid "swallowing" other URLs

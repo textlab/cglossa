@@ -5,39 +5,17 @@
             [clojure.edn :as edn]
             [cglossa.shared :refer [core-db]]
             [cglossa.db.corpus :refer [get-corpus]]
+            [cglossa.search.shared :refer [corpus search create-search! search-corpus
+                                           run-queries transform-results search-by-id]]
             [cglossa.search.download :as download]))
-
-(defentity corpus)
-(defentity search)
-
-(defmulti run-queries
-  "Multimethod for actually running the received queries in a way that is
-  appropriate for the search engine of the corpus in question."
-  (fn [corpus _ _ _ _ _ _ _ _ _] (:search_engine corpus)))
 
 (defmulti get-results
   (fn [corpus _ _ _ _ _ _ _ _] [(:search_engine corpus) (seq (:multicpu_bounds corpus))]))
-
-(defmulti transform-results
-  "Multimethod for transforming search results in a way that is
-  appropriate for the search engine of the corpus in question."
-  (fn [corpus _ _] (:search_engine corpus)))
 
 (defmulti geo-distr-queries
   "Multimethod for running a query and returning geographical distribution of
    results."
   (fn [corpus _ _] (:search_engine corpus)))
-
-(defn- create-search! [corpus-code queries]
-  (kdb/with-db core-db
-    (let [{corpus-id :id} (first (select corpus (fields :id) (where {:code corpus-code})))]
-      (insert search (values {:corpus_id corpus-id
-                              :user_id   1
-                              :queries   (pr-str queries)})))))
-
-(defn- search-by-id [id]
-  (kdb/with-db core-db
-    (first (select search (where {:id id})))))
 
 (defn stats-corpus [corpus-code search-id queries metadata-ids step page-size last-count
                     context-size sort-key freq-attr]
@@ -51,21 +29,6 @@
         s          (search-by-id search-id*)]
     {:search     s
      :results    hits
-     ;; Sum of the number of hits found by the different cpus in this search step
-     :count      cnt
-     ;; Number of hits found by each cpus in this search step
-     :cpu-counts cnts}))
-
-(defn search-corpus [corpus-code search-id queries metadata-ids step page-size last-count
-                     context-size sort-key]
-  (let [corpus     (get-corpus {:code corpus-code})
-        search-id* (or search-id (:generated_key (create-search! corpus-code queries)))
-        [hits cnt cnts] (run-queries corpus search-id* queries metadata-ids step
-                                     page-size last-count context-size sort-key nil)
-        results    (transform-results corpus queries hits)
-        s          (search-by-id search-id*)]
-    {:search     s
-     :results    results
      ;; Sum of the number of hits found by the different cpus in this search step
      :count      cnt
      ;; Number of hits found by each cpus in this search step
