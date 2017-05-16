@@ -6,8 +6,8 @@
                                           fields where]]
             [cglossa.shared :refer [corpus-connections]]
             [cglossa.db.corpus :refer [extra-info get-corpus]]
-            [cglossa.search.core :refer [run-queries get-results transform-results
-                                         geo-distr-queries]]
+            [cglossa.search.shared :refer [run-queries transform-results]]
+            [cglossa.search.core :refer [get-results geo-distr-queries]]
             [cglossa.search.cwb.shared :refer [cwb-query-name cwb-corpus-name run-cqp-commands
                                                construct-query-commands token-count-matching-metadata
                                                print-empty-metadata-selection-positions

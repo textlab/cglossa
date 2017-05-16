@@ -12,17 +12,19 @@
             [ring.util.response :as response]
             [ring.handler.dump :refer [handle-dump]]
             [cognitect.transit :as transit]
-            [net.cgrand.enlive-html :refer [deftemplate html-content clone-for set-attr content]]
+            [net.cgrand.enlive-html :refer [deftemplate html-content clone-for set-attr content
+                                            xml-resource]]
             [taoensso.timbre :as timbre]
             [cglossa.shared :refer [core-db corpus-connections]]
             [cglossa.search.cwb.shared :refer [token-count-matching-metadata]]
             [cglossa.db.corpus :refer [get-corpus]]
             [cglossa.db.metadata :refer [get-metadata-categories get-metadata-values
                                          show-texts num-selected-texts result-metadata]]
-            [cglossa.search.core :refer [search-corpus stats-corpus results geo-distr download-results]]
+            [cglossa.search.core :refer [stats-corpus results geo-distr download-results]]
             [cglossa.db.corpus :refer [corpus]]
             [cglossa.search.cwb.speech :refer [play-video]]
-            [cglossa.corpora :refer [text-selection-info]])
+            [cglossa.corpora :refer [text-selection-info]]
+            [cglossa.search.shared :refer [search-corpus]]
             [cglossa.search.cwb.speech :refer [play-video]]
             [cglossa.search.fcs :as fcs])
   (:import (java.io ByteArrayOutputStream)))
@@ -67,6 +69,30 @@
     (str "<tr><td style=\"width: 350px;\">AA</td>"
          "<td><button class=\"btn btn-danger btn-xs\">Delete</td></tr>")))
 
+(deftemplate xml-results (xml-resource "results.xml") [corpus-code cnt results]
+  [:sru:numberOfRecords] (html-content cnt)
+  [:sru:records] (html-content
+                   (str \newline
+                        (str/join
+                          (for [result results]
+                            (str
+"        <sru:record>
+             <sru:recordSchema>http://clarin.eu/fcs/1.0</sru:recordSchema>
+             <sru:recordPacking>xml</sru:recordPacking>
+             <sru:recordData>
+                 <fcs:Resource pid=\"https://tekstlab.uio.no/glossa2/fcs/" corpus-code "#" (:s_id result) \" ">
+                      <fcs:DataView type=\"application/x-clarin-fcs-kwic+xml\">
+                          <kwic:kwic>
+                              <kwic:c type=\"left\">" (:left result) "</kwic:c>
+                              <kwic:kw>" (:keyword result) "</kwic:kw>
+                              <kwic:c type=\"right\">" (:right result) "</kwic:c>
+                          </kwic:kwic>
+                      </fcs:DataView>
+                  </fcs:Resource>
+              </sru:recordData>
+        </sru:record>\n"
+                          ))))))
+
 (defroutes app-routes
   (files "/" {:root "resources/public" :mime-types {"tsv" "text/tab-separated-values"}})
   (files "/:corpus-code/" {:root "resources/public" :mime-types {"tsv" "text/tab-separated-values"}})
@@ -104,7 +130,7 @@
           (response/charset "utf-8"))))
 
   (POST "/:corpus-code/texts" [selected-metadata page sort-column-id sort-ascending?]
-    (let [page*  (or page 1)]
+    (let [page* (or page 1)]
       (transit-response (show-texts selected-metadata page* sort-column-id sort-ascending?) false)))
 
   (POST "/:corpus-code/num-texts" [selected-metadata-ids]
@@ -148,7 +174,10 @@
     (download-results corpus-code search-id cpu-counts format headers? attrs context-size))
 
   (GET "/fcs/:corpus-code" [corpus-code operation query maximumRecords]
-    (fcs/search-local corpus-code operation query maximumRecords)))
+    (let [{:keys [cnt results]} (fcs/search-local corpus-code operation query maximumRecords)]
+      {:status  200
+       :headers {"Content-Type" "text/xml;charset=utf-8"}
+       :body    (xml-results corpus-code cnt results)})))
 
 ;; NOTE: Since this route does not specify anything other than the fact that the URL only contains
 ;; one part, it should be the last route we attempt to match to avoid "swallowing" other URLs

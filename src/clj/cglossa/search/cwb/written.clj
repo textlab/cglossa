@@ -5,7 +5,8 @@
             [clojure.core.async :as async :refer [<!!]]
             [me.raynes.fs :as fs]
             [korma.core :as korma :refer [select select* where order raw aggregate]]
-            [cglossa.search.core :refer [run-queries get-results transform-results]]
+            [cglossa.search.shared :refer [run-queries transform-results]]
+            [cglossa.search.core :refer [get-results]]
             [cglossa.search.cwb.shared :refer [cwb-query-name cwb-corpus-name run-cqp-commands
                                                construct-query-commands token-count-matching-metadata
                                                position-fields-for-outfile

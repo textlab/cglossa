@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<sru:searchRetrieveResponse xmlns:sru="http://www.loc.gov/zing/srw/" xmlns:fcs="http://clarin.eu/fcs/1.0" xmlns:kwic="http://clarin.eu/fcs/1.0/kwic">
+    <sru:version>1.2</sru:version>
+    <sru:numberOfRecords></sru:numberOfRecords>
+    <sru:records>
+    </sru:records>
+</sru:searchRetrieveResponse>
