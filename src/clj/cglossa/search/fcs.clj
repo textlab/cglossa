@@ -2,6 +2,7 @@
   (:require [clojure.string :as str]
             [clojure.edn :as edn]
             [cglossa.search.shared :refer [search-corpus run-queries]]
+            [cglossa.search.core :refer [get-results]]
             [org.httpkit.client :as http]))
 
 (def SRUCQL_VERSION "1.2")
@@ -55,20 +56,18 @@
      :body    "No recognizable operation provided"}))
 
 
-(defmethod run-queries "fcs"
-  [corpus search-id queries metadata-ids step
-   page-size last-count context-size sort-key cmd]
+(defn- do-remote-search [corpus queries start end]
   (let [codes   (->> corpus :remote_urls edn/read-string (map :code))
         urls    (->> corpus :remote_urls edn/read-string (map :url))
         query   (->> queries first :query (re-find #"word=\"(.*?)\"") second)
         params  {:version        SRUCQL_VERSION
                  :operation      "searchRetrieve"
                  :query          query
-                 :startRecord    1
-                 :maximumRecords (* 2 page-size)}
+                 :startRecord    start
+                 :maximumRecords end}
         ;; send the request concurrently (asynchronously)
-        futures (doall (map #(http/get % {:as :text,
-                                          :headers {"Accept" "text/html,application/xhtml+xml,application/xml"}
+        futures (doall (map #(http/get % {:as           :text,
+                                          :headers      {"Accept" "text/html,application/xhtml+xml,application/xml"}
                                           :query-params params})
                             urls))
         ;; wait for server response synchronously
@@ -83,7 +82,7 @@
                         0 bodies)
         hits    (->> bodies
                      (map (partial re-seq #"(?s)<(\w+:)?Resource(.+?)<\/\1Resource>"))
-                     (map (partial take (/ page-size (count bodies))))
+                     (map (partial take (/ (/ (- end start) 2) (count bodies))))
                      (map-indexed
                        (fn [index body-resources]
                          (map
@@ -98,3 +97,12 @@
                            body-resources)))
                      (apply concat))]
     [hits cnt [cnt]]))
+
+
+(defmethod run-queries "fcs"
+  [corpus search-id queries metadata-ids step
+   page-size last-count context-size sort-key cmd]
+  (do-remote-search corpus queries 1 (* 2 page-size)))
+
+(defmethod get-results ["fcs" nil] [corpus _ queries start end _ _ _ _]
+  (do-remote-search corpus queries start end))
