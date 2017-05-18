@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS `corpus` (
 `logo` varchar(255),
 `search_engine` varchar(255) DEFAULT 'cwb',
 `languages` text,
-`multicpu_bounds` text
+`multicpu_bounds` text,
+`remote_urls` text
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `search` (
