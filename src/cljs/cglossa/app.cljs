@@ -11,7 +11,8 @@
             [cglossa.results :refer [results]]
             [cglossa.show-texts :refer [show-texts-modal]]
             [cglossa.shared :refer [reset-queries! reset-results!]]
-            [cglossa.react-adapters.bootstrap :as b]))
+            [cglossa.react-adapters.bootstrap :as b]
+            [clojure.string :as str]))
 
 (env/def
   SAML_LOGOUT_URL nil)
@@ -22,7 +23,7 @@
    (when @show-results?
      ;; Only show corpus name in the header when showing results, since
      ;; it is shown in big letters on the front page
-     [b/navbar-text (:name @corpus)])
+     [b/navbar-text (str/replace (:name @corpus) #"<br/?>", "; ")])
    [extra-navbar-items corpus]
    [:span.navbar-right.hidden-xs {:style {:margin-top 10}}
     (if (nil? @authenticated-user)
