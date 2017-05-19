@@ -14,7 +14,8 @@
                             (let [key      "PRIVATE"
                                   url      "https://www.googleapis.com/language/translate/v2"
                                   text     (str/join " " (:full-text result))
-                                  response (<! (http/get url {:query-params {:key    key
+                                  response (<! (http/get url {:with-credentials? false
+                                                              :query-params {:key    key
                                                                              :target "en"
                                                                              :q      text}}))
                                   trans    (get-in response [:body :data :translations 0 :translatedText])]
