@@ -13,7 +13,7 @@
             [ring.handler.dump :refer [handle-dump]]
             [cognitect.transit :as transit]
             [net.cgrand.enlive-html :refer [deftemplate html-content clone-for set-attr content
-                                            xml-resource]]
+                                            xml-resource transform substitute]]
             [taoensso.timbre :as timbre]
             [cglossa.shared :refer [core-db corpus-connections]]
             [cglossa.search.cwb.shared :refer [token-count-matching-metadata]]
@@ -76,36 +76,32 @@
 
 (deftemplate xml-results (xml-resource "results.xml") [corpus-code cnt results]
   [:sru:numberOfRecords] (html-content cnt)
-  [:sru:records] (html-content
-                   (str \newline
-                        (str/join
-                          (for [result results]
-                            (str
-"        <sru:record>
-             <sru:recordSchema>http://clarin.eu/fcs/1.0</sru:recordSchema>
-             <sru:recordPacking>xml</sru:recordPacking>
-             <sru:recordData>
-                 <fcs:Resource pid=\"https://tekstlab.uio.no/glossa2/fcs/" corpus-code "#" (:s_id result) \" ">
-                      <fcs:DataView type=\"application/x-clarin-fcs-kwic+xml\">
-                          <kwic:kwic>
-                              <kwic:c type=\"left\">" (:left result) "</kwic:c>
-                              <kwic:kw>" (:keyword result) "</kwic:kw>
-                              <kwic:c type=\"right\">" (:right result) "</kwic:c>
-                          </kwic:kwic>
-                      </fcs:DataView>
-                  </fcs:Resource>
-              </sru:recordData>
-        </sru:record>\n"
-                          ))))))
+  [:sru:record] (clone-for [i (range (count results))]
+                           (substitute (-> (xml-resource "sru_record.xml")
+                                           (transform
+                                             [:fcs:Resource]
+                                             (set-attr :pid
+                                                       (str "https://tekstlab.uio.no/glossa2/fcs/#"
+                                                            (:s_id (nth results i)))))
+                                           (transform
+                                             [:hits:Result]
+                                             (html-content (str (:left (nth results i))
+                                                                " <hits:Hit>"
+                                                                (:keyword (nth results i))
+                                                                "</hits:Hit>"
+                                                                (:right (nth results i)))))
+                                           (transform
+                                             [:sru:recordPosition]
+                                             (html-content (inc i))))))
 
-(defroutes app-routes
-  (files "/" {:root "resources/public" :mime-types {"tsv" "text/tab-separated-values"}})
-  (files "/:corpus-code/" {:root "resources/public" :mime-types {"tsv" "text/tab-separated-values"}})
-  (resources "/" {:mime-types {"tsv" "text/tab-separated-values"}})
-  (resources "/:corpus-code/" {:mime-types {"tsv" "text/tab-separated-values"}})
-  (GET "/:corpus-code/request" [] handle-dump)
-  ;(GET "/admin" req (admin))
-  (GET "/" [] (front)))
+  (defroutes app-routes
+    (files "/" {:root "resources/public" :mime-types {"tsv" "text/tab-separated-values"}})
+    (files "/:corpus-code/" {:root "resources/public" :mime-types {"tsv" "text/tab-separated-values"}})
+    (resources "/" {:mime-types {"tsv" "text/tab-separated-values"}})
+    (resources "/:corpus-code/" {:mime-types {"tsv" "text/tab-separated-values"}})
+    (GET "/:corpus-code/request" [] handle-dump)
+    ;(GET "/admin" req (admin))
+    (GET "/" [] (front))))
 
 (defroutes db-routes
   (GET "/:corpus-code/corpus" [corpus-code :as {user-data :user-data}]

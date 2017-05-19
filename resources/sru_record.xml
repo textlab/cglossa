@@ -1,0 +1,15 @@
+<sru:record>
+    <sru:recordSchema>http://clarin.eu/fcs/resource</sru:recordSchema>
+    <sru:recordPacking>xml</sru:recordPacking>
+    <sru:recordData>
+        <fcs:Resource xmlns:fcs="http://clarin.eu/fcs/resource">
+            <fcs:ResourceFragment>
+                <fcs:DataView type="application/x-clarin-fcs-kwic+xml">
+                    <hits:Result xmlns:hits="http://clarin.eu/fcs/dataview/hits">
+                    </hits:Result>
+                </fcs:DataView>
+            </fcs:ResourceFragment>
+        </fcs:Resource>
+    </sru:recordData>
+    <sru:recordPosition></sru:recordPosition>
+</sru:record>
