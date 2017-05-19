@@ -59,7 +59,9 @@
 
 (deftemplate page (io/resource "index.html") [])
 (deftemplate front (io/resource "front.html") []
-  [:#corpus-entry] (clone-for [corp (kdb/with-db core-db (select corpus (fields :code :name)))]
+  [:#corpus-entry] (clone-for [corp (kdb/with-db core-db (select corpus
+                                                                 (fields :code :name)
+                                                                 (where {:hidden false})))]
                               [:li :a] (content (-> corp
                                                     :name
                                                     (str/replace #":\s*<br/?>" ": ")

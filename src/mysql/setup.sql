@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS `corpus` (
 `search_engine` varchar(255) DEFAULT 'cwb',
 `languages` text,
 `multicpu_bounds` text,
-`remote_urls` text
+`remote_urls` text,
+`hidden` bool default false
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `search` (
