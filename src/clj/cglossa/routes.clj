@@ -92,16 +92,16 @@
                                                                 (:right (nth results i)))))
                                            (transform
                                              [:sru:recordPosition]
-                                             (html-content (inc i))))))
+                                             (html-content (inc i)))))))
 
-  (defroutes app-routes
-    (files "/" {:root "resources/public" :mime-types {"tsv" "text/tab-separated-values"}})
-    (files "/:corpus-code/" {:root "resources/public" :mime-types {"tsv" "text/tab-separated-values"}})
-    (resources "/" {:mime-types {"tsv" "text/tab-separated-values"}})
-    (resources "/:corpus-code/" {:mime-types {"tsv" "text/tab-separated-values"}})
-    (GET "/:corpus-code/request" [] handle-dump)
-    ;(GET "/admin" req (admin))
-    (GET "/" [] (front))))
+(defroutes app-routes
+  (files "/" {:root "resources/public" :mime-types {"tsv" "text/tab-separated-values"}})
+  (files "/:corpus-code/" {:root "resources/public" :mime-types {"tsv" "text/tab-separated-values"}})
+  (resources "/" {:mime-types {"tsv" "text/tab-separated-values"}})
+  (resources "/:corpus-code/" {:mime-types {"tsv" "text/tab-separated-values"}})
+  (GET "/:corpus-code/request" [] handle-dump)
+  ;(GET "/admin" req (admin))
+  (GET "/" [] (front)))
 
 (defroutes db-routes
   (GET "/:corpus-code/corpus" [corpus-code :as {user-data :user-data}]
