@@ -11,7 +11,7 @@
 (defmulti run-queries
   "Multimethod for actually running the received queries in a way that is
   appropriate for the search engine of the corpus in question."
-  (fn [corpus _ _ _ _ _ _ _ _ _] (:search_engine corpus)))
+  (fn [corpus _ _ _ _ _ _ _ _ _ _] (:search_engine corpus)))
 
 
 (defmulti transform-results
@@ -34,11 +34,12 @@
 
 
 (defn search-corpus [corpus-code search-id queries metadata-ids step page-size last-count
-                     context-size sort-key]
+                     context-size sort-key num-random-hits]
   (let [corpus     (get-corpus {:code corpus-code})
         search-id* (or search-id (:generated_key (create-search! corpus-code queries)))
         [hits cnt cnts] (run-queries corpus search-id* queries metadata-ids step
-                                     page-size last-count context-size sort-key nil)
+                                     page-size last-count context-size sort-key
+                                     num-random-hits nil)
         results    (transform-results corpus queries hits)
         s          (search-by-id search-id*)]
     {:search     s

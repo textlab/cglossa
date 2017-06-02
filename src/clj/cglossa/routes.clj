@@ -147,9 +147,10 @@
 
 (defroutes search-routes
   (POST "/:corpus-code/search" [corpus-code search-id queries metadata-ids step page-size last-count
-                                context-size sort-key]
+                                context-size sort-key num-random-hits]
     (transit-response (search-corpus corpus-code search-id queries metadata-ids
-                                     step page-size last-count context-size sort-key) false))
+                                     step page-size last-count context-size sort-key
+                                     num-random-hits) false))
 
   (POST "/:corpus-code/stats" [corpus-code search-id queries metadata-ids step page-size last-count
                                context-size sort-key freq-attr]

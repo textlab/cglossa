@@ -72,7 +72,7 @@
   sql)
 
 (defmethod run-queries "cwb_speech" [corpus search-id queries metadata-ids _
-                                     page-size _ _ sort-key cmd]
+                                     page-size _ _ sort-key num-random-hits cmd]
   (let [named-query (cwb-query-name corpus search-id)
         startpos    0
         endpos      (corpus-size corpus queries)
@@ -81,6 +81,8 @@
                      (construct-query-commands corpus queries metadata-ids named-query
                                                search-id startpos endpos
                                                :s-tag "sync_time")
+                     (when num-random-hits
+                       (str "reduce " named-query " to " num-random-hits))
                      (str "save " named-query)
                      (str "set Context 1 sync_time")
                      "set PrintStructures \"who_name\""
@@ -89,9 +91,11 @@
                      (displayed-attrs-command corpus queries nil)
                      "show +who_name"
                      ;; Return the total number of search results...
-                     "size Last"
+                     (str "size " named-query)
                      ;; ...as well as two pages of actual results
-                     (if cmd cmd (str "cat Last 0 " (dec (* 2 page-size))))]
+                     (if cmd
+                       cmd
+                       (str "cat " named-query " 0 " (dec (* 2 page-size))))]
         [hits cnt-str] (run-cqp-commands corpus (filter identity (flatten commands)) true)
         cnt         (Integer/parseInt cnt-str)]
     ;; Since we dont't currently do multi-cpu processing of speech corpora,

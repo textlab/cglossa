@@ -60,9 +60,10 @@
                                           :geo-map                 {:geo-data       (r/atom nil)
                                                                     :colored-phons  (r/atom nil)
                                                                     :selected-color (r/atom nil)}}
-                    :search-view         {:view-type (r/atom :simple)
-                                          :queries   (r/atom nil)
-                                          :query-ids (r/atom nil)}
+                    :search-view         {:view-type       (r/atom :simple)
+                                          :queries         (r/atom nil)
+                                          :query-ids       (r/atom nil)
+                                          :num-random-hits (r/atom nil)}
                     :searching?          (r/atom false)
                     :open-metadata-cat   (r/atom nil)
                     :num-resets          (r/atom 0)})
