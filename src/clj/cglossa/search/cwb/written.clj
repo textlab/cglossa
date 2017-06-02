@@ -245,4 +245,24 @@
           num-langs     (if (some #{"org" "korr"} queried-langs)
                           2
                           (count queried-langs))]
-      (map (fn [lines] {:text lines}) (partition num-langs results)))))
+      (map
+        (fn [lines]
+          (let [ls (map
+                     (fn [line]
+                       ;; Get rid of spaces in multiword expressions. Assuming that attribute
+                       ;; values never contain spaces, we can further assume that if we find
+                       ;; several spaces between slashes, only the first one separates tokens
+                       ;; and the remaining ones are actually inside the token and should be
+                       ;; replaced by underscores.
+                       (-> line
+                           ;; Fractions containing spaces (e.g. "1 / 2") need to be handled
+                           ;; separately because the presence of a slash confuses the normal
+                           ;; regexes
+                           (str/replace #" (\d+) / (\d+)" " $1/$2")
+                           (str/replace #" ([^/<>\s]+) ([^/<>\s]+) ([^/<>\s]+)(/\S+/)"
+                                        " $1_$2_$3$4")
+                           (str/replace #" ([^/<>\s]+) ([^/<>\s]+)(/\S+/)"
+                                        " $1_$2$3")))
+                     lines)]
+            {:text ls}))
+        (partition num-langs results)))))
