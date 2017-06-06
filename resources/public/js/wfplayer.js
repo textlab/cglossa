@@ -12,7 +12,7 @@
       start = mediaObj.divs.annotation[this.props.startAt || parseInt(mediaObj.startAt)].from;
       stop = mediaObj.divs.annotation[this.props.endAt || parseInt(mediaObj.endAt)].to;
       corpusCode = mediaObj.mov.path.match(/.+\/(.+)/)[1];
-      return $node.find("#waveframe").attr('src', "https://www.tekstlab.uio.no/glossa2/wfplayer-" + corpusCode + "-" + lineKey + "-" + start + "-" + stop);
+      return $node.find("#waveframe").attr('src', "https://tekstlab.uio.no/wave/wfplayer-" + corpusId + "-" + lineKey + "-" + start + "-" + stop);
     },
 
     render: function() {
