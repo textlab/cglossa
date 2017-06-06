@@ -22,7 +22,7 @@
   (let [corpus     (get-corpus {:code corpus-code})
         search-id* (or search-id (:generated_key (create-search! corpus-code queries)))
         [hits cnt cnts] (run-queries corpus search-id* queries metadata-ids 1
-                                     1000000 last-count context-size sort-key
+                                     1000000 last-count context-size sort-key nil
                                      (str "tabulate Last "
                                           (str/join ", " (map #(str "match .. matchend " (name %)) freq-attr))
                                           " >\"|LC_ALL=C awk '{f[$0]++}END{for(k in f){print f[k], k}}' |LC_ALL=C sort -nr\""))
