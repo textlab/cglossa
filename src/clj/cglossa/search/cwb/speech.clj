@@ -72,7 +72,7 @@
   sql)
 
 (defmethod run-queries "cwb_speech" [corpus search-id queries metadata-ids _
-                                     page-size _ _ sort-key num-random-hits cmd]
+                                     page-size _ _ sort-key num-random-hits random-hits-seed cmd]
   (let [named-query (cwb-query-name corpus search-id)
         startpos    0
         endpos      (corpus-size corpus queries)
@@ -82,7 +82,10 @@
                                                search-id startpos endpos
                                                :s-tag "sync_time")
                      (when num-random-hits
-                       (str "reduce " named-query " to " num-random-hits))
+                       (let [seed-str (when random-hits-seed
+                                        (str "randomize " random-hits-seed))]
+                         [seed-str
+                          (str "reduce " named-query " to " num-random-hits)]))
                      (str "save " named-query)
                      (str "set Context 1 sync_time")
                      "set PrintStructures \"who_name\""

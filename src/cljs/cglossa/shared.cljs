@@ -222,7 +222,7 @@
   ([a {:keys [corpus] :as m}]
     ;; Do three search steps only if multicpu_bounds is defined for this corpus
    (search! a m (if (:multicpu-bounds @corpus) 3 1)))
-  ([{{:keys [queries num-random-hits]}                                 :search-view
+  ([{{:keys [queries num-random-hits random-hits-seed]}                :search-view
      {:keys [total context-size sort-key] {:keys [geo-data]} :geo-map} :results-view
      searching?                                                        :searching?
      show-results?                                                     :show-results?
@@ -240,12 +240,13 @@
        (let [q            (queries->param @corpus @queries)
              url          (str (:code @corpus) "/search")
              sel-metadata (selected-metadata-ids search)
-             params       {:queries         q
-                           :metadata-ids    sel-metadata
-                           :page-size       page-size
-                           :context-size    @context-size
-                           :sort-key        @sort-key
-                           :num-random-hits @num-random-hits}]
+             params       {:queries          q
+                           :metadata-ids     sel-metadata
+                           :page-size        page-size
+                           :context-size     @context-size
+                           :sort-key         @sort-key
+                           :num-random-hits  @num-random-hits
+                           :random-hits-seed @random-hits-seed}]
          (reset! show-results? true)
          (reset! searching? true)
          (reset! total nil)

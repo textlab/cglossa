@@ -278,7 +278,8 @@
      focus-text-input
 
      :reagent-render
-     (fn [{{:keys [view-type queries query-ids num-random-hits]} :search-view :as a}
+     (fn [{{:keys [view-type queries query-ids
+                   num-random-hits random-hits-seed]} :search-view :as a}
           {:keys [corpus] :as m}]
        (let [view          (case @view-type
                              :extended extended
@@ -375,4 +376,13 @@
                                                    (js/parseInt (.-target.value e)))]
                                      (reset! num-random-hits new-val)))
                       :style     {:width 60}}]
-             " random results"])]))}))
+             " random results (with seed: "
+             [:input {:type      "number"
+                      :value     (or @random-hits-seed "")
+                      :on-change (fn [e]
+                                   (let [new-val (if (str/blank? (.-target.value e))
+                                                   nil
+                                                   (js/parseInt (.-target.value e)))]
+                                     (reset! random-hits-seed new-val)))
+                      :style     {:width 40}}]
+             " )"])]))}))

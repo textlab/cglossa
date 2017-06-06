@@ -101,7 +101,7 @@
 
 (defmethod run-queries "fcs"
   [corpus search-id queries metadata-ids step
-   page-size last-count context-size sort-key num-random-hits cmd]
+   page-size last-count context-size sort-key num-random-hits random-hits-seed cmd]
   (do-remote-search corpus queries 1 (* 2 page-size)))
 
 (defmethod get-results ["fcs" nil] [corpus _ queries start end _ _ _ _]

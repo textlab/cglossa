@@ -44,7 +44,7 @@
 
 (defmethod run-queries :default [corpus search-id queries metadata-ids step
                                  page-size last-count context-size sort-key
-                                 num-random-hits cmd]
+                                 num-random-hits random-hits-seed cmd]
   (let [step-index  (dec step)
         num-ret     (* 2 page-size)     ; number of results to return initially
         corpus-size (get-in corpus [:extra-info :size (str/lower-case
@@ -92,7 +92,10 @@
                                                                      startpos endpos
                                                                      :cpu-index cpu)
                                            (when nrandom
-                                             (str "reduce " named-query " to " nrandom))
+                                             (let [seed-str (when random-hits-seed
+                                                              (str "randomize " random-hits-seed))]
+                                               [seed-str
+                                                (str "reduce " named-query " to " nrandom)]))
                                            (str "save " named-query)
                                            (str "set Context " context-size " word")
                                            "set PrintStructures \"s_id\""
