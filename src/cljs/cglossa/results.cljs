@@ -209,7 +209,8 @@
           [b/button {:bs-style "success" :on-click download :disabled @downloading?} "Download"]]]
         [b/button {:on-click hide-popup} "Close"]]])))
 
-(defn- statistics-button [{{:keys [freq-attr freq-attr-sorted freq-res]} :results-view :as a}
+(defn- statistics-button [{{:keys [freq-attr freq-attr-sorted
+                                   freq-res freq-case-sensitive]} :results-view :as a}
                           {:keys [corpus] :as m}]
   (let [on-checkbox-changed (fn [event attr]
                               (if (.-target.checked event)
