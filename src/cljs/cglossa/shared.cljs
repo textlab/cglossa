@@ -166,7 +166,7 @@
   ([a {:keys [corpus] :as m}]
     ;; Do three search steps only if multicpu_bounds is defined for this corpus
    (stats! a m (if (:multicpu-bounds @corpus) 3 1)))
-  ([{{queries :queries}                                        :search-view
+  ([{{:keys [queries num-random-hits random-hits-seed]}              :search-view
      {:keys [total context-size
              sort-key freq-attr
              freq-attr-sorted freq-res
@@ -193,6 +193,8 @@
                            :page-size    page-size
                            :context-size @context-size
                            :sort-key     @sort-key
+                           :num-random-hits  @num-random-hits
+                           :random-hits-seed @random-hits-seed
                            :freq-attr    (map first freq-attr-sorted-val)
                            :freq-case-sensitive @freq-case-sensitive}]
          (go

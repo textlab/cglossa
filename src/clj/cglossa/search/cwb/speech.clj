@@ -97,7 +97,7 @@
                      (str "size " named-query)
                      ;; ...as well as two pages of actual results
                      (if cmd
-                       cmd
+                       (str/replace cmd "QUERY" named-query)
                        (str "cat " named-query " 0 " (dec (* 2 page-size))))]
         [hits cnt-str] (run-cqp-commands corpus (filter identity (flatten commands)) true)
         cnt         (Integer/parseInt cnt-str)]

@@ -82,8 +82,6 @@
                                             ;; hits we have asked for.
                                             (let [proportion (float (/ (inc (- endpos startpos))
                                                                        corpus-size))]
-                                              (println proportion)
-                                              (println (int (* num-random-hits proportion)))
                                               (int (Math/ceil (* num-random-hits proportion)))))
                               commands    [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
                                            (cwb-corpus-name corpus queries)
@@ -119,7 +117,7 @@
                                                      (< last-count num-ret)
                                                      cmd)
                                              (if cmd
-                                               cmd
+                                               (str/replace cmd "QUERY" named-query)
                                                (str "cat " named-query " 0 " (dec num-ret))))]]
                           (filter identity (flatten commands))))
                       parts)
