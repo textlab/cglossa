@@ -174,8 +174,9 @@
     (transit-response (geo-distr corpus-code search-id metadata-ids) false))
 
   (POST "/:corpus-code/download-results" [corpus-code search-id cpu-counts format headers?
-                                          attrs context-size]
-    (download-results corpus-code search-id cpu-counts format headers? attrs context-size))
+                                          attrs context-size num-random-hits]
+    (download-results corpus-code search-id cpu-counts format headers?
+                      attrs context-size num-random-hits))
 
   (GET "/fcs/:corpus-code" [corpus-code operation query maximumRecords]
     (let [{:keys [cnt results]} (fcs/search-local corpus-code operation query maximumRecords)]

@@ -137,7 +137,8 @@
    "Download"])
 
 (defn- download-popup
-  [{{:keys [cpu-counts context-size showing-download-popup? downloading?]} :results-view}
+  [{{:keys [num-random-hits]} :search-view
+    {:keys [cpu-counts context-size showing-download-popup? downloading?]} :results-view}
    {:keys [corpus search] :as m}]
   (r/with-let
     [hide-popup #(reset! showing-download-popup? false)
@@ -158,7 +159,8 @@
                                                                              (fn [[k v]]
                                                                                (when v (first k)))
                                                                              attrs)
-                                                             :context-size @context-size}})
+                                                             :context-size @context-size
+                                                             :num-random-hits @num-random-hits}})
                         results    (<! results-ch)
                         {file-url :body} results]
                     (reset! downloading? false)
