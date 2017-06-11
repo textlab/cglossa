@@ -76,7 +76,7 @@
   (let [named-query (cwb-query-name corpus search-id)
         startpos    0
         endpos      (corpus-size corpus queries)
-        commands    [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
+        commands    [(str "set DataDirectory \"tmp\"")
                      (cwb-corpus-name corpus queries)
                      (construct-query-commands corpus queries metadata-ids named-query
                                                search-id startpos endpos
@@ -107,7 +107,7 @@
 
 (defmethod get-results ["cwb_speech" nil] [corpus search queries start end _ _ sort-key attrs]
   (let [named-query (cwb-query-name corpus (:id search))
-        commands    [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
+        commands    [(str "set DataDirectory \"tmp\"")
                      (cwb-corpus-name corpus queries)
                      (str "set Context 1 sync_time")
                      "set PrintStructures \"who_name\""
@@ -212,7 +212,7 @@
 (defn play-video [corpus-code search-id result-index context-size]
   (let [corpus      (get-corpus {:code corpus-code})
         named-query (cwb-query-name corpus search-id)
-        commands    [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
+        commands    [(str "set DataDirectory \"tmp\"")
                      (str/upper-case (:code corpus))
                      (str "set Context " context-size " sync_time")
                      "set LD \"{{\""
@@ -249,7 +249,7 @@
   (let [named-query  (cwb-query-name corpus search-id)
         ;; Ask CQP for a table of phonetic form, informant code, and frequency. The result
         ;; will be ordered by decreasing frequency.
-        commands     [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
+        commands     [(str "set DataDirectory \"tmp\"")
                       (cwb-corpus-name corpus nil)
                       (str "group " named-query " match who_name by match phon")]
         cwb-res      (run-cqp-commands corpus (filter identity (flatten commands)) false)

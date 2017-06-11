@@ -95,9 +95,9 @@
 
 (defn -main [value-tsv-path cat-tsv-path]
   (let [tmpdir (System/getenv "TMPDIR")]
-    (with-open [values-tsv-file       (io/writer (str tmpdir "/glossa/metadata_value.tsv"))
-                values-texts-tsv-file (io/writer (str tmpdir "/glossa/metadata_value_text.tsv"))
-                texts-tsv-file        (io/writer (str tmpdir "/glossa/text.tsv"))]
+    (with-open [values-tsv-file       (io/writer (str tmpdir "/metadata_value.tsv"))
+                values-texts-tsv-file (io/writer (str tmpdir "/metadata_value_text.tsv"))
+                texts-tsv-file        (io/writer (str tmpdir "/text.tsv"))]
       (let [[values values-texts texts] (create-import-data value-tsv-path cat-tsv-path)]
         (utils/write-csv values-tsv-file values)
         (utils/write-csv values-texts-tsv-file values-texts)

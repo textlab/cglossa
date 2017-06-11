@@ -83,7 +83,7 @@
                                             (let [proportion (float (/ (inc (- endpos startpos))
                                                                        corpus-size))]
                                               (int (Math/ceil (* num-random-hits proportion)))))
-                              commands    [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
+                              commands    [(str "set DataDirectory \"tmp\"")
                                            (cwb-corpus-name corpus queries)
                                            (construct-query-commands corpus queries metadata-ids
                                                                      named-query search-id
@@ -144,7 +144,7 @@
 ;; For written CWB corpora that don't use multicore processing (e.g. multilingual corpora)
 (defmethod get-results ["cwb" nil] [corpus search queries start end _ context-size sort-key attrs]
   (let [named-query (str (cwb-query-name corpus (:id search)) "_1_0")
-        commands    [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
+        commands    [(str "set DataDirectory \"tmp\"")
                      (cwb-corpus-name corpus queries)
                      (str "set Context " context-size " word")
                      "set PrintStructures \"s_id\""
@@ -216,7 +216,7 @@
                         (repeat [nil nil]))
         scripts       (map
                         (fn [result-file [start end]]
-                          (let [commands [(str "set DataDirectory \"" (fs/tmpdir) "/glossa\"")
+                          (let [commands [(str "set DataDirectory \"tmp\"")
                                           (cwb-corpus-name corpus queries)
                                           (str "set Context " context-size " word")
                                           "set PrintStructures \"s_id\""

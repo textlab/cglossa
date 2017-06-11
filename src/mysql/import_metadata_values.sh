@@ -26,12 +26,11 @@ if [ "$#" -ne 3 ] ; then
     exit
 fi
 
-tmpd="${TMPDIR:-/tmp}/glossa"
-mkdir -p "$tmpd"
-valfile1=${tmpd}/glossa_valtmp.tsv
-valfile2=${tmpd}/metadata_value.tsv
-valfile3=${tmpd}/metadata_value_text.tsv
-valfile4=${tmpd}/text.tsv
+export TMPDIR="${PWD%src/mysql}/tmp"
+valfile1=${TMPDIR}/glossa_valtmp.tsv
+valfile2=${TMPDIR}/metadata_value.tsv
+valfile3=${TMPDIR}/metadata_value_text.tsv
+valfile4=${TMPDIR}/text.tsv
 corpus=$1
 catfile=`pwd`/$3
 

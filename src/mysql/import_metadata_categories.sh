@@ -9,8 +9,8 @@ if [ "$#" -ne 2 ] ; then
     exit
 fi
 
-tmpd="${TMPDIR:-/tmp}"
-tmpfile=${tmpd}/glossa_cattmp.tsv
+export TMPDIR="${PWD%src/mysql}/tmp"
+tmpfile=${TMPDIR}/glossa_cattmp.tsv
 corpus=$1
 
 # Remove rows that are not actual metadata categories
