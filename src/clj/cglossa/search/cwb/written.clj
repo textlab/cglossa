@@ -42,65 +42,77 @@
           true (where (>= :startpos startpos))
           endpos (where (<= :endpos endpos))))
 
+(defn- get-parts [corpus step corpus-size cmd]
+  (let [step-index (dec step)]
+    (if-let [bounds (and (not cmd) (get-in corpus [:multicpu_bounds step-index]))]
+      ;; Multicpu bounds have been defined for this corpus. The startpos for the
+      ;; first cpu in the current step should be one above the last bounds value
+      ;; (i.e., the last endpos) in the previous step.
+      (let [prev-last-bounds (if (= step 1)
+                               -1
+                               (last (get-in corpus
+                                             [:multicpu_bounds (dec step-index)])))]
+        (map-indexed (fn [cpu-index endpos]
+                       (let [startpos (if (zero? cpu-index)
+                                        ;; If first cpu, continue where we left off
+                                        ;; in the previous step
+                                        (inc prev-last-bounds)
+                                        ;; Otherwise, continue from the endpos of
+                                        ;; the previous cpu
+                                        (inc (nth bounds (dec cpu-index))))]
+                         [startpos endpos]))
+                     bounds))
+      ;; No multicpu bounds defined; in that case, we search the whole
+      ;; corpus in one go in the first step and just return if step != 1.
+      (when (or (= step 1) cmd)
+        [[0 (dec corpus-size)]]))))
+
+(defn- random-reduce-command [corpus-size startpos endpos num-random-hits random-hits-seed named-query]
+  (when num-random-hits
+    ;; Find the proportion of the total number of tokens
+    ;; that we are searching with this cpu in this search
+    ;; step, and reduce the number of hits retrieved to
+    ;; the corresponding proportion of the number of random
+    ;; hits we have asked for.
+    (let [nrandom (let [proportion (float (/ (inc (- endpos startpos))
+                                             corpus-size))]
+                    (int (Math/ceil (* num-random-hits proportion))))
+          seed-str (when random-hits-seed
+                     (str "randomize " random-hits-seed))]
+        [seed-str
+         (str "reduce " named-query " to " nrandom)])))
+
+(defn- cqp-init [corpus queries context-size sort-key attrs named-query construct-save-commands]
+  ["set DataDirectory \"tmp\""
+   (cwb-corpus-name corpus queries)
+   construct-save-commands
+   (str "set Context " context-size " word")
+   "set PrintStructures \"s_id\""
+   "set LD \"{{\""
+   "set RD \"}}\""
+   (displayed-attrs-command corpus queries attrs)
+   (aligned-languages-command corpus queries)
+   (when sort-key
+     (sort-command named-query sort-key))])
+
 (defmethod run-queries :default [corpus search-id queries metadata-ids step
                                  page-size last-count context-size sort-key
                                  num-random-hits random-hits-seed cmd]
-  (let [step-index  (dec step)
-        num-ret     (* 2 page-size)     ; number of results to return initially
+  (let [num-ret     (* 2 page-size)     ; number of results to return initially
         corpus-size (get-in corpus [:extra-info :size (str/lower-case
                                                         (cwb-corpus-name corpus queries))])
-        parts       (if-let [bounds (and (not cmd) (get-in corpus [:multicpu_bounds step-index]))]
-                      ;; Multicpu bounds have been defined for this corpus. The startpos for the
-                      ;; first cpu in the current step should be one above the last bounds value
-                      ;; (i.e., the last endpos) in the previous step.
-                      (let [prev-last-bounds (if (= step 1)
-                                               -1
-                                               (last (get-in corpus
-                                                             [:multicpu_bounds (dec step-index)])))]
-                        (map-indexed (fn [cpu-index endpos]
-                                       (let [startpos (if (zero? cpu-index)
-                                                        ;; If first cpu, continue where we left off
-                                                        ;; in the previous step
-                                                        (inc prev-last-bounds)
-                                                        ;; Otherwise, continue from the endpos of
-                                                        ;; the previous cpu
-                                                        (inc (nth bounds (dec cpu-index))))]
-                                         [startpos endpos]))
-                                     bounds))
-                      ;; No multicpu bounds defined; in that case, we search the whole
-                      ;; corpus in one go in the first step and just return if step != 1.
-                      (when (or (= step 1) cmd)
-                        [[0 (dec corpus-size)]]))
         scripts     (map-indexed
                       (fn [cpu [startpos endpos]]
                         (let [named-query (str (cwb-query-name corpus search-id) "_" step "_" cpu)
-                              nrandom     (when num-random-hits
-                                            ;; Find the proportion of the total number of tokens
-                                            ;; that we are searching with this cpu in this search
-                                            ;; step, and reduce the number of hits retrieved to
-                                            ;; the corresponding proportion of the number of random
-                                            ;; hits we have asked for.
-                                            (let [proportion (float (/ (inc (- endpos startpos))
-                                                                       corpus-size))]
-                                              (int (Math/ceil (* num-random-hits proportion)))))
-                              commands    [(str "set DataDirectory \"tmp\"")
-                                           (cwb-corpus-name corpus queries)
-                                           (construct-query-commands corpus queries metadata-ids
-                                                                     named-query search-id
-                                                                     startpos endpos
-                                                                     :cpu-index cpu)
-                                           (when nrandom
-                                             (let [seed-str (when random-hits-seed
-                                                              (str "randomize " random-hits-seed))]
-                                               [seed-str
-                                                (str "reduce " named-query " to " nrandom)]))
-                                           (str "save " named-query)
-                                           (str "set Context " context-size " word")
-                                           "set PrintStructures \"s_id\""
-                                           "set LD \"{{\""
-                                           "set RD \"}}\""
-                                           (displayed-attrs-command corpus queries nil)
-                                           (aligned-languages-command corpus queries)
+                              commands    [(cqp-init corpus queries context-size nil nil named-query
+                                                     [(construct-query-commands corpus queries metadata-ids
+                                                                                named-query search-id
+                                                                                startpos endpos
+                                                                                :cpu-index cpu)
+                                                      (random-reduce-command corpus-size startpos endpos
+                                                                             num-random-hits random-hits-seed
+                                                                             named-query)
+                                                      (str "save " named-query)])
                                            ;; Always return the number of results, which may be
                                            ;; either total or cut size depending on whether we
                                            ;; restricted the corpus positions
@@ -120,7 +132,7 @@
                                                (str/replace cmd "QUERY" named-query)
                                                (str "cat " named-query " 0 " (dec num-ret))))]]
                           (filter identity (flatten commands))))
-                      parts)
+                      (get-parts corpus step corpus-size cmd))
         res-ch      (async/chan)
         _           (async/pipeline-blocking (count scripts)
                                              res-ch
@@ -144,25 +156,13 @@
 ;; For written CWB corpora that don't use multicore processing (e.g. multilingual corpora)
 (defmethod get-results ["cwb" nil] [corpus search queries start end _ context-size sort-key attrs]
   (let [named-query (str (cwb-query-name corpus (:id search)) "_1_0")
-        commands    [(str "set DataDirectory \"tmp\"")
-                     (cwb-corpus-name corpus queries)
-                     (str "set Context " context-size " word")
-                     "set PrintStructures \"s_id\""
-                     "set LD \"{{\""
-                     "set RD \"}}\""
-                     (displayed-attrs-command corpus queries attrs)
-                     (aligned-languages-command corpus queries)
-                     (sort-command named-query sort-key)
+        commands    [(cqp-init corpus queries context-size sort-key attrs named-query nil)
                      (str "cat " named-query (when (and start end)
                                                (str " " start " " end)))]]
     (run-cqp-commands corpus (flatten commands) false)))
 
-(defmethod get-results :default [corpus search queries start end cpu-counts
-                                 context-size sort-key attrs]
-  (let [named-query   (cwb-query-name corpus (:id search))
-        nres-1        (when (and start end)
-                        (- end start))
-        [first-file first-start] (reduce-kv
+(defn- get-file-start-end [start end cpu-counts]
+  (let [[first-file first-start] (reduce-kv
                                    (fn [sum k v]
                                      (let [new-sum (+ sum v)]
                                        (if (> new-sum start)
@@ -190,20 +190,29 @@
                             ;; Otherwise, continue with the next file
                             (recur new-sum
                                    (next counts)
-                                   (inc file-index)))))
-        ;; Generate the names of the files containing saved CQP queries
-        files         (vec (flatten (map-indexed
-                                      (fn [i cpu-bounds]
-                                        (mapv #(str named-query "_" (inc i) "_" %)
-                                              (range (count cpu-bounds))))
-                                      (:multicpu_bounds corpus))))
-        ;; Select the range of files that contains the range of results we are asking for
-        ;; and remove files that don't actually contain any results
-        nonzero-files (filter identity (map (fn [file count]
-                                              (when-not (zero? count)
-                                                file))
-                                            (subvec files first-file (inc last-file))
-                                            (subvec cpu-counts first-file (inc last-file))))
+                                   (inc file-index)))))]
+    [first-file first-start last-file]))
+
+(defn- get-nonzero-files [corpus cpu-counts named-query first-file last-file]
+  ;; Generate the names of the files containing saved CQP queries 
+  (let [files (vec (flatten (map-indexed
+                              (fn [i cpu-bounds]
+                                (mapv #(str named-query "_" (inc i) "_" %)
+                                      (range (count cpu-bounds))))
+                              (:multicpu_bounds corpus))))]
+    ;; Select the range of files that contains the range of results we are asking for
+    ;; and remove files that don't actually contain any results
+    (let [file-range (filter identity (list (or first-file 0)
+                                            (when last-file (inc last-file))))]
+      (filter identity (map (fn [file count]
+                              (when-not (zero? count)
+                                file))
+                              (apply subvec (cons files file-range))
+                              (apply subvec (cons cpu-counts file-range)))))))
+
+(defn- get-files-indexes [corpus start end cpu-counts named-query nres-1]
+  (let [[first-file first-start last-file] (get-file-start-end start end cpu-counts)
+        nonzero-files (get-nonzero-files corpus cpu-counts named-query first-file last-file)
         ;; For the first result file, we need to adjust the start and end index according to
         ;; the number of hits that were found in previous files. For the remaining files, we
         ;; set the start index to 0, and we might as well set the end index to [number of
@@ -213,18 +222,18 @@
         indexes       (if (and start end)
                         (cons [first-start (+ first-start nres-1)]
                               (repeat [0 nres-1]))
-                        (repeat [nil nil]))
+                        (repeat [nil nil]))]
+    [nonzero-files indexes]))
+
+(defmethod get-results :default [corpus search queries start end cpu-counts
+                                 context-size sort-key attrs]
+  (let [named-query   (cwb-query-name corpus (:id search))
+        nres-1        (when (and start end)
+                        (- end start))
+        [nonzero-files indexes] (get-files-indexes corpus start end cpu-counts named-query nres-1)
         scripts       (map
                         (fn [result-file [start end]]
-                          (let [commands [(str "set DataDirectory \"tmp\"")
-                                          (cwb-corpus-name corpus queries)
-                                          (str "set Context " context-size " word")
-                                          "set PrintStructures \"s_id\""
-                                          "set LD \"{{\""
-                                          "set RD \"}}\""
-                                          (displayed-attrs-command corpus queries attrs)
-                                          (aligned-languages-command corpus queries)
-                                          (sort-command named-query sort-key)
+                          (let [commands [(cqp-init corpus queries context-size sort-key attrs named-query nil)
                                           (str "cat " result-file (when (and start end)
                                                                     (str " " start " " end)))]]
                             (filter identity (flatten commands))))
