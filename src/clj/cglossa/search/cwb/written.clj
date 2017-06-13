@@ -3,11 +3,13 @@
   (:require [clojure.string :as str]
             [clojure.edn :as edn]
             [clojure.core.async :as async :refer [<!!]]
+            [clojure.java.io :as io]
             [me.raynes.fs :as fs]
+            [me.raynes.conch.low-level :as sh]
             [korma.core :as korma :refer [select select* where order raw aggregate]]
             [cglossa.search.shared :refer [run-queries transform-results]]
             [cglossa.search.core :refer [get-results]]
-            [cglossa.search.cwb.shared :refer [cwb-query-name cwb-corpus-name run-cqp-commands
+            [cglossa.search.cwb.shared :refer [cwb-query-name cwb-corpus-name locale-encoding run-cqp-commands
                                                construct-query-commands token-count-matching-metadata
                                                position-fields-for-outfile
                                                order-position-fields where-limits
@@ -194,21 +196,21 @@
     [first-file first-start last-file]))
 
 (defn- get-nonzero-files [corpus cpu-counts named-query first-file last-file]
-  ;; Generate the names of the files containing saved CQP queries 
+  ;; Generate the names of the files containing saved CQP queries
   (let [files (vec (flatten (map-indexed
                               (fn [i cpu-bounds]
                                 (mapv #(str named-query "_" (inc i) "_" %)
                                       (range (count cpu-bounds))))
-                              (:multicpu_bounds corpus))))]
-    ;; Select the range of files that contains the range of results we are asking for
-    ;; and remove files that don't actually contain any results
-    (let [file-range (filter identity (list (or first-file 0)
-                                            (when last-file (inc last-file))))]
-      (filter identity (map (fn [file count]
-                              (when-not (zero? count)
-                                file))
-                              (apply subvec (cons files file-range))
-                              (apply subvec (cons cpu-counts file-range)))))))
+                              (:multicpu_bounds corpus))))
+        ;; Select the range of files that contains the range of results we are asking for
+        ;; and remove files that don't actually contain any results
+        file-range (filter identity (list (or first-file 0)
+                                          (when last-file (inc last-file))))]
+    (filter identity (map (fn [file count]
+                            (when-not (zero? count)
+                              file))
+                          (apply subvec (cons files file-range))
+                          (apply subvec (cons cpu-counts file-range))))))
 
 (defn- get-files-indexes [corpus start end cpu-counts named-query nres-1]
   (let [[first-file first-start last-file] (get-file-start-end start end cpu-counts)
@@ -225,29 +227,72 @@
                         (repeat [nil nil]))]
     [nonzero-files indexes]))
 
+(defn- run-cqp-scripts [corpus scripts]
+  (let [cwb-res (map #(run-cqp-commands corpus % false) scripts)]
+    (apply concat (map first cwb-res))))
+
+(defn- get-sorted-positions [corpus search queries cpu-counts context-size sort-key attrs]
+  (let [named-query               (cwb-query-name corpus (:id search))
+        result-positions-filename (str "tmp/result_positions_" named-query)]
+    (let [nonzero-files (get-nonzero-files corpus cpu-counts named-query 0 nil)
+          commands      [(cqp-init corpus queries context-size nil attrs named-query nil)
+                         (map-indexed
+                           (fn [i result-file]
+                             (str "tabulate " result-file
+                                  " match[-1] word, match word, match[1] word, match, matchend"
+                                  (if (= i 0) " >" " >>")
+                                  "\"" result-positions-filename "\""))
+                            nonzero-files)]
+          script        (filter identity (flatten commands))]
+      (run-cqp-commands corpus script false))
+    (when-let [sort-opt (case sort-key
+                          "left"  "-k1"
+                          "match" "-k2"
+                          "right" "-k3"
+                          nil)]
+      (let [sorted-result-positions (str result-positions-filename "_sort_by_" sort-key)]
+        (sh/stream-to-string
+          (sh/proc "sh" "-c" (str "sort -t '\t' -f " sort-opt " " result-positions-filename
+                                  " |awk -F'\\t' '{print $4 \"\\t\" $5}' >" sorted-result-positions)
+                   :env {"LC_ALL" (locale-encoding (:encoding corpus "UTF-8"))}) :out)
+        sorted-result-positions))))
+
 (defmethod get-results :default [corpus search queries start end cpu-counts
                                  context-size sort-key attrs]
-  (let [named-query   (cwb-query-name corpus (:id search))
-        nres-1        (when (and start end)
-                        (- end start))
-        [nonzero-files indexes] (get-files-indexes corpus start end cpu-counts named-query nres-1)
-        scripts       (map
-                        (fn [result-file [start end]]
-                          (let [commands [(cqp-init corpus queries context-size sort-key attrs named-query nil)
-                                          (str "cat " result-file (when (and start end)
-                                                                    (str " " start " " end)))]]
-                            (filter identity (flatten commands))))
-                        nonzero-files
-                        indexes)
-        cwb-res       (map #(run-cqp-commands corpus % false) scripts)
-        all-res       (apply concat (map first cwb-res))
-        ;; Since we asked for 'end' number of results even from the last file, we may have got
-        ;; more than we asked for (when adding up all results from all files), so make sure we
-        ;; only return the desired number of results if it was specified.
-        res           (if nres-1
-                        (take (inc nres-1) all-res)
-                        all-res)]
-    [res nil]))
+  (if (and sort-key (not= sort-key "position"))
+    (let [named-query (str (cwb-query-name corpus (:id search)) "_sort_by_" sort-key)
+          undump-save (if (.exists (io/as-file (str "tmp/" (cwb-corpus-name corpus queries) ":" named-query)))
+                        nil
+                        (when-let [sorted-positions (get-sorted-positions corpus search queries cpu-counts
+                                                                          context-size sort-key attrs)]
+                          [(str "undump " named-query " < '" sorted-positions \')
+                           named-query
+                           (str "save " named-query)]))
+          commands    [(cqp-init corpus queries context-size nil attrs named-query undump-save)
+                       (str "cat " named-query (when (and start end)
+                                                 (str " " start " " end)))]]
+      (run-cqp-commands corpus (flatten commands) false))
+  ;else
+    (let [named-query   (cwb-query-name corpus (:id search))
+          nres-1        (when (and start end)
+                          (- end start))
+          [nonzero-files indexes] (get-files-indexes corpus start end cpu-counts named-query nres-1)
+          scripts       (map
+                          (fn [result-file [start end]]
+                            (let [commands [(cqp-init corpus queries context-size sort-key attrs named-query nil)
+                                            (str "cat " result-file (when (and start end)
+                                                                      (str " " start " " end)))]]
+                              (filter identity (flatten commands))))
+                          nonzero-files
+                          indexes)
+          all-res       (run-cqp-scripts corpus scripts)
+          ;; Since we asked for 'end' number of results even from the last file, we may have got
+          ;; more than we asked for (when adding up all results from all files), so make sure we
+          ;; only return the desired number of results if it was specified.
+          res           (if nres-1
+                          (take (inc nres-1) all-res)
+                          all-res)]
+      [res nil])))
 
 (defmethod transform-results :default [_ queries results]
   (when results

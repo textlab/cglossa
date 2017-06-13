@@ -191,10 +191,8 @@
   (when-let [context (case sort-key
                        "position" nil
                        "match" ""
-                       "left-immediate" " on match[-1]"
-                       "left-wide" " on match[-1] .. match[-10]"
-                       "right-immediate" " on matchend[1]"
-                       "right-wide" " on matchend[1] .. matchend[10]")]
+                       "left" " on match[-1]"
+                       "right" " on matchend[1]")]
     ["set ExternalSort on"
      (str "sort " named-query " by word %c" context)]))
 
@@ -210,31 +208,41 @@
                                        positions-filename)
     (conj init-cmds (str named-query " = " query-str))))
 
+;; The nb_NO locale is needed for the Norwegian letters to be sorted correctly.
+;; The best solution would be to set the locale based on the language of the corpus.
+(defn locale-encoding [encoding]
+  (-> encoding
+      (str/replace-first #"(?i)^latin1$" "nb_NO.ISO8859-1")
+      (str/replace-first #"(?i)^utf-8$" "nb_NO.UTF-8")))
+
 (defn run-cqp-commands [corpus commands counting?]
-  (let [commands* (->> commands
-                       (map #(str % \;))
-                       (str/join \newline))
-        encoding  (:encoding corpus "UTF-8")
-        cqp       (sh/proc "cqp" "-c" :env {"LC_ALL" (-> encoding
-                                                         (str/replace-first #"^latin1$" "en_US.ISO8859-1")
-                                                         (str/replace-first #"^utf-8$" "en_US.UTF-8"))})
+  (let [commands*  (->> commands
+                        (map #(str % \;))
+                        (str/join \newline))
+        encoding   (:encoding corpus "UTF-8")
+        cqp        (sh/proc "cqp" "-c" :env {"LC_ALL" (locale-encoding encoding)})
 
         ;; Run the CQP commands and capture the output
-        out       (do
-                    ;; We need to use our own implementation of feed-from-string here because
-                    ;; of problems with sending options to the original in me.raynes.conch.low-level
-                    (shared/feed-from-string cqp commands* :encoding encoding)
-                    (sh/done cqp)
-                    (sh/stream-to-string cqp :out :encoding encoding))
-        err       (sh/stream-to-string cqp :err)
-        _         (assert (str/blank? err) (if (:is-dev env) (println err) (timbre/error err)))
+        out        (do
+                     ;; We need to use our own implementation of feed-from-string here because
+                     ;; of problems with sending options to the original in me.raynes.conch.low-level
+                     (shared/feed-from-string cqp commands* :encoding encoding)
+                     (sh/done cqp)
+                     (sh/stream-to-string cqp :out :encoding encoding))
+        err        (sh/stream-to-string cqp :err)
+        undump-err (re-matches #"(?i)\s*CQP Error:\s+Format error in undump file.*\s*" err)
+        _          (when (not undump-err)
+                     (assert (str/blank? err) (if (:is-dev env) (println err) (timbre/error err))))
         ;; Split into lines and throw away the first line, which contains the CQP version.
         ;; If counting? is true (which it is when we are searching, but not when retrieving
         ;; results), the first line after that contains the number of results. Any following
         ;; lines contain actual search results (only in the first step).
-        res       (rest (str/split-lines out))
-        cnt       (when counting? (first res))
-        results   (if counting? (rest res) res)]
+        res        (rest (str/split-lines out))
+        cnt        (when counting? (if (not undump-err) (first res)
+                                                        "0"))
+        results    (if (not undump-err)
+                     (if counting? (rest res) res)
+                     nil)]
     (if (and (pos? (count results))
              (re-find #"PARSE ERROR|CQP Error" (first results)))
       (throw (str "CQP error: " results))

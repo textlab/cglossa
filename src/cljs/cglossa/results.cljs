@@ -102,9 +102,9 @@
 (defn- sort-button [{{:keys [total sort-key]} :results-view
                      :keys                    [searching?] :as a} m]
   (let [sk        @sort-key
-        on-select (fn [_ event-key]
+        on-select (fn [event-key]
                     (reset! sort-key (keyword event-key))
-                    (reset-results! a m)
+                    (reset-results! a m false)
                     (fetch-result-window! a m 1))]
     [b/dropdownbutton {:id       "sort-button"
                        :title    "Sort"
@@ -117,14 +117,10 @@
       (when (= sk :position) [b/glyphicon {:glyph "ok"}]) "  By corpus position"]
      [b/menuitem {:event-key :match, :on-select on-select}
       (when (= sk :match) [b/glyphicon {:glyph "ok"}]) "  By match"]
-     [b/menuitem {:event-key :left-immediate, :on-select on-select}
-      (when (= sk :left-immediate) [b/glyphicon {:glyph "ok"}]) "  By immediate left context"]
-     [b/menuitem {:event-key :left-wide, :on-select on-select}
-      (when (= sk :left-wide) [b/glyphicon {:glyph "ok"}]) "  By wider left context (10 tokens)"]
-     [b/menuitem {:event-key :right-immediate, :on-select on-select}
-      (when (= sk :right-immediate) [b/glyphicon {:glyph "ok"}]) "  By immediate right context"]
-     [b/menuitem {:event-key :right-wide, :on-select on-select}
-      (when (= sk :right-wide) [b/glyphicon {:glyph "ok"}]) "  By wider right context (10 tokens)"]]))
+     [b/menuitem {:event-key :left, :on-select on-select}
+      (when (= sk :left) [b/glyphicon {:glyph "ok"}]) "  By immediate left context"]
+     [b/menuitem {:event-key :right, :on-select on-select}
+      (when (= sk :right) [b/glyphicon {:glyph "ok"}]) "  By immediate right context"]]))
 
 (defn- download-button [{{:keys [showing-download-popup? total]} :results-view :keys [searching?]}]
   [b/button {:id       "download-button"
@@ -393,11 +389,12 @@
                  :on-click   #(set-page % (last-page-no @total))}
              [:span {:aria-hidden "true"} "»"]]]]]]))))
 
-(defn- concordance-toolbar [a {:keys [corpus] :as m}]
+(defn- concordance-toolbar [{{:keys [results total cpu-counts fetching-pages context-size sort-key]} :results-view :as a} {:keys [corpus] :as m}]
   [:div.row {:style {:margin-top 15}}
    [:div.col-sm-12
     [b/buttontoolbar {:style {:height 44}}
-     #_[sort-button a m]
+     [sort-button a m]
+     " Sorted by: " @sort-key
      [download-button a m]
      [download-popup a m]
      [pagination a m]

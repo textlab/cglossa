@@ -84,7 +84,8 @@
                                 ;; the search that was last received from the server, leave the
                                 ;; ID blank in order to generate a new search; otherwise regard
                                 ;; this request as a refinement of the latest search and hence
-                                ;; keep its ID.
+                                ;; keep its ID. Note that the search id is reset when the
+                                ;; metadata selection is changed.
                                 (= (:queries @search) (str @queries)) (assoc :search-id (:id @search)))
             ;; Fire off a search query
             results-ch  (http/post url {:json-params json-params})
@@ -133,9 +134,11 @@
                                paginator-text-val fetching-pages translations]
      {:keys [geo-data colored-phons
              selected-color]} :geo-map} :results-view}
-   {:keys [search]}]
+   {:keys [search]}
+   hard-reset]
   (reset! results nil)
-  (reset! cpu-counts [])
+  (when hard-reset
+    (reset! cpu-counts []))
   (reset! page-no 1)
   (reset! paginator-page-no 1)
   (reset! paginator-text-val 1)
@@ -205,7 +208,8 @@
                                          ;; the search that was last received from the server, leave the
                                          ;; ID blank in order to generate a new search; otherwise regard
                                          ;; this request as a refinement of the latest search and hence
-                                         ;; keep its ID.
+                                         ;; keep its ID. Note that the search id is reset when the
+                                         ;; metadata selection is changed.
                                          (= (:queries @search) (str @queries)) (assoc :search-id (:id @search)))
                      ;; Fire off a search query
                      results-ch  (http/post url {:json-params json-params})
@@ -255,7 +259,7 @@
          (reset! searching? true)
          (reset! total nil)
          (reset! sort-key :position)
-         (reset-results! a m)
+         (reset-results! a m true)
          (go
            ;; Wait for the search to finish before fetching geo-map data
            (<! (do-search-steps! a m url params nsteps))

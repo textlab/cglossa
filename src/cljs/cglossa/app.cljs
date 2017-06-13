@@ -64,7 +64,7 @@
       (<! (get-models (str corpus "/corpus") model-state app-state))
       (get-text-selection-info! app-state model-state)
       (reset-queries! app-state model-state)
-      (reset-results! app-state model-state))
+      (reset-results! app-state model-state true))
     (reset! (:show-fatal-error app-state) "Please provide a corpus at the end of the url")))
 
 (defn app [{:keys [show-results? show-texts?] {:keys [result-showing-metadata]} :results-view :as a}
