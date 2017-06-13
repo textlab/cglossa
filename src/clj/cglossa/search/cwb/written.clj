@@ -255,7 +255,7 @@
         (when (not (.exists (io/as-file sorted-result-positions)))
           (sh/stream-to-string
             (sh/proc "sh" "-c" (str "sort -t '\t' -f " sort-opt " " result-positions-filename
-                                    " |awk -F'\\t' '{print $4 \"\\t\" $5}' >" sorted-result-positions)
+                                    " |LC_ALL=C cut -f 4,5 >" sorted-result-positions)
                      :env {"LC_ALL" (locale-encoding (:encoding corpus "UTF-8"))}) :out))
         sorted-result-positions))))
 
