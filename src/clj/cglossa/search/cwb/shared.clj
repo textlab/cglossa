@@ -230,7 +230,7 @@
                      (sh/done cqp)
                      (sh/stream-to-string cqp :out :encoding encoding))
         err        (sh/stream-to-string cqp :err)
-        undump-err (re-matches #"(?i)\s*CQP Error:\s+Format error in undump file.*\s*" err)
+        undump-err (re-find #"(?i)CQP Error:\s+Format error in undump file" err)
         _          (when (not undump-err)
                      (assert (str/blank? err) (if (:is-dev env) (println err) (timbre/error err))))
         ;; Split into lines and throw away the first line, which contains the CQP version.
