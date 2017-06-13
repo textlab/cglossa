@@ -11,7 +11,7 @@
             [cglossa.react-adapters.bootstrap :as b]
             geo-distribution-map))
 
-(defn- results-info [{{:keys [total results]} :results-view searching? :searching?}]
+(defn- results-info [{{:keys [total results fetching-pages]} :results-view searching? :searching?}]
   [:span
    [:div {:style {:position "absolute" :top 11 :right 0 :width 400 :text-align "right" :color "#555"}}
     (cond
@@ -31,7 +31,9 @@
     ;; Only show the spinner when we are searching AND have already found some results
     ;; so as to avoid showing spinners both here and over the result table at the same time
     ;; (since we show a spinner over the result table until we have found some results)
-    [spinner-overlay {:spin? (and @searching? (seq @results)) :top 10}]]])
+    [spinner-overlay {:spin? (or (not (empty? @fetching-pages))
+                                 (and @searching? (seq @results)))
+                      :top 10}]]])
 
 (defn- last-page-no [total]
   (-> (/ total page-size) Math/ceil int))
