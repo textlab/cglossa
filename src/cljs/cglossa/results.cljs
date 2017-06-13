@@ -107,20 +107,23 @@
                     (reset-results! a m false)
                     (fetch-result-window! a m 1))]
     [b/dropdownbutton {:id       "sort-button"
-                       :title    "Sort"
+                       :title    (str "Sort by " (case @sort-key
+                                                   :left "left context"
+                                                   :right "right context"
+                                                   (name @sort-key)))
                        :bs-size  "small"
                        :disabled (or @searching?
                                      (nil? @total)
                                      (zero? @total))
                        :style    {:margin-bottom 10}}
      [b/menuitem {:event-key :position, :on-select on-select}
-      (when (= sk :position) [b/glyphicon {:glyph "ok"}]) "  By corpus position"]
+      (when (= sk :position) [b/glyphicon {:glyph "ok"}]) "  Sort by corpus position"]
      [b/menuitem {:event-key :match, :on-select on-select}
-      (when (= sk :match) [b/glyphicon {:glyph "ok"}]) "  By match"]
+      (when (= sk :match) [b/glyphicon {:glyph "ok"}]) "  Sort by match"]
      [b/menuitem {:event-key :left, :on-select on-select}
-      (when (= sk :left) [b/glyphicon {:glyph "ok"}]) "  By immediate left context"]
+      (when (= sk :left) [b/glyphicon {:glyph "ok"}]) "  Sort by immediate left context"]
      [b/menuitem {:event-key :right, :on-select on-select}
-      (when (= sk :right) [b/glyphicon {:glyph "ok"}]) "  By immediate right context"]]))
+      (when (= sk :right) [b/glyphicon {:glyph "ok"}]) "  Sort by immediate right context"]]))
 
 (defn- download-button [{{:keys [showing-download-popup? total]} :results-view :keys [searching?]}]
   [b/button {:id       "download-button"
@@ -394,7 +397,6 @@
    [:div.col-sm-12
     [b/buttontoolbar {:style {:height 44}}
      [sort-button a m]
-     " Sorted by: " @sort-key
      [download-button a m]
      [download-popup a m]
      [pagination a m]
