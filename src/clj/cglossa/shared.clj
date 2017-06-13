@@ -15,7 +15,7 @@
   for :db, :user, and :password. You can also optionally set host and port.
   Delimiters are automatically set to \"`\"."
   [{:keys [host port db make-pool?]
-    :or   {host "localhost", port 3306, db "", make-pool? true}
+    :or   {host "127.0.0.1", port 3306, db "", make-pool? true}
     :as   opts}]
   ;; TODO: Use the updated driver when we can update the MySQL connector (requires Java 1.8 or recent MySQL?)
   (merge {#_:classname   #_"com.mysql.cj.jdbc.Driver" ; must be in classpath - UPDATED DRIVER
@@ -33,7 +33,7 @@
                            :useUnicode true
                            :characterEncoding "UTF-8"
                            :db       core-db-name
-                           :host     "localhost"
+                           :host     "127.0.0.1"
                            :port     3306}))
 
 (defn convert-string [s from-charset-name to-charset-name]
