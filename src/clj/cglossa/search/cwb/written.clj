@@ -234,27 +234,29 @@
 (defn- get-sorted-positions [corpus search queries cpu-counts context-size sort-key attrs]
   (let [named-query               (cwb-query-name corpus (:id search))
         result-positions-filename (str "tmp/result_positions_" named-query)]
-    (let [nonzero-files (get-nonzero-files corpus cpu-counts named-query 0 nil)
-          commands      [(cqp-init corpus queries context-size nil attrs named-query nil)
-                         (map-indexed
-                           (fn [i result-file]
-                             (str "tabulate " result-file
-                                  " match[-1] word, match word, match[1] word, match, matchend"
-                                  (if (= i 0) " >" " >>")
-                                  "\"" result-positions-filename "\""))
-                            nonzero-files)]
-          script        (filter identity (flatten commands))]
-      (run-cqp-commands corpus script false))
+    (when (not (.exists (io/as-file result-positions-filename)))
+      (let [nonzero-files (get-nonzero-files corpus cpu-counts named-query 0 nil)
+            commands      [(cqp-init corpus queries context-size nil attrs named-query nil)
+                           (map-indexed
+                             (fn [i result-file]
+                               (str "tabulate " result-file
+                                    " match[-1] word, match word, match[1] word, match, matchend"
+                                    (if (= i 0) " >" " >>")
+                                    "\"" result-positions-filename "\""))
+                              nonzero-files)]
+            script        (filter identity (flatten commands))]
+        (run-cqp-commands corpus script false)))
     (when-let [sort-opt (case sort-key
                           "left"  "-k1"
                           "match" "-k2"
                           "right" "-k3"
                           nil)]
       (let [sorted-result-positions (str result-positions-filename "_sort_by_" sort-key)]
-        (sh/stream-to-string
-          (sh/proc "sh" "-c" (str "sort -t '\t' -f " sort-opt " " result-positions-filename
-                                  " |awk -F'\\t' '{print $4 \"\\t\" $5}' >" sorted-result-positions)
-                   :env {"LC_ALL" (locale-encoding (:encoding corpus "UTF-8"))}) :out)
+        (when (not (.exists (io/as-file sorted-result-positions)))
+          (sh/stream-to-string
+            (sh/proc "sh" "-c" (str "sort -t '\t' -f " sort-opt " " result-positions-filename
+                                    " |awk -F'\\t' '{print $4 \"\\t\" $5}' >" sorted-result-positions)
+                     :env {"LC_ALL" (locale-encoding (:encoding corpus "UTF-8"))}) :out))
         sorted-result-positions))))
 
 (defmethod get-results :default [corpus search queries start end cpu-counts
