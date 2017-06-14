@@ -281,7 +281,7 @@
           [nonzero-files indexes] (get-files-indexes corpus start end cpu-counts named-query nres-1)
           scripts       (map
                           (fn [result-file [start end]]
-                            (let [commands [(cqp-init corpus queries context-size sort-key attrs named-query nil)
+                            (let [commands [(cqp-init corpus queries context-size nil attrs named-query nil)
                                             (str "cat " result-file (when (and start end)
                                                                       (str " " start " " end)))]]
                               (filter identity (flatten commands))))

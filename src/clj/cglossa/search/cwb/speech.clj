@@ -13,8 +13,8 @@
                                                print-empty-metadata-selection-positions
                                                position-fields-for-outfile
                                                order-position-fields displayed-attrs-command
-                                               aligned-languages-command sort-command
-                                               text join-metadata where-metadata]]
+                                               aligned-languages-command text join-metadata
+                                               where-metadata]]
             [korma.db :as kdb]))
 
 (defentity media-file (table :media_file) (entity-fields :basename))
@@ -105,6 +105,32 @@
     ;; the sequence of counts only contains the count we get by the single cpu.
     [hits cnt [cnt]]))
 
+(defn sort-context-within-sync [direction named-query sort-key]
+  (let [tmpfile (str "\"tmp/" named-query "_sort_by_" sort-key \")
+        bound (case direction
+                "left" "lbound"
+                "right" "rbound")
+        match (case direction
+                "left" "on match[-1]"
+                "right" "on matchend[1]")]
+    [named-query
+     "set ExternalSort on"
+     (str named-query "_" bound" = [" bound "(sync)]")
+     (str named-query "_n" bound " = [!" bound "(sync)] sort by word %c " match)
+     (str "tabulate " named-query "_n" bound " match, matchend >" tmpfile)
+     (str "tabulate " named-query "_" bound " match, matchend >>" tmpfile)
+     (str "undump " named-query " <" tmpfile)]))
+
+(defn sort-within-sync [named-query sort-key]
+  (cond
+    (= sort-key "match")
+      ["set ExternalSort on"
+       (str "sort " named-query " by word %c")]
+    (re-matches #"left|right" sort-key)
+      (sort-context-within-sync sort-key named-query sort-key)
+    :else
+      nil))
+
 (defmethod get-results ["cwb_speech" nil] [corpus search queries start end _ _ sort-key attrs]
   (let [named-query (cwb-query-name corpus (:id search))
         commands    [(str "set DataDirectory \"tmp\"")
@@ -114,7 +140,7 @@
                      "set LD \"{{\""
                      "set RD \"}}\""
                      (displayed-attrs-command corpus queries attrs)
-                     (sort-command named-query sort-key)
+                     (sort-within-sync named-query sort-key)
                      (str "cat " named-query (when (and start end)
                                                (str " " start " " end)))]]
     (run-cqp-commands corpus (flatten commands) false)))
