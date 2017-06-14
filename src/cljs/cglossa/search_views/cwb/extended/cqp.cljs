@@ -221,7 +221,7 @@
   (let [;; Remove ids whose corresponding terms have been set to nil
         _       (swap! query-term-ids #(vec (keep-indexed (fn [index id]
                                                             (when (nth terms index) id)) %)))
-        s-tag   (if (= (:search-engine corpus) "cwb_speech") "sync" "s")
+        s-tag   (if (= (:search-engine corpus) "cwb_speech") "who" "s")
         terms*  (filter identity terms) ; nil means term should be removed
         parts   (for [{:keys [interval form lemma? phonetic? original?
                               start? end? features extra-forms corpus-specific-attrs]} terms*]

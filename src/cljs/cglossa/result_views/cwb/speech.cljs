@@ -27,7 +27,7 @@
       (when (= (:status response) 401)
         (reset! (:authenticated-user m) nil))
       (reset! showing-media-popup? true)
-      (reset! media-obj (get-in response [:body :media-obj]))
+      (reset! media-obj (:body response))
       (reset! player-row-index index)
       (reset! current-player-type player-type)
       (reset! current-media-type media-type))))

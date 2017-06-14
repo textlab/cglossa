@@ -311,7 +311,7 @@
             :on-change (fn [e]
                          (let [query     (:query @wrapped-query)
                                checked?  (.-target.checked e)
-                               s-tag     (if speech? "<sync>" "<s>")
+                               s-tag     (if speech? "<who>" "<s>")
                                new-query (if checked?
                                            (str s-tag query)
                                            (str/replace query (re-pattern (str "^" s-tag)) ""))]
@@ -327,7 +327,7 @@
             :on-change (fn [e]
                          (let [query     (:query @wrapped-query)
                                checked?  (.-target.checked e)
-                               s-tag     (if speech? "</sync>" "</s>")
+                               s-tag     (if speech? "</who>" "</s>")
                                new-query (if checked?
                                            (str query s-tag)
                                            (str/replace query (re-pattern (str s-tag "$")) ""))]

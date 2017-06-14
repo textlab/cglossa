@@ -64,9 +64,9 @@
                           (swap! query-term-ids
                                  #(conj % (inc (apply max %))))
                           ;; Append [] to the end of the CQP query expression (but before
-                          ;; </sync> or </s>, if present)
+                          ;; </who> or </s>, if present)
                           (swap! wrapped-query
-                                 update :query str/replace #"(.+?)(</s(?:ync)?>)?$" "$1 []$2"))}
+                                 update :query str/replace #"(.+?)(</(?:s|who)>)?$" "$1 []$2"))}
     [b/glyphicon {:glyph "plus"}]]])
 
 

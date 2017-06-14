@@ -80,19 +80,18 @@
                      (cwb-corpus-name corpus queries)
                      (construct-query-commands corpus queries metadata-ids named-query
                                                search-id startpos endpos
-                                               :s-tag "sync_time")
+                                               :s-tag "who_start")
                      (when num-random-hits
                        (let [seed-str (when random-hits-seed
                                         (str "randomize " random-hits-seed))]
                          [seed-str
                           (str "reduce " named-query " to " num-random-hits)]))
                      (str "save " named-query)
-                     (str "set Context 1 sync_time")
+                     (str "set Context 1 who_start")
                      "set PrintStructures \"who_name\""
                      "set LD \"{{\""
                      "set RD \"}}\""
                      (displayed-attrs-command corpus queries nil)
-                     "show +who_name"
                      ;; Return the total number of search results...
                      (str "size " named-query)
                      ;; ...as well as two pages of actual results
@@ -135,7 +134,7 @@
   (let [named-query (cwb-query-name corpus (:id search))
         commands    [(str "set DataDirectory \"tmp\"")
                      (cwb-corpus-name corpus queries)
-                     (str "set Context 1 sync_time")
+                     (str "set Context 1 who_start")
                      "set PrintStructures \"who_name\""
                      "set LD \"{{\""
                      "set RD \"}}\""
@@ -149,7 +148,7 @@
 (defn- fix-brace-positions [result]
   ;; If the matching word/phrase is at the beginning of the segment, CQP puts the braces
   ;; marking the start of the match before the starting segment tag
-  ;; (e.g. {{<turn_endtime 38.26><turn_starttime 30.34>went/go/PAST>...). Probably a
+  ;; (e.g. {{<who_start 38.26><who_stop 30.34>went/go/PAST>...). Probably a
   ;; bug in CQP? In any case we have to fix it by moving the braces to the
   ;; start of the segment text instead. Similarly if the match is at the end of a segment.
   (-> result
@@ -158,9 +157,8 @@
       (str/replace #"((?:</\S+?>\s*)+)\}\}" ; Find end tags
                    "}}$1")))
 
-
 (defn- find-timestamps [result]
-  (for [[segment start end] (re-seq #"<sync_time\s+([\d\.]+)><sync_end\s+([\d\.]+)>.*?</sync_time>"
+  (for [[segment start end] (re-seq #"<who_start\s+([\d\.]+)><who_stop\s+([\d\.]+)>.*?</who_start>"
                                     result)
         :let [num-speakers (count (re-seq #"<who_name" segment))]]
     ;; Repeat the start and end time for each speaker within the same segment
@@ -184,18 +182,13 @@
 
 (defn- create-media-object
   "Creates the data structure that is needed by jPlayer for a single search result."
-  [overall-starttime overall-endtime starttimes endtimes lines speakers corpus line-key]
+  [overall-starttime overall-endtime starttimes endtimes lines speakers corpus movie-loc]
   (let [displayed-attrs     (->> corpus :languages first :config :displayed-attrs (map first))
         annotations         (into {} (map (partial build-annotation displayed-attrs)
                                           (range) lines speakers
                                           starttimes endtimes))
         matching-line-index (first (keep-indexed #(when (re-find #"\{\{" %2) %1) lines))
-        last-line-index     (dec (count lines))
-        movie-loc           (-> media-file
-                                (select (where (between line-key
-                                                        [:line_key_begin :line_key_end])))
-                                first
-                                :basename)]
+        last-line-index     (dec (count lines))]
     {:title             ""
      :last-line         last-line-index
      :display-attribute "word"
@@ -203,7 +196,6 @@
      :mov               {:supplied  "m4v"
                          :path      (str "media/" (:code corpus))
                          :movie-loc movie-loc
-                         :line-key  line-key
                          :start     overall-starttime
                          :stop      overall-endtime}
      :divs              {:annotation annotations}
@@ -225,14 +217,11 @@
         ;; material from the session before or after. Hence, we need to make sure that
         ;; we extract the line key from the segment containing the actual match (marked
         ;; by double braces).
-        line-key          (second (re-find #"<who_line_key\s+(\d+)>[^<]*\{\{" result*))]
-    (let [media-obj-lines (map second (re-seq (if line-key
-                                                #"<who_line_key.+?>(.*?)</who_line_key>"
-                                                #"<who_name.+?>(.*?)</who_name>")
-                                              result*))]
-      {:media-obj (create-media-object overall-starttime overall-endtime starttimes endtimes
-                                       media-obj-lines speakers corpus line-key)
-       :line-key  line-key})))
+        movie-loc         (second (re-find #"<who_avfile\s+([^>]+)>[^<]*\{\{" result*))
+        result**          (str/replace result* #"</?who_avfile ?.*?>" "")
+        media-obj-lines   (map second (re-seq #"<who_name.+?>(.*?)</who_name>" result**))]
+    (create-media-object overall-starttime overall-endtime starttimes endtimes
+                         media-obj-lines speakers corpus movie-loc)))
 
 
 (defn play-video [corpus-code search-id result-index context-size]
@@ -240,10 +229,10 @@
         named-query (cwb-query-name corpus search-id)
         commands    [(str "set DataDirectory \"tmp\"")
                      (str/upper-case (:code corpus))
-                     (str "set Context " context-size " sync_time")
+                     (str "set Context " context-size " who_start")
                      "set LD \"{{\""
                      "set RD \"}}\""
-                     "show +sync_time +sync_end +who_name +who_line_key"
+                     "show +who_start +who_stop +who_name +who_avfile"
                      (str "cat " named-query " " result-index " " result-index)]
         results     (run-cqp-commands corpus (flatten commands) false)]
     (extract-media-info corpus (first results))))

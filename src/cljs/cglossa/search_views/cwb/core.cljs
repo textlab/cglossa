@@ -43,7 +43,7 @@
                      phonetic? "phon"
                      original? "orig"
                      :else "word")
-        s-tag      (if (= (:search-engine corpus) "cwb_speech") "sync" "s")
+        s-tag      (if (= (:search-engine corpus) "cwb_speech") "who" "s")
         chinese-ch "[\u4E00-\u9FFF\u3400-\u4DFF\uF900-\uFAFF]"
         ; Surround every Chinese character by space when constructing a cqp query,
         ; to treat it as if it was an individual word:
@@ -226,7 +226,7 @@
   (let [query           (:query @wrapped-query)
         displayed-query (-> query
                             (->non-headword-query)
-                            (str/replace #"</?s(?:ync)?>" "")
+                            (str/replace #"</?(?:s|who)?>" "")
                             ;; Unescape any escaped chars, since we don't want the backslashes
                             ;; to show in the text input
                             (str/replace #"\\(.)" "$1")
