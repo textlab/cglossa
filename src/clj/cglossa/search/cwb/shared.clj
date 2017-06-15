@@ -210,10 +210,14 @@
 
 ;; The nb_NO locale is needed for the Norwegian letters to be sorted correctly.
 ;; The best solution would be to set the locale based on the language of the corpus.
+;; However, the collation order for nb_NO is broken (spaces are ignored, so "ab"
+;; goes after "a a" but before "a c"), so we're using "C", which doesn't sort
+;; non-ASCII letters correctly, but at least takes spaces into account.
 (defn locale-encoding [encoding]
-  (-> encoding
-      (str/replace-first #"(?i)^latin1$" "nb_NO.ISO8859-1")
-      (str/replace-first #"(?i)^utf-8$" "nb_NO.UTF-8")))
+  "C")
+;  (-> encoding
+;      (str/replace-first #"(?i)^latin1$" "nb_NO.ISO8859-1")
+;      (str/replace-first #"(?i)^utf-8$" "nb_NO.UTF-8")))
 
 (defn run-cqp-commands [corpus commands counting?]
   (let [commands*  (->> commands
