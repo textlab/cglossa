@@ -197,7 +197,7 @@
       supplied = mediaObj.mov.supplied;
       $("#movietitle").text(mediaObj.title);
       lastLine = parseInt(mediaObj.lastLine);
-      ext = this.props.mediaType === "audio" ? ".mp3" : "_800.mp4";
+      ext = this.props.mediaType === "audio" ? ".mp3" : ".mp4";
       $playerNode = $node.find(".jp-jplayer");
       $playerNode.jPlayer({
         solution: "flash, html",
