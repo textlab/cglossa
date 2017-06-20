@@ -65,7 +65,7 @@
         [results _] (get-results corpus s queries start end cpu-counts context-size sort-key attrs)
         ;; We need to take num-random-hits results because the saved search results may
         ;; contain slightly more due to rounding (when multi-cpu, multi-step search has been used)
-        rows     (for [line (take num-random-hits results)]
+        rows     (for [line (if num-random-hits (take num-random-hits results) results)]
                    ;; Extract corpus position, sentence/utterance ID, left context, match and right
                    ;; context from the result line
                    (or (next (re-find #"^\s*(\d+):\s*<.+?\s(.+?)>:\s*(.+?)\s*\{\{(.+?)\}\}\s+(.+)"
