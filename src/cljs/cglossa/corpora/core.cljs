@@ -4,4 +4,5 @@
             cglossa.corpora.amerikanorsk
             cglossa.corpora.scandiasyn
             cglossa.corpora.norint-tekst
-            cglossa.corpora.norint-opplest))
+            cglossa.corpora.norint-opplest
+            cglossa.corpora.ndc))
