@@ -146,10 +146,13 @@
 ; Components
 ;;;;;;;;;;;;;
 
-(defn- search-button [a m margin-left]
+(defn- search-button [{:keys [orig-search] :as a} m margin-left]
   [b/button {:bs-style "success"
              :style    {:margin-left margin-left}
-             :on-click #(search! a m)} "Search"])
+             :on-click (fn [_]
+                         (reset! orig-search nil)
+                         (search! a m))}
+   "Search"])
 
 (defn- add-row-button [queries view text on-click]
   [b/button {:bs-size  "small"

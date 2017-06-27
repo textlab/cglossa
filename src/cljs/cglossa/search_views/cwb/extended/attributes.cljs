@@ -201,7 +201,8 @@
            [tag-description-label form description "" [:extra-forms attr]
             wrapped-term show-attr-popup?])]]])))
 
-(defn- attribute-modal [a {:keys [corpus] :as m}
+(defn- attribute-modal [{:keys [orig-search] :as a}
+                        {:keys [corpus] :as m}
                         wrapped-query wrapped-term menu-data show-attr-popup?]
   [b/modal {:class-name "attr-modal"
             :bs-size    "large"
@@ -229,7 +230,11 @@
                             (swap! wrapped-term assoc :features nil)
                             (swap! wrapped-term assoc :corpus-specific-attrs nil))} "Clear"]
      [b/button {:bs-style "success"
-                :on-click (fn [_] (reset! show-attr-popup? false) (search! a m))} "Search"]
+                :on-click (fn [_]
+                            (reset! show-attr-popup? false)
+                            (reset! orig-search nil)
+                            (search! a m))}
+      "Search"]
      [b/button {:bs-style "info"
                 :on-click #(reset! show-attr-popup? false)} "Close"]]]])
 

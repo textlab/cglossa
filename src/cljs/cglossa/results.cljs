@@ -212,9 +212,10 @@
           [b/button {:bs-style "success" :on-click download :disabled @downloading?} "Download"]]]
         [b/button {:on-click hide-popup} "Close"]]])))
 
-(defn- statistics-button [{{:keys [freq-attr freq-attr-sorted
+(defn- statistics-button [{:keys                                         [orig-search]
+                           {:keys [freq-attr freq-attr-sorted
                                    freq-res freq-case-sensitive]} :results-view :as a}
-                          {:keys [corpus] :as m}]
+                          {:keys [corpus search] :as m}]
   (let [on-checkbox-changed (fn [event attr]
                               (if (.-target.checked event)
                                 (swap! freq-attr conj attr)
@@ -230,7 +231,18 @@
                                [:input {:name      id
                                         :type      "checkbox"
                                         :style     {:margin-left -18}
-                                        :on-change #(on-checkbox-changed % id)}] name])]
+                                        :on-change #(on-checkbox-changed % id)}] name])
+        ;; Called when we click on some attribute value in the frequency list
+        search-for-freq-val (fn [col-index e]
+                              (let [attr (nth @freq-attr-sorted (dec col-index))
+                                    new-search (condp = attr
+                                                 :word 1)]
+                                (.preventDefault e)
+                                (when (nil? @orig-search)
+                                  ;; If this is the first value we click on, preserve the orignial
+                                  ;; search
+                                  (reset! orig-search search)))
+                              )]
     [:div
       (let [attrs           (all-displayed-attrs corpus)
             attr-set        #{:word :lemma :ordkl :pos :orig}
@@ -250,7 +262,8 @@
                                         :style     {:margin-left -18}
                                         :on-change #(on-case-sensitive-checkbox-changed %)}] "Case sensitive"]]
 
-     [b/button {:style {:margin-top 5 :margin-bottom 10} :on-click #(stats! a m)} "Update stats"]
+     [b/button {:bs-size "small" :style {:margin-top 5 :margin-bottom 10} :on-click #(stats! a m)}
+      "Update stats"]
      [b/table {:bordered true}
       [:tbody
        [:tr
@@ -259,8 +272,13 @@
           (map (fn [attr] ^{:key (first attr)} [:th (->> attr second name)]) @freq-attr-sorted))]
        (when (seq? @freq-res)
          (let [process-col (fn [index col]
-                             ^{:key index}
-                             [:td (str/replace col #"^__(UNDEF|undef)__$" "")])
+                             (let [content (str/replace col #"^__(UNDEF|undef)__$" "")]
+                               (if (zero? index)
+                                 ^{:key index} [:td content]
+                                 ^{:key index} [:td
+                                                [:a {:href     ""
+                                                     :on-click (partial search-for-freq-val index)}
+                                                 content]])))
                process-row (fn [index row]
                              ^{:key index}
                              [:tr (map-indexed process-col (str/split
