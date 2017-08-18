@@ -1,5 +1,9 @@
 (ns cglossa.search-views.cwb.extended.cqp
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [cglossa.react-adapters.bootstrap :as b]
+            [cglossa.shared :refer [spinner-overlay search! all-displayed-attrs stats!]]
+            [cglossa.search-views.cwb.extended.shared :refer [language-corpus-specific-attrs]]
+            [cglossa.results :refer [statistics-button]]))
 
 (defn- combine-regexes [regexes]
   "Since there is no way to concatenate regexes directly, we convert
@@ -285,3 +289,90 @@
                    (re-pattern (str "\\b" pos-attr "(?=\\s*!?=)"))
                    "pos")
       query)))
+
+(defmethod statistics-button "cwb" [{:keys                                            [orig-queries]
+                                     {:keys [queries]}                                :search-view
+                                     {:keys [freq-attr freq-attr-sorted
+                                             view-type freq-res freq-case-sensitive]} :results-view
+                                     :as                                              a}
+                                    {:keys [corpus search] :as m}]
+  (let [on-checkbox-changed (fn [event attr]
+                              (if (.-target.checked event)
+                                (swap! freq-attr conj attr)
+                                (swap! freq-attr disj attr)))
+        on-case-sensitive-checkbox-changed
+                            (fn [event]
+                              (if (.-target.checked event)
+                                (reset! freq-case-sensitive true)
+                                (reset! freq-case-sensitive false)))
+        attr-checkbox       (fn [[id name]]
+                              ^{:key id}
+                              [:label.checkbox-inline {:style {:padding-left 0 :padding-right 18}}
+                               [:input {:name      id
+                                        :type      "checkbox"
+                                        :style     {:margin-left -18}
+                                        :on-change #(on-checkbox-changed % id)}] name])
+        ;; Called when we click on some attribute value in the frequency list
+        search-for-freq-val (fn [col-index e]
+                              (let [query       (first @queries)
+                                    attr        (nth @freq-attr-sorted (dec col-index))
+                                    new-queries (condp = (first attr)
+                                                  :word
+                                                  [{:query    (str "[word=\""
+                                                                   (.-target.text e)
+                                                                   "\" %c]")
+                                                    :lang     (:lang query)
+                                                    :exclude? false}]
+                                                  )]
+                                (.preventDefault e)
+                                (when (nil? @orig-queries)
+                                  ;; If this is the first value we click on, preserve the original
+                                  ;; queries
+                                  (reset! orig-queries @queries))
+                                (reset! queries new-queries)
+                                (reset! view-type :concordance)
+                                (search! a m)))]
+    [:div
+     (let [attrs           (all-displayed-attrs corpus)
+           attr-set        #{:word :lemma :ordkl :pos :orig}
+           important-attrs (filter #(attr-set (first %)) attrs)
+           other-attrs     (remove #(attr-set (first %)) attrs)]
+       [:div
+        [:div.checkbox {:style {:display "table-cell" :padding-top 7 :padding-left 10}}
+         (cons ^{:key "spacer"} [:div {:style {:display "inline-block" :width 10}}]
+               (map attr-checkbox important-attrs))]
+        [:div]
+        [:div.checkbox {:style {:display "table-cell" :padding-top 7 :padding-left 10}}
+         (cons ^{:key "spacer"} [:div {:style {:display "inline-block" :width 10}}]
+               (map attr-checkbox other-attrs))]])
+     [:div.checkbox [:label.checkbox-inline {:style {:padding-left 18}}
+                     [:input {:name      "case-sensitive"
+                              :type      "checkbox"
+                              :style     {:margin-left -18}
+                              :on-change #(on-case-sensitive-checkbox-changed %)}] "Case sensitive"]]
+
+     [b/button {:bs-size "small" :style {:margin-top 5 :margin-bottom 10} :on-click #(stats! a m)}
+      "Update stats"]
+     [b/table {:bordered true}
+      [:tbody
+       [:tr
+        [:th "Count"]
+        (doall
+          (map (fn [attr] ^{:key (first attr)} [:th (->> attr second name)]) @freq-attr-sorted))]
+       (when (seq? @freq-res)
+         (let [process-col (fn [index col]
+                             (let [content (str/replace col #"^__(UNDEF|undef)__$" "")]
+                               (if (zero? index)
+                                 ^{:key index} [:td content]
+                                 ^{:key index} [:td
+                                                [:a {:href     ""
+                                                     :on-click (partial search-for-freq-val index)}
+                                                 content]])))
+               process-row (fn [index row]
+                             ^{:key index}
+                             [:tr (map-indexed process-col (str/split
+                                                             (str/replace-first
+                                                               row #"^(\d+)\s+" "$1\t") #"\t"))])]
+           (map-indexed process-row (take 2500 @freq-res))))]]
+     (when (string? @freq-res)
+       [spinner-overlay {:spin? true :width 45 :height 45 :top 5} [:div @freq-res]])]))

@@ -212,81 +212,6 @@
           [b/button {:bs-style "success" :on-click download :disabled @downloading?} "Download"]]]
         [b/button {:on-click hide-popup} "Close"]]])))
 
-(defn- statistics-button [{:keys                                         [orig-search]
-                           {:keys [freq-attr freq-attr-sorted
-                                   freq-res freq-case-sensitive]} :results-view :as a}
-                          {:keys [corpus search] :as m}]
-  (let [on-checkbox-changed (fn [event attr]
-                              (if (.-target.checked event)
-                                (swap! freq-attr conj attr)
-                                (swap! freq-attr disj attr)))
-        on-case-sensitive-checkbox-changed
-                            (fn [event]
-                              (if (.-target.checked event)
-                                (reset! freq-case-sensitive true)
-                                (reset! freq-case-sensitive false)))
-        attr-checkbox       (fn [[id name]]
-                              ^{:key id}
-                              [:label.checkbox-inline {:style {:padding-left 0 :padding-right 18}}
-                               [:input {:name      id
-                                        :type      "checkbox"
-                                        :style     {:margin-left -18}
-                                        :on-change #(on-checkbox-changed % id)}] name])
-        ;; Called when we click on some attribute value in the frequency list
-        search-for-freq-val (fn [col-index e]
-                              (let [attr (nth @freq-attr-sorted (dec col-index))
-                                    new-search (condp = attr
-                                                 :word 1)]
-                                (.preventDefault e)
-                                (when (nil? @orig-search)
-                                  ;; If this is the first value we click on, preserve the orignial
-                                  ;; search
-                                  (reset! orig-search search)))
-                              )]
-    [:div
-      (let [attrs           (all-displayed-attrs corpus)
-            attr-set        #{:word :lemma :ordkl :pos :orig}
-            important-attrs (filter #(attr-set (first %)) attrs)
-            other-attrs     (remove #(attr-set (first %)) attrs)]
-        [:div
-          [:div.checkbox {:style {:display "table-cell" :padding-top 7 :padding-left 10}}
-           (cons ^{:key "spacer"} [:div {:style {:display "inline-block" :width 10}}]
-                 (map attr-checkbox important-attrs))]
-          [:div]
-          [:div.checkbox {:style {:display "table-cell" :padding-top 7 :padding-left 10}}
-           (cons ^{:key "spacer"} [:div {:style {:display "inline-block" :width 10}}]
-                 (map attr-checkbox other-attrs))]])
-      [:div.checkbox [:label.checkbox-inline {:style {:padding-left 18}}
-                               [:input {:name      "case-sensitive"
-                                        :type      "checkbox"
-                                        :style     {:margin-left -18}
-                                        :on-change #(on-case-sensitive-checkbox-changed %)}] "Case sensitive"]]
-
-     [b/button {:bs-size "small" :style {:margin-top 5 :margin-bottom 10} :on-click #(stats! a m)}
-      "Update stats"]
-     [b/table {:bordered true}
-      [:tbody
-       [:tr
-        [:th "Count"]
-        (doall
-          (map (fn [attr] ^{:key (first attr)} [:th (->> attr second name)]) @freq-attr-sorted))]
-       (when (seq? @freq-res)
-         (let [process-col (fn [index col]
-                             (let [content (str/replace col #"^__(UNDEF|undef)__$" "")]
-                               (if (zero? index)
-                                 ^{:key index} [:td content]
-                                 ^{:key index} [:td
-                                                [:a {:href     ""
-                                                     :on-click (partial search-for-freq-val index)}
-                                                 content]])))
-               process-row (fn [index row]
-                             ^{:key index}
-                             [:tr (map-indexed process-col (str/split
-                                                             (str/replace-first
-                                                               row #"^(\d+)\s+" "$1\t") #"\t"))])]
-           (map-indexed process-row (take 2500 @freq-res))))]]
-     (when (string? @freq-res)
-       [spinner-overlay {:spin? true :width 45 :height 45 :top 5} [:div @freq-res]])]))
 
 (defn- context-size-selector [{{:keys [results
                                        context-size
@@ -578,6 +503,11 @@
                                      :height   460
                                      :points   points}])]])))
 
+(defmulti statistics-button
+  (fn [_ m] (re-find #"[^_]+" (:search-engine @(:corpus m)))))
+
+(defmethod statistics-button :default [_ _] nil)
+
 (defn results [{:keys                       [searching? num-resets]
                 {:keys [view-type results]} :results-view :as a}
                {:keys [corpus] :as m}]
@@ -603,4 +533,5 @@
       [:div.row {:style {:margin-top 15}}
        [:div.col-sm-12
         [b/buttontoolbar {:style {:height 44}}
-         [statistics-button a m]]]]]]]])
+         (if (str/starts-with? (:search-engine @corpus) "cwb")
+           [statistics-button a m])]]]]]]])

@@ -52,14 +52,14 @@
         (.log js/console status)
         (reset! text-selection-info body)))))
 
-(defn- metadata-selection-changed [{:keys [orig-search] :as a} {:keys [search] :as m}]
+(defn- metadata-selection-changed [{:keys [orig-queries] :as a} {:keys [search] :as m}]
   (count-selected-texts! a m)
   (count-selected-tokens! a m)
   (get-text-selection-info! a m)
   ;; We need a new search id every time metadata selection is changed,
   ;; otherwise sorting won't work correctly:
   (swap! search dissoc :id)
-  (reset! orig-search nil)
+  (reset! orig-queries nil)
   (search! a m))
 
 (defn text-selection [{:keys [num-selected-texts num-selected-tokens text-selection-info]}

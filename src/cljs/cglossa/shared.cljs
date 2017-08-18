@@ -285,10 +285,10 @@
     @show-results? (not @narrow-view?)
     :else true))
 
-(defn on-key-down [event {:keys [orig-search] :as a} m & params]
+(defn on-key-down [event {:keys [orig-queries] :as a} m & params]
   (when (= "Enter" (.-key event))
     (.preventDefault event)
-    (reset! orig-search nil)
+    (reset! orig-queries nil)
     (apply search! a m params)))
 
 (defn remove-row-btn [show? wrapped-query]

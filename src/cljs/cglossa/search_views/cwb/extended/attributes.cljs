@@ -201,7 +201,7 @@
            [tag-description-label form description "" [:extra-forms attr]
             wrapped-term show-attr-popup?])]]])))
 
-(defn- attribute-modal [{:keys [orig-search] :as a}
+(defn- attribute-modal [{:keys [orig-queries] :as a}
                         {:keys [corpus] :as m}
                         wrapped-query wrapped-term menu-data show-attr-popup?]
   [b/modal {:class-name "attr-modal"
@@ -232,7 +232,7 @@
      [b/button {:bs-style "success"
                 :on-click (fn [_]
                             (reset! show-attr-popup? false)
-                            (reset! orig-search nil)
+                            (reset! orig-queries nil)
                             (search! a m))}
       "Search"]
      [b/button {:bs-style "info"

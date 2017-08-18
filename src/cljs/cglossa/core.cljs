@@ -69,7 +69,7 @@
                     :searching?          (r/atom false)
                     :open-metadata-cat   (r/atom nil)
                     :num-resets          (r/atom 0)
-                    :orig-search         (r/atom nil)})
+                    :orig-queries        (r/atom nil)})
 
 (defonce model-state {:corpus              (r/atom nil)
                       :metadata-categories (r/atom nil)
