@@ -31,6 +31,7 @@
     [b/formcontrol
      {:type          "text"
       :bs-size       "small"
+      :class-name    "query-term-input"
       :style         {:font-size 14
                       :width     108
                       :height    30}

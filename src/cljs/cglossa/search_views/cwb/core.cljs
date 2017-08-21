@@ -214,7 +214,7 @@
       [remove-row-btn show-remove-row-btn? wrapped-query]
       [b/formcontrol
        {:style            {:width 500}
-        :class-name       "col-sm-12"
+        :class-name       "query-term-input col-sm-12"
         :group-class-name "table-cell"
         :type             input-type
         :default-value    displayed-query

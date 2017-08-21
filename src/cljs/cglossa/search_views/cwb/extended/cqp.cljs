@@ -1,5 +1,6 @@
 (ns cglossa.search-views.cwb.extended.cqp
   (:require [clojure.string :as str]
+            cljsjs.jquery
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.shared :refer [spinner-overlay search! all-displayed-attrs stats!]]
             [cglossa.search-views.cwb.extended.shared :refer [language-corpus-specific-attrs]]
@@ -316,11 +317,10 @@
         search-for-freq-val (fn [col-index e]
                               (let [query       (first @queries)
                                     attr        (nth @freq-attr-sorted (dec col-index))
+                                    text (.-target.text e)
                                     new-queries (condp = (first attr)
                                                   :word
-                                                  [{:query    (str "[word=\""
-                                                                   (.-target.text e)
-                                                                   "\" %c]")
+                                                  [{:query    (str "[word=\"" text "\" %c]")
                                                     :lang     (:lang query)
                                                     :exclude? false}]
                                                   )]
@@ -331,6 +331,10 @@
                                   (reset! orig-queries @queries))
                                 (reset! queries new-queries)
                                 (reset! view-type :concordance)
+                                ;; Need to use jQuery here because text inputs are uncontrolled
+                                ;; and hence won't automatically reflect the change in the
+                                ;; query term data structure
+                                (.val (.first (js/$ ".query-term-input")) text)
                                 (search! a m)))]
     [:div
      (let [attrs           (all-displayed-attrs corpus)
