@@ -317,7 +317,7 @@
         search-for-freq-val (fn [col-index e]
                               (let [query       (first @queries)
                                     attr        (nth @freq-attr-sorted (dec col-index))
-                                    text (.-target.text e)
+                                    text        (.-target.text e)
                                     new-queries (condp = (first attr)
                                                   :word
                                                   [{:query    (str "[word=\"" text "\" %c]")
@@ -366,7 +366,8 @@
        (when (seq? @freq-res)
          (let [process-col (fn [index col]
                              (let [content (str/replace col #"^__(UNDEF|undef)__$" "")]
-                               (if (zero? index)
+                               (if (or (zero? index)
+                                       (not= :word (first (nth @freq-attr-sorted (dec index)))))
                                  ^{:key index} [:td content]
                                  ^{:key index} [:td
                                                 [:a {:href     ""
@@ -374,9 +375,10 @@
                                                  content]])))
                process-row (fn [index row]
                              ^{:key index}
-                             [:tr (map-indexed process-col (str/split
-                                                             (str/replace-first
-                                                               row #"^(\d+)\s+" "$1\t") #"\t"))])]
-           (map-indexed process-row (take 2500 @freq-res))))]]
+                             [:tr (doall
+                                    (map-indexed process-col (str/split
+                                                               (str/replace-first
+                                                                 row #"^(\d+)\s+" "$1\t") #"\t")))])]
+           (doall (map-indexed process-row (take 2500 @freq-res)))))]]
      (when (string? @freq-res)
        [spinner-overlay {:spin? true :width 45 :height 45 :top 5} [:div @freq-res]])]))
