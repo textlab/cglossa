@@ -158,11 +158,9 @@
                    "}}$1")))
 
 (defn- find-timestamps [result]
-  (for [[segment start end] (re-seq #"<who_start\s+([\d\.]+)><who_stop\s+([\d\.]+)>.*?</who_start>"
-                                    result)
-        :let [num-speakers (count (re-seq #"<who_name" segment))]]
-    ;; Repeat the start and end time for each speaker within the same segment
-    [(repeat num-speakers start) (repeat num-speakers end)]))
+  (for [[_ start end] (re-seq #"<who_start\s+([\d\.]+)><who_stop\s+([\d\.]+)>.*?</who_start>"
+                              result)]
+    [start end]))
 
 
 (defn- build-annotation [displayed-attrs index line speaker starttime endtime]
@@ -208,8 +206,8 @@
 (defn- extract-media-info [corpus result]
   (let [result*           (fix-brace-positions result)
         timestamps        (find-timestamps result*)
-        starttimes        (mapcat first timestamps)
-        endtimes          (mapcat last timestamps)
+        starttimes        (map first timestamps)
+        endtimes          (map last timestamps)
         overall-starttime (first starttimes)
         overall-endtime   (last endtimes)
         speakers          (map second (re-seq #"<who_name\s+(.+?)>" result*))
@@ -219,7 +217,7 @@
         ;; by double braces).
         movie-loc         (second (re-find #"<who_avfile\s+([^>]+)>[^<]*\{\{" result*))
         result**          (str/replace result* #"</?who_avfile ?.*?>" "")
-        media-obj-lines   (map second (re-seq #"<who_name.+?>(.*?)</who_name>" result**))]
+        media-obj-lines   (map second (re-seq #"<who_stop.+?>(.*?)</who_stop>" result**))]
     (create-media-object overall-starttime overall-endtime starttimes endtimes
                          media-obj-lines speakers corpus movie-loc)))
 
