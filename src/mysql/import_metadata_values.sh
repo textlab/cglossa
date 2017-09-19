@@ -64,7 +64,7 @@ echo Importing values...
 # when we give it the --delete option.
 # Also note that we have to create indexes *after* importing the data - otherwise they don't
 # work correctly (and mysql reports them as having cardinality 2...??)
-mysql -u "${GLOSSA_DB_ADMIN:-root}" -p  \
+mysql -u "${GLOSSA_DB_ADMIN:-root}" -p  --default-character-set=utf8 \
     -e "TRUNCATE \`metadata_value\`;" \
     -e "LOAD DATA INFILE '$valfile2' INTO TABLE \`metadata_value\` (\`metadata_category_id\`, \`text_value\`);" \
     -e "TRUNCATE \`text\`;" \
