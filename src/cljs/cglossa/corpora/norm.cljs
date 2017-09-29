@@ -2,8 +2,8 @@
   (:require [reagent.core :as r]
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.results :refer [result-links show-texts-extra-col-name
-                                     show-texts-extra-col-comp]
-             cglossa.result-views.cwb.shared :refer [get-result-metadata metadata-overlay]]))
+                                     show-texts-extra-col-comp]]
+            [cglossa.result-views.cwb.shared :refer [get-result-metadata metadata-overlay]]))
 
 (defmethod result-links "norm" [_ _ result _]
   (let [text-id  (re-find #".+(?=\.)" (:s-id result))
@@ -33,7 +33,7 @@
   (r/create-class
     {:render
      (fn [this]
-       [:div
+       #_[:div
         [:a {:href     ""
              :on-click #(get-result-metadata % result-showing-metadata metadata-categories
                                              (:code @corpus) text-id result-hash)}
