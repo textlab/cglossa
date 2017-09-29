@@ -6,4 +6,5 @@
             cglossa.corpora.scandiasyn
             cglossa.corpora.norint-tekst
             cglossa.corpora.norint-opplest
-            cglossa.corpora.ndc))
+            cglossa.corpora.ndc
+            cglossa.corpora.norm))
