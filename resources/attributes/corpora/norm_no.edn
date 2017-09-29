@@ -1,0 +1,13 @@
+[[:word "Annotering i korrigert tekst"
+  ["&&PUNKT" "feilplassert skilletegn"]
+  ["&&ODMBS" "orddeling med bindestrek"]
+  ["&&ODUBS" "orddeling uten bindestrek"]
+  ["&&SÆR" "særskriving"]]
+ [:orig "Annotering i originaltekst"
+  ["&&TEGNING" "tegning"]
+  ["&&UFORSTÅELIG" "uforståelig"]
+  ["&&PUNKT" "manglende skilletegn"]
+  ["&&ODMBS" "orddeling med bindestrek"]
+  ["&&ODUBS" "orddeling uten bindestrek"]
+  ["&&STRØKET" "strøket"]
+  ["&&SAM" "samskriving"]]]
