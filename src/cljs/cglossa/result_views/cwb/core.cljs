@@ -18,5 +18,6 @@
                        ;; tag surrounding the s unit is included inside the match braces (this
                        ;; should probably be considered a bug in CQP). We need to fix that.
                        (str/replace #"\{\{(<s_id\s+.+?>)" "$1{{")
-                       (str/replace #"(</s_id>)\}\}" "}}$1")))
+                       (str/replace #"(</s_id>)\}\}" "}}$1")
+                       (str/replace #"&nbsp;" "_")))
                  lines))))
