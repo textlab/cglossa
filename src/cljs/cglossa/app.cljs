@@ -20,7 +20,7 @@
 (defn- header [{:keys [show-results?]} {:keys [corpus authenticated-user]}]
   [b/navbar {:fixed-top true}
    [b/navbar-brand
-     [:a {:href "./"} "Glossa"]]
+    [:a {:href "./"} "Glossa"]]
    (when @show-results?
      ;; Only show corpus name in the header when showing results, since
      ;; it is shown in big letters on the front page
