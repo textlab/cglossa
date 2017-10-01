@@ -51,7 +51,7 @@
     (go
       (let [{:keys [body]} (<! (http/get (str corpus-code "/result-metadata")
                                          {:query-params {:text-id text-id}}))
-            cats (remove #(str/starts-with? (name (:code %)) "hd_") @metadata-categories)
+            cats      @metadata-categories
             cat-names (into {} (map (fn [{:keys [id code name]}]
                                       (let [name* (or name (-> code
                                                                (str/replace "_" " ")
