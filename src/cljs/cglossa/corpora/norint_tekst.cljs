@@ -29,7 +29,7 @@
 (defmethod show-texts-extra-col-name "norint_tekst" [_]
   {:code "extra-col" :name "Besvarelse"})
 
-(defmethod show-texts-extra-col-comp "norint_tekst" [_]
+(defmethod show-texts-extra-col-comp "norint_tekst" [_ _]
   (r/create-class
     {:render
      (fn [this]

@@ -366,10 +366,10 @@
 (defmulti show-texts-extra-col-comp
   "Multimethod for the data in an extra corpus-specific column to be displayed
   in the show-texts popup, given a particular page of corpus texts."
-  (fn [corpus] (:code @corpus)))
+  (fn [corpus m row-data] (:code @corpus)))
 
 (defmethod show-texts-extra-col-name :default [_] nil)
-(defmethod show-texts-extra-col-comp :default [_] nil)
+(defmethod show-texts-extra-col-comp :default [_ _] nil)
 
 (defmulti concordance-table
   "Multimethod that accepts two arguments - an app state map and a

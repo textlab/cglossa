@@ -8,6 +8,7 @@
             [devtools.core :as devtools]
             [cglossa.search-engines]    ; just to pull in implementations
             [cglossa.corpora.core]      ; just to pull in implementations
+            [cglossa.result-views.cwb.shared :refer [line-showing-metadata]]
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.app :refer [app init get-models]])
   (:require-macros [cljs.core.async.macros :refer [go]])
@@ -79,6 +80,8 @@
 ;; Set :narrow-view in app-state whenever the window is resized (throttled to 200ms)
 (def on-resize-throttle (Throttle. #(reset! (:narrow-view? app-state) (narrow-view?)) 200))
 (.addEventListener js/window "resize" #(.fire on-resize-throttle))
+
+(.addEventListener js/window "click" #(reset! line-showing-metadata nil))
 
 (.tooltip (js/$ "body") #js {:selector "[data-toggle='tooltip']" :delay #js {:show 300 :hide 0}})
 

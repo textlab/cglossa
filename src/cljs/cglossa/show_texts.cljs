@@ -4,6 +4,7 @@
             [reagent.core :as r]
             [cljs-http.client :as http]
             griddle
+            [cglossa.result-views.cwb.shared :refer [line-showing-metadata]]
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.metadata-list :refer [text-selection]]
             [cglossa.results :refer [show-texts-extra-col-name show-texts-extra-col-comp]])
@@ -35,7 +36,7 @@
                                                                    (get row (:id cat))])
                                                                 @metadata-categories)
                                        corpus-specific-col {extra-col-name
-                                                            (show-texts-extra-col-comp corpus row)}]
+                                                            (show-texts-extra-col-comp corpus m row)}]
                                    (into {"__dummy" " "} (cons corpus-specific-col standard-cols))))]
             (when (= (:status response) 401)
               (reset! (:authenticated-user m) nil))
@@ -102,7 +103,7 @@
                                                       :cssClassName    "extra-text-column"
                                                       :customComponent (r/as-element
                                                                          (show-texts-extra-col-comp
-                                                                           corpus))}])
+                                                                           corpus m))}])
                 :use-external               true
                 :external-set-page          (fn [page]
                                               (when-not (contains? @fetched-pages page)

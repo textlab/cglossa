@@ -10,6 +10,8 @@
 
 (def ^:private metadata-cache (atom {}))
 
+(def line-showing-metadata (r/atom nil))
+
 (defn- metadata-overlay [result-showing-metadata]
   [b/overlay {:show      (not (nil? @result-showing-metadata))
               :placement "top"
@@ -22,7 +24,7 @@
                   :margin-left      -5,
                   :margin-top       5,
                   :padding          15
-                  :z-index          1000}}
+                  :z-index          2000}}
     [:div {:style {:text-align "right" :margin-bottom 8}}
      [b/button {:bs-size  "xsmall"
                 :style    {:margin-top -5 :padding-top 4}
