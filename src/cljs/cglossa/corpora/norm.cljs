@@ -32,7 +32,7 @@
       [b/glyphicon {:glyph "file"}]]]))
 
 (defmethod show-texts-extra-col-name "norm" [_]
-  {:code "extra-col" :name "Oppgavesvar"})
+  {:code "extra-col" :name " "})
 
 (defmethod show-texts-extra-col-comp "norm" [corpus m]
   (let [on-click
@@ -62,7 +62,7 @@
       {:on-click (fn [_] (reset! line-showing-metadata nil))
        :render   (fn [this]
                    [:span
-                    [:div
+                    [:div {:style {:display "inline-block" :margin-right 5}}
                      [:a {:href     ""
                           :on-click (partial on-click (:rowData (r/props this)))}
                       [b/glyphicon {:glyph "info-sign"}]]

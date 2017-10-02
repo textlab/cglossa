@@ -307,6 +307,9 @@ div.interval {
 .column-area {
     width: 100px;
 }
+.column-assignmenttype {
+    width: 120px;
+}
 .column-birth_year {
     width: 80px;
 }
@@ -321,6 +324,9 @@ div.interval {
 }
 .column-country {
     width: 100px;
+}
+.column-datatype {
+    width: 120px;
 }
 .column-education {
     width: 150px;
@@ -337,7 +343,19 @@ div.interval {
 .column-kommune_1978 {
     width: 120px;
 }
+.column-level {
+    width: 50px;
+}
+.column-malform {
+    width: 80px;
+}
 .column-mother_tongue {
+    width: 110px;
+}
+.column-nativelanguage {
+    width: 100px;
+}
+.column-num {
     width: 110px;
 }
 .column-occupation {
@@ -366,6 +384,12 @@ div.interval {
 }
 .column-sex {
     width: 60px;
+}
+.column-school {
+    width: 60px;
+}
+.column-student {
+    width: 110px;
 }
 .column-supercategory {
     width: 120px;
