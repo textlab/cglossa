@@ -35,7 +35,7 @@
                     ^{:key index}
                     [:div.table-row
                      [:div.table-cell {:style {:padding-right 10}} cat-name]
-                     [:div.table-cell val]])
+                     [:div.table-cell {:dangerouslySetInnerHTML {"__html" val}}]])
                   (:vals @result-showing-metadata))]]])
 
 (defn- find-result-node [result-hash]
