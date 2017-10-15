@@ -32,9 +32,9 @@
                            :password          (:glossa-db-password env)
                            :useUnicode        true
                            :characterEncoding "UTF-8"
-                           :db       core-db-name
-                           :host     "127.0.0.1"
-                           :port     3306}))
+                           :db                core-db-name
+                           :host              (:mysql-host env "127.0.0.1")
+                           :port              3306}))
 
 (defn convert-string [s from-charset-name to-charset-name]
   (let [from-charset (Charset/forName from-charset-name)
