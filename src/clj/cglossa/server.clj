@@ -28,6 +28,7 @@
                      [(:code c)
                       (kdb/create-db (mysql {:user              (:glossa-db-user env "glossa")
                                              :password          (:glossa-db-password env)
+                                             :host              (:mysql-host env "127.0.0.1")
                                              :useUnicode        true
                                              :characterEncoding "UTF-8"
                                              :db                (str (get env :glossa-prefix "glossa")
@@ -82,7 +83,7 @@
   (defonce ^:private server
     (let [port (Integer. (or port (env :port) 10555))]
       (print "Starting web server on port" port ".\n")
-      (run-server http-handler {:ip	  "127.0.0.1"
+      (run-server http-handler {:ip       "127.0.0.1"
                                 :port     port
                                 :max-line 8192
                                 :join?    false})))
