@@ -19,7 +19,7 @@
     :as   opts}]
   ;; TODO: Use the updated driver when we can update the MySQL connector (requires Java 1.8 or recent MySQL?)
   (merge {#_:classname   #_"com.mysql.cj.jdbc.Driver" ; must be in classpath - UPDATED DRIVER
-          :classname "com.mysql.jdbc.Driver" ; must be in classpath
+          :classname   "com.mysql.jdbc.Driver" ; must be in classpath
           :subprotocol "mysql"
           :subname     (str "//" host ":" port "/" db "?useSSL=false&serverTimezone=CET") ; ADD useSSL and serverTimezone
           :delimiters  "`"
@@ -28,9 +28,9 @@
 
 (def core-db-name (get env :glossa-core (str (get env :glossa-prefix "glossa") "__core")))
 
-(kdb/defdb core-db (mysql {:user     (:glossa-db-user env "glossa")
-                           :password (:glossa-db-password env)
-                           :useUnicode true
+(kdb/defdb core-db (mysql {:user              (:glossa-db-user env "glossa")
+                           :password          (:glossa-db-password env)
+                           :useUnicode        true
                            :characterEncoding "UTF-8"
                            :db       core-db-name
                            :host     "127.0.0.1"
