@@ -83,11 +83,11 @@
   (defonce ^:private server
     (let [port (Integer. (or port (env :port) 10555))]
       (print "Starting web server on port" port ".\n")
-      (run-server http-handler {:ip       "127.0.0.1"
-                                :port     port
+      (run-server http-handler {:port     port
                                 :max-line 8192
                                 :join?    false})))
   server)
 
 (defn -main [& [port]]
-  (run port))
+  (run port)
+  (println "Glossa is running"))
