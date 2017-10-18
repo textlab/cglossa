@@ -35,8 +35,10 @@
   ;; to use the accumulated token counts given by the bounds for all speakers (which
   ;; does not include the interviewers if they should be excluded from search).
   (kdb/with-db (get @corpus-connections (:code corpus))
-    (let [bounds (select text (fields :bounds))]
-      {:size {(:code corpus) (accumulate-bounds bounds)}})))
+    (let [bounds       (select text (fields :bounds))
+          local-media? (fs/exists? (str "/glossa/resources/public/media/" (:code corpus)))]
+      {:size         {(:code corpus) (accumulate-bounds bounds)}
+       :local-media? local-media?})))
 
 (defn- corpus-size [corpus queries]
   (get-in corpus [:extra-info :size (str/lower-case (cwb-corpus-name corpus queries))]))

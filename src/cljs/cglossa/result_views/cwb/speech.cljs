@@ -208,7 +208,8 @@
         [b/modalbody (if (= @current-player-type "wfplayer")
                        [:> js/WFplayer {:media-obj @media-obj}]
                        [:> js/Jplayer {:media-obj  @media-obj
-                                       :media-type @current-media-type}])]
+                                       :media-type @current-media-type
+                                       :has-local-media (-> @corpus :extra-info :local-media?)}])]
         [b/modalfooter
          [b/button {:on-click hide-player} "Close"]]]
        [:div.row>div.col-sm-12.search-result-table-container

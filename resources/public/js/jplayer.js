@@ -114,7 +114,8 @@
   window.Jplayer = React.createClass({displayName: "Jplayer",
     propTypes: {
       mediaObj: React.PropTypes.object,
-      mediaType: React.PropTypes.string
+      mediaType: React.PropTypes.string,
+      hasLocalMedia: React.PropTypes.bool
     },
     getStartLine: function(mediaObj) {
       var minStart, startAt;
@@ -193,7 +194,9 @@
       mediaObj = this.props.mediaObj;
       mov = mediaObj.mov.movieLoc;
       //path = "http://localhost:61054/" + mediaObj.mov.path + "/" + this.props.mediaType + "/";
-      path = "http://www.tekstlab.uio.no/glossa2/" + mediaObj.mov.path + "/" + this.props.mediaType + "/";
+      path = this.props.hasLocalMedia
+          ? "http://localhost/" + mediaObj.mov.path.replace(/^media\//, '') + "/" + this.props.mediaType + "/"
+          : "http://www.tekstlab.uio.no/glossa2/" + mediaObj.mov.path + "/" + this.props.mediaType + "/";
       supplied = mediaObj.mov.supplied;
       $("#movietitle").text(mediaObj.title);
       lastLine = parseInt(mediaObj.lastLine);
