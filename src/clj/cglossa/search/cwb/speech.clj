@@ -15,6 +15,7 @@
                                                order-position-fields displayed-attrs-command
                                                aligned-languages-command text join-metadata
                                                where-metadata]]
+            [cglossa.db.metadata :refer [metadata-category metadata-value]]
             [korma.db :as kdb]))
 
 (defentity media-file (table :media_file) (entity-fields :basename))
@@ -269,6 +270,10 @@
                       (str "group " named-query " match who_name by match phon")]
         cwb-res      (run-cqp-commands corpus (filter identity (flatten commands)) false)
         ;; Get pairs of informant code and place name from MySQL
+        tid-code     (if (empty? (-> (select metadata-category
+                                             (where {:code "hd_tid_hd"}))))
+                       "tid"
+                       "hd_tid_hd")
         sql          (str "select distinct v1.text_value informant, v2.text_value place "
                           "from metadata_value v1 "
                           "inner join metadata_category c1 on v1.metadata_category_id = c1.id "
@@ -276,7 +281,7 @@
                           "inner join metadata_value_text j2 on j2.text_id = j1.text_id "
                           "inner join metadata_value v2 on j2.metadata_value_id = v2.id "
                           "inner join metadata_category c2 on v2.metadata_category_id = c2.id "
-                          "where c1.code = 'tid' and c2.code = 'place'")
+                          "where c1.code = '" tid-code "' and c2.code = 'place'")
         ;; Create a hash map from informant code to place names
         places       (as-> sql $
                            (korma/exec-raw $ :results)

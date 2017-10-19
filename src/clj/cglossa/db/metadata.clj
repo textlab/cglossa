@@ -119,27 +119,35 @@
   (when (seq selected-metadata-ids)
     ;; Korma doesn't seem to support any way to express count(distinct...) apart from
     ;; inserting a raw string.
-    (let [cnt (raw "COUNT(DISTINCT `text_value`) AS cnt")]
+    (let [cnt      (raw "COUNT(DISTINCT `text_value`) AS cnt")
+          tid-code (if (empty? (-> (select metadata-category
+                                           (where {:code "hd_tid_hd"}))))
+                     "tid"
+                     "hd_tid_hd")]
       (-> (select* [metadata-value])
           (fields cnt)
           (join :inner [metadata-value-text :j0] (= :j0.metadata_value_id :id))
           (join-selected-values selected-metadata-ids)
           (where-selected-values selected-metadata-ids)
           (where {:metadata_category_id
-                  (subselect metadata-category (fields :id) (where {:code "tid"}))})
+                  (subselect metadata-category (fields :id) (where {:code tid-code}))})
           (select)
           first
           :cnt))))
 
 (defn result-metadata [corpus-code text-id]
-  (kdb/with-db (get @corpus-connections corpus-code)
-    (-> (select* [metadata-value :v1])
-        (modifier "DISTINCT")
-        (fields :v1.metadata_category_id :v1.text_value)
-        (join :inner [metadata-value-text :j0] (= :j0.metadata_value_id :v1.id))
-        (join :inner [metadata-value-text :j1] (= :j1.text_id :j0.text_id))
-        (join :inner [metadata-value :v2] (= :j1.metadata_value_id :v2.id))
-        (join :inner [metadata-category :c] (= :v2.metadata_category_id :c.id))
-        (where {:c.code        "tid"
-                :v2.text_value text-id})
-        (select))))
+  (let [tid-code (if (empty? (-> (select metadata-category
+                                         (where {:code "hd_tid_hd"}))))
+                   "tid"
+                   "hd_tid_hd")]
+    (kdb/with-db (get @corpus-connections corpus-code)
+      (-> (select* [metadata-value :v1])
+          (modifier "DISTINCT")
+          (fields :v1.metadata_category_id :v1.text_value)
+          (join :inner [metadata-value-text :j0] (= :j0.metadata_value_id :v1.id))
+          (join :inner [metadata-value-text :j1] (= :j1.text_id :j0.text_id))
+          (join :inner [metadata-value :v2] (= :j1.metadata_value_id :v2.id))
+          (join :inner [metadata-category :c] (= :v2.metadata_category_id :c.id))
+          (where {:c.code        tid-code
+                  :v2.text_value text-id})
+          (select)))))

@@ -88,12 +88,16 @@
 
 (defn- num-texts [c]
   (kdb/with-db (get @corpus-connections (:code c))
-    (-> (select* metadata-value)
-        (aggregate (count :metadata_value.id) :cnt)
-        (with metadata-category (where {:code "tid"}))
-        select
-        first
-        :cnt)))
+    (let [tid-code (if (empty? (-> (select metadata-category
+                                           (where {:code "hd_tid_hd"}))))
+                     "tid"
+                     "hd_tid_hd")]
+      (-> (select* metadata-value)
+          (aggregate (count :metadata_value.id) :cnt)
+          (with metadata-category (where {:code tid-code}))
+          select
+          first
+          :cnt))))
 
 
 (defentity corpus
