@@ -5,7 +5,8 @@
  ["adj" "adjective" nil
   ["Type" [[:type "ord" "ordinal"]
            [:person_type2 "pcp1" "present participle"]
-           [:person_type2 "pcp2" "perfect participle"]]
+           [:person_type2 "pcp2" "perfect participle"]
+           [:extra "compound" "compound"]]
    "Degree" [[:degr_dia "pos" "positive"]
              [:degr_dia "comp" "comparative"]
              [:degr_dia "sup" "superlative"]]
@@ -43,7 +44,8 @@
  ["n" "noun" nil
   ["Type" [[:type "c" "common name"]
            [:type "p" "proper name"]
-           [:type "noconj" "no inflection"]]
+           [:type "noconj" "no inflection"]
+           [:extra "compound" "compound"]]
    "Gender" [[:gender "f" "feminine"]
              [:gender "m" "masculine"]
              [:gender "n" "neuter"]]
@@ -71,4 +73,5 @@
             [:tense_defin "past" "past tense"]]
    "Type" [[:tense_defin "inf" "infinitive"]
            [:person_type2 "pcp2" "past participle"]
-           [:type "noconj" "no inflection"]]]]]
+           [:type "noconj" "no inflection"]
+           [:extra "compound" "compound"]]]]]
