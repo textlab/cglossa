@@ -21,7 +21,6 @@
             [:temp "pres:inf" "present/infinitive"]
             [:temp "pret:perf-part" "past/past participle"]]
    "Mood" [[:mood "imp" "imperative"]
-           [:mood "ind" "indicative"]
            [:mood "inf" "infinitive"]
            [:temp "inf:imp" "infinitive/imperative"]
            [:temp "perf-part" "past participle"]]]]
