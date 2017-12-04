@@ -1,6 +1,15 @@
 [[:descr "Beskrivelse"
+  ["uklart" nil]
+  ["leende" nil]
+  ["en" nil]
+  ["me" nil]
+  ["quoted" nil]
   ["x" nil]
-  ["o" nil]]
+  ["stavet" nil]
+  ["hviskende" nil]
+  ["uklar" nil]
+  ["syngende" nil]
+  ["gjespende" nil]]
  [:nlex "Ikke-leksikalsk"
   ["latter" nil]
   ["lydmalende_ord" nil]
