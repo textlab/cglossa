@@ -138,7 +138,7 @@
                                      (swap! wrapped-term
                                             update :corpus-specific-attrs
                                             dissoc attr*)))}
-                   (or title attr-value)]))]))))
+                   (or title (str/replace attr-value "_" " "))]))]))))
 
 (defn- additional-words-panel [corpus wrapped-query wrapped-term show-attr-popup?]
   (r/with-let [attribute (r/atom "word")
