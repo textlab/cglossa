@@ -44,7 +44,10 @@
   (when (seq values)
     ;; If the values start with exclamation marks, remove them and change the
     ;; operator from = to !=, yielding expressions of the type attr!=val1|val2
-    (let [op      (if (str/starts-with? (first values) "!") "!=" "=")
+    (let [op      (cond
+                    (= attr-name "descr") " contains "
+                    (str/starts-with? (first values) "!") "!="
+                    :else "=")
           values* (map #(str/replace % #"^!" "") values)]
       (str attr-name op "\"" (str/join "|" values*) "\""))))
 
@@ -187,7 +190,8 @@
         corpus-specific-attr-names  (when (seq corpus-specific-attrs)
                                       (str "(" (str/join "|" corpus-specific-attrs) ")"))
         corpus-specific-attrs-regex (when corpus-specific-attr-names
-                                      (re-pattern (str corpus-specific-attr-names "=\"(.+?)\"")))]
+                                      (re-pattern (str corpus-specific-attr-names
+                                                       "(?:=| contains )\"(.+?)\"")))]
     (reduce (fn [terms part]
               (condp re-matches (first part)
                 interval-rx
