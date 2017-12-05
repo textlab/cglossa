@@ -111,19 +111,15 @@
                                    (assoc $ :extra-info (extra-info $))
                                    (assoc $ :multicpu_bounds (edn/read-string multicpu_bounds))
                                    (assoc $ :num-texts (num-texts $))
-                                   (assoc $ :audio? (fs/exists? (str "resources/public/media/"
-                                                                     (:code $) "/audio")))
-                                   (assoc $ :video? (fs/exists? (str "resources/public/media/"
-                                                                     (:code $) "/video")))
+                                   (assoc $ :audio? (fs/exists? (str "media/" (:code $) "/audio")))
+                                   (assoc $ :video? (fs/exists? (str "media/" (:code $) "/video")))
                                    (assoc $ :audio-files
-                                            (->> (fs/glob (str "resources/public/media/"
-                                                               (:code $) "/audio/*.mp3"))
+                                            (->> (fs/glob (str "media/" (:code $) "/audio/*.mp3"))
                                                  (map #(.getName %))
                                                  (map #(str/replace % #"\.mp3$" ""))
                                                  set))
                                    (assoc $ :video-files
-                                            (->> (fs/glob (str "resources/public/media/"
-                                                               (:code $) "/video/*.mp4"))
+                                            (->> (fs/glob (str "media/" (:code $) "/video/*.mp4"))
                                                  (map #(.getName %))
                                                  (map #(str/replace % #"\.mp4$" ""))
                                                  set))
