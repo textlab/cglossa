@@ -138,7 +138,7 @@
         commands    [(str "set DataDirectory \"tmp\"")
                      (cwb-corpus-name corpus queries)
                      (str "set Context 1 who_start")
-                     "set PrintStructures \"who_name\""
+                     "set PrintStructures \"who_name, who_avfile\""
                      "set LD \"{{\""
                      "set RD \"}}\""
                      (displayed-attrs-command corpus queries attrs)
