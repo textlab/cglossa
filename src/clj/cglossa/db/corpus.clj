@@ -115,6 +115,14 @@
                                                                      (:code $) "/audio")))
                                    (assoc $ :video? (fs/exists? (str "resources/public/media/"
                                                                      (:code $) "/video")))
+                                   (assoc $ :audio-files
+                                            (->> (fs/glob (str "resources/public/media/"
+                                                               (:code $) "/audio/*"))
+                                                 (map #(.getName %))))
+                                   (assoc $ :video-files
+                                            (->> (fs/glob (str "resources/public/media/"
+                                                               (:code $) "/video/*"))
+                                                 (map #(.getName %))))
                                    (assoc $ :geo-coords (let [path (str "resources/geo_coords/"
                                                                         (:code $) ".edn")]
                                                           (when (fs/exists? path)
