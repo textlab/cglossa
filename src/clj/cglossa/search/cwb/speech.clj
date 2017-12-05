@@ -91,7 +91,7 @@
                           (str "reduce " named-query " to " num-random-hits)]))
                      (str "save " named-query)
                      (str "set Context 1 who_start")
-                     "set PrintStructures \"who_name\""
+                     "set PrintStructures \"who_name, who_avfile\""
                      "set LD \"{{\""
                      "set RD \"}}\""
                      (displayed-attrs-command corpus queries nil)
@@ -239,25 +239,32 @@
     (extract-media-info corpus (first results))))
 
 
-(defmethod transform-results "cwb_speech" [_ queries results]
+(defmethod transform-results "cwb_speech" [corpus queries results]
   (when results
     (let [num-langs (->> queries (map :lang) set count)]
       (map
         (fn [lines]
-          (let [ls (map
-                     (fn [line]
-                       ;; Get rid of spaces in multiword expressions. Assuming that attribute
-                       ;; values never contain spaces, we can further assume that if we find
-                       ;; several spaces between slashes, only the first one separates tokens
-                       ;; and the remaining ones are actually inside the token and should be
-                       ;; replaced by underscores.
-                       (-> line
-                           (str/replace #" ([^/<>\s]+) ([^/<>\s]+) ([^/<>\s]+)(/\S+/)"
-                                        " $1_$2_$3$4")
-                           (str/replace #" ([^/<>\s]+) ([^/<>\s]+)(/\S+/)"
-                                        " $1_$2$3")))
-                     lines)]
-            {:text ls}))
+          (let [avfile (second (re-find #"<who_avfile (.+?)>" (first lines)))
+                ls     (map
+                         (fn [line]
+                           (-> line
+                               (str/replace #"<who_avfile .+?>" "")
+                               ;; Get rid of spaces in multiword expressions. Assuming that
+                               ;; attribute values never contain spaces, we can further
+                               ;; assume that if we find several spaces between slashes,
+                               ;; only the first one separates tokens and the remaining
+                               ;; ones are actually inside the token and should be
+                               ;; replaced by underscores.
+                               (str/replace #" ([^/<>\s]+) ([^/<>\s]+) ([^/<>\s]+)(/\S+/)"
+                                            " $1_$2_$3$4")
+                               (str/replace #" ([^/<>\s]+) ([^/<>\s]+)(/\S+/)"
+                                            " $1_$2$3")))
+                         lines)]
+            (println (:audio-files corpus))
+            (println avfile)
+            {:text   ls
+             :audio? (contains? (:audio-files corpus) avfile)
+             :video? (contains? (:video-files corpus) avfile)}))
         (partition num-langs results)))))
 
 

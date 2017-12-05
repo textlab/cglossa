@@ -117,12 +117,16 @@
                                                                      (:code $) "/video")))
                                    (assoc $ :audio-files
                                             (->> (fs/glob (str "resources/public/media/"
-                                                               (:code $) "/audio/*"))
-                                                 (map #(.getName %))))
+                                                               (:code $) "/audio/*.mp3"))
+                                                 (map #(.getName %))
+                                                 (map #(str/replace % #"\.mp3$" ""))
+                                                 set))
                                    (assoc $ :video-files
                                             (->> (fs/glob (str "resources/public/media/"
-                                                               (:code $) "/video/*"))
-                                                 (map #(.getName %))))
+                                                               (:code $) "/video/*.mp4"))
+                                                 (map #(.getName %))
+                                                 (map #(str/replace % #"\.mp4$" ""))
+                                                 set))
                                    (assoc $ :geo-coords (let [path (str "resources/geo_coords/"
                                                                         (:code $) ".edn")]
                                                           (when (fs/exists? path)

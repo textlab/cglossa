@@ -69,15 +69,15 @@
     (when show-audio-video?
       ;; If we don't have a phonetic transcription, we need to show the audio and video
       ;; links in the orthographic row instead
-      (let [audio? (:audio? @corpus)
-            video? (:video? @corpus)]
+      (let [audio? (:audio? result)
+            video? (:video? result)]
         [:div {:style {:margin-top 5}}
          [audio-video-links a m audio? video? row-index]]))]
    (shared/text-columns result)])
 
 (defn- phonetic-row [a {:keys [corpus] :as m} result row-index]
-  (let [audio? (:audio? @corpus)
-        video? (:video? @corpus)]
+  (let [audio? (:audio? result)
+        video? (:video? result)]
     ^{:key (str "phon" row-index)}
     [:tr
      [:td {:style {:text-align "center" :vertical-align "middle"}}
@@ -144,12 +144,16 @@
                        (map #(nth % 2) ort-pre)
                        (map #(nth % 2) ort-match)
                        (map #(nth % 2) ort-post))
-        res-info     {:ort  {:s-id       s-id
+        res-info     {:ort  {:audio?     (:audio? res)
+                             :video?     (:video? res)
+                             :s-id       s-id
                              :pre-match  ort-pre
                              :match      ort-match
                              :post-match ort-post
                              :full-text  ort-text}
-                      :phon {:s-id       s-id
+                      :phon {:audio?     (:audio? res)
+                             :video?     (:video? res)
+                             :s-id       s-id
                              :pre-match  phon-pre
                              :match      phon-match
                              :post-match phon-post}}
@@ -207,8 +211,8 @@
           [b/glyphicon {:glyph "step-forward"}]]]
         [b/modalbody (if (= @current-player-type "wfplayer")
                        [:> js/WFplayer {:media-obj @media-obj}]
-                       [:> js/Jplayer {:media-obj  @media-obj
-                                       :media-type @current-media-type
+                       [:> js/Jplayer {:media-obj       @media-obj
+                                       :media-type      @current-media-type
                                        :has-local-media (-> @corpus :extra-info :local-media?)}])]
         [b/modalfooter
          [b/button {:on-click hide-player} "Close"]]]
