@@ -260,8 +260,6 @@
                                (str/replace #" ([^/<>\s]+) ([^/<>\s]+)(/\S+/)"
                                             " $1_$2$3")))
                          lines)]
-            (println (:audio-files corpus))
-            (println avfile)
             {:text   ls
              :audio? (contains? (:audio-files corpus) avfile)
              :video? (contains? (:video-files corpus) avfile)}))
