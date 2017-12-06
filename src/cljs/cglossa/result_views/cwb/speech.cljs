@@ -49,15 +49,18 @@
   [:nobr
    (when video?
      [b/button {:bs-size  "xsmall" :title "Show video"
+                :style {:margin-top 2 :margin-bottom 2}
                 :on-click #(show-media-player row-index "jplayer" "video" a m)}
       [b/glyphicon {:glyph "film"}]])
    (when audio?
      (list ^{:key :audio-btn}
-           [b/button {:bs-size  "xsmall" :title "Play audio" :style {:margin-left 2}
+           [b/button {:bs-size  "xsmall" :title "Play audio"
+                      :style {:margin-left 2 :margin-top 2 :margin-bottom 2}
                       :on-click #(show-media-player row-index "jplayer" "audio" a m)}
             [b/glyphicon {:glyph "volume-up"}]]
            ^{:key :waveform-btn}
-           [b/button {:bs-size  "xsmall" :title "Show waveform" :style {:margin-left 2}
+           [b/button {:bs-size  "xsmall" :title "Show waveform"
+                      :style {:margin-left 2 :margin-top 2 :margin-bottom 2}
                       :on-click #(show-media-player row-index "wfplayer" "audio" a m)}
             [:img {:src "img/speech/waveform.png" :style {:width 12}}]]))])
 
