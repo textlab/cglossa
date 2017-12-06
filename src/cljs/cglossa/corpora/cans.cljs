@@ -20,9 +20,9 @@
                                                                                   :q      text}}))
                                   trans    (get-in response [:body :data :translations 0 :translatedText])]
                               (swap! translations assoc translation-key trans))))]
-    [:div {:style {:margin-top 5}}
+    [:div {:style {:display "inline-block" :margin-left 7 :margin-right 1 :margin-bottom 2}}
      [b/button {:bs-size  "xsmall"
                 :style    {:color "#666" :font-size 10}
                 :on-click on-click
                 :disabled (not (nil? (get @translations translation-key)))}
-      "Translate"]]))
+      "Trans"]]))

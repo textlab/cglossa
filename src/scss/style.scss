@@ -235,6 +235,10 @@ div.interval {
 
 // Override bootstrap.css
 
+.table > tbody > tr > td {
+  padding: 3px 8px;
+}
+
 .row-fluid script:first-child + [class*="span"] {
   margin-left: 0;
 }
