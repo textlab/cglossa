@@ -20,7 +20,7 @@ cat $2 | egrep -v '^(id|startpos|endpos|bounds|language)\b' > $tmpfile
 # when we give it the --delete option
 mysql -u "${GLOSSA_DB_ADMIN:-root}" -p  --default-character-set=utf8 \
     -e "TRUNCATE \`metadata_category\`;" \
-    -e "LOAD DATA INFILE '$tmpfile' INTO TABLE \`metadata_category\` (code, name)" \
+    -e "LOAD DATA INFILE '$tmpfile' INTO TABLE \`metadata_category\` CHARACTER SET UTF8 (code, name)" \
     "${GLOSSA_PREFIX:-glossa}"_${corpus}
 
 rm $tmpfile
