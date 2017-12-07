@@ -105,14 +105,15 @@
                             )
           tip-attrs (->> tip-field-indexes
                          (map #(nth attrs* %))
-                         (remove #(get #{"__UNDEF__" "\"__UNDEF__\"" "-" "_" "\"_\"" "<i>_</i>"}
+                         (remove #(get #{"__UNDEF__" "\"__UNDEF__\"" "<i>__UNDEF__</i>" "-"
+                                         "_" "\"_\"" "<i>_</i>"}
                                        %)))
           tip-text  (str/join " " tip-attrs)]
       ^{:key index}
       [:span {:data-toggle "tooltip"
               :title       tip-text
               :data-html   true}
-       (nth attrs displayed-field-index) " "])))
+       (str/replace (nth attrs displayed-field-index) "__UNDEF__" "") " "])))
 
 (defn- process-field [displayed-field-index ortphon-index lemma-index tip-field-indexes field]
   "Processes a pre-match, match, or post-match field."
