@@ -49,18 +49,18 @@
   [:nobr
    (when video?
      [b/button {:bs-size  "xsmall" :title "Show video"
-                :style {:margin-top 2 :margin-bottom 2}
+                :style    {:margin-top 2 :margin-bottom 2}
                 :on-click #(show-media-player row-index "jplayer" "video" a m)}
       [b/glyphicon {:glyph "film"}]])
    (when audio?
      (list ^{:key :audio-btn}
            [b/button {:bs-size  "xsmall" :title "Play audio"
-                      :style {:margin-left 2 :margin-top 2 :margin-bottom 2}
+                      :style    {:margin-left 2 :margin-top 2 :margin-bottom 2}
                       :on-click #(show-media-player row-index "jplayer" "audio" a m)}
             [b/glyphicon {:glyph "volume-up"}]]
            ^{:key :waveform-btn}
            [b/button {:bs-size  "xsmall" :title "Show waveform"
-                      :style {:margin-left 2 :margin-top 2 :margin-bottom 2}
+                      :style    {:margin-left 2 :margin-top 2 :margin-bottom 2}
                       :on-click #(show-media-player row-index "wfplayer" "audio" a m)}
             [:img {:src "img/speech/waveform.png" :style {:width 12}}]]))])
 
@@ -95,25 +95,49 @@
 
 (defn- process-token [token index displayed-field-index ortphon-index lemma-index tip-field-indexes]
   (when-not (str/blank? token)
-    (let [attrs     (str/split token #"/")
-          attrs*    (cond-> attrs
-                            ;; Show the orthographic or phonetic form in italics
-                            ;; if present
-                            ortphon-index (update ortphon-index #(str "<i>" % "</i>"))
-                            ;; Show the lemma in quotes, if present
-                            lemma-index (update lemma-index #(str "\"" % "\""))
-                            )
-          tip-attrs (->> tip-field-indexes
-                         (map #(nth attrs* %))
-                         (remove #(get #{"__UNDEF__" "\"__UNDEF__\"" "<i>__UNDEF__</i>" "-"
-                                         "_" "\"_\"" "<i>_</i>"}
-                                       %)))
-          tip-text  (str/join " " tip-attrs)]
+    (let [attrs          (str/split token #"/")
+          attrs*         (cond-> attrs
+                                 ;; Show the orthographic or phonetic form in italics
+                                 ;; if present
+                                 ortphon-index (update ortphon-index #(str "<i>" % "</i>"))
+                                 ;; Show the lemma in quotes, if present
+                                 lemma-index (update lemma-index #(str "\"" % "\"")))
+          urls-index     (->> attrs*
+                              (map-indexed (fn [i v] (when (re-find #"\$https?:" v) i)))
+                              (filter identity)
+                              first)
+          tip-attrs      (->> tip-field-indexes
+                              (remove #(= urls-index %))
+                              (map #(nth attrs* %))
+                              ;; Remove attributes that contain URLs for linking to dictionaries etc.
+                              ;; (URLs should be surrounded by $)
+                              (remove #(get #{"__UNDEF__" "\"__UNDEF__\"" "<i>__UNDEF__</i>" "-"
+                                              "_" "\"_\"" "<i>_</i>"}
+                                            %)))
+          tip-text       (str/join " " tip-attrs)
+          urls           (when urls-index
+                           (-> (nth attrs urls-index)
+                               (str/replace-all #"!!" "/")
+                               (str/split #"\$")
+                               (#(remove str/blank? %))))
+          dt             (str/replace (nth attrs displayed-field-index) "__UNDEF__" "")
+          displayed-text (if urls
+                           (let [links (mapv (fn [url symbol]
+                                               [:a {:key                     url
+                                                    :href                    url
+                                                    :target                  "_blank"
+                                                    :dangerouslySetInnerHTML {"__html" symbol}}])
+                                             urls
+                                             ["&#128215;" "&#128216;"])]
+                             [:span {:style {:white-space "nowrap"}}
+                              [:span dt]
+                              [:sup nil (first links) (second links) nil]])
+                           dt)]
       ^{:key index}
       [:span {:data-toggle "tooltip"
               :title       tip-text
               :data-html   true}
-       (str/replace (nth attrs displayed-field-index) "__UNDEF__" "") " "])))
+       displayed-text " "])))
 
 (defn- process-field [displayed-field-index ortphon-index lemma-index tip-field-indexes field]
   "Processes a pre-match, match, or post-match field."

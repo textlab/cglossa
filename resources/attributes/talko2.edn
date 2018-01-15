@@ -1,7 +1,7 @@
 [{:displayed-attrs [[:lemma "Lemma"] [:phon "Phonetic form"] [:pos "Part-of-speech"]
                     [:gender "Gender"] [:num "Number"] [:defn "Definiteness"] [:const "Syntax"]
                     [:verbform "Verb form"] [:degr "Degree"] [:other "Other"]
-                    [:descr "Description"] [:nlex "Non-lexical"]]}
+                    [:descr "Description"] [:nlex "Non-lexical"] [:url "URL"]]}
  ["adjektiv" "adjektiv" nil
   ["Gender" [[:gender "maskulinum" "maskulinum"]
              [:gender "neutrum" "neutrum"]
