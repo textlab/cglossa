@@ -128,7 +128,7 @@
                                                     :target                  "_blank"
                                                     :dangerouslySetInnerHTML {"__html" symbol}}])
                                              urls
-                                             ["&#128215;" "&#128216;"])]
+                                             ["[1]" "[2]"])]
                              [:span {:style {:white-space "nowrap"}}
                               [:span dt]
                               [:sup nil (first links) (second links) nil]])
