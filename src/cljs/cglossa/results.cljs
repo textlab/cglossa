@@ -496,9 +496,9 @@
                                            :icon (str "img/speech/mm_20_" (name color) ".png")))
                                        selected-coords)))
               points          (concat small-dots selected-points)]
-          [:> js/GeoDistributionMap {:initLat  64
-                                     :initLon  3
-                                     :initZoom 4
+          [:> js/GeoDistributionMap {:initLat  init-lat
+                                     :initLon  init-lng
+                                     :initZoom init-zoom
                                      :width    640
                                      :height   460
                                      :points   points}])]])))
