@@ -448,7 +448,7 @@
                                                         (conj phons phon)))))}
                     phon])))]
        [:div {:style {:clear "both"}}
-        (let [all-coords      (:geo-coords @corpus)
+        (let [[[init-lat init-lng init-zoom] all-coords] (:geo-coords @corpus)
               loc-names       (distinct (mapcat (fn [[_ v]] (keys v)) @geo-data))
               ;; Convert the hash map with frequency distribution over locations per phon
               ;; to one with the frequency distribution over phons per locations
