@@ -286,7 +286,7 @@
                           "inner join metadata_value_text j2 on j2.text_id = j1.text_id "
                           "inner join metadata_value v2 on j2.metadata_value_id = v2.id "
                           "inner join metadata_category c2 on v2.metadata_category_id = c2.id "
-                          "where c1.code = '" tid-code "' and c2.code = 'place'")
+                          "where c1.code = '" tid-code "' and c2.code = 'geo'")
         ;; Create a hash map from informant code to place names
         places       (as-> sql $
                            (korma/exec-raw $ :results)

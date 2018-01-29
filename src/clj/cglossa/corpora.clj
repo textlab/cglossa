@@ -29,7 +29,7 @@
                          (where {:p.metadata_category_id
                                  (subselect metadata-category
                                             (fields :id)
-                                            (where {:code "place"}))})
+                                            (where {:code "geo"}))})
                          (join-selected-values selected-metadata-ids)
                          (where-selected-values selected-metadata-ids)
                          select
@@ -56,7 +56,7 @@
                          (where {:p.metadata_category_id
                                  (subselect metadata-category
                                             (fields :id)
-                                            (where {:code "place"}))})
+                                            (where {:code "geo"}))})
                          (join-selected-values selected-metadata-ids)
                          (where-selected-values selected-metadata-ids)
                          select
@@ -78,7 +78,7 @@
                          (where {:p.metadata_category_id
                                  (subselect metadata-category
                                             (fields :id)
-                                            (where {:code "place"}))})
+                                            (where {:code "geo"}))})
                          (join-selected-values selected-metadata-ids)
                          (where-selected-values selected-metadata-ids)
                          select
@@ -97,7 +97,7 @@
                          (where {:p.metadata_category_id
                                  (subselect metadata-category
                                             (fields :id)
-                                            (where {:code "place"}))})
+                                            (where {:code "geo"}))})
                          (join-selected-values selected-metadata-ids)
                          (where-selected-values selected-metadata-ids)
                          select
@@ -117,7 +117,7 @@
                          (where {:p.metadata_category_id
                                  (subselect metadata-category
                                             (fields :id)
-                                            (where {:code "place"}))})
+                                            (where {:code "geo"}))})
                          (join-selected-values selected-metadata-ids)
                          (where-selected-values selected-metadata-ids)
                          select
@@ -136,7 +136,7 @@
                          (where {:p.metadata_category_id
                                  (subselect metadata-category
                                             (fields :id)
-                                            (where {:code "place"}))})
+                                            (where {:code "geo"}))})
                          (join-selected-values selected-metadata-ids)
                          (where-selected-values selected-metadata-ids)
                          select
