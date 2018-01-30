@@ -87,7 +87,8 @@
       [audio-video-links a m audio? video? row-index]]
      (shared/text-columns result)]))
 
-(defn- translated-row [translation row-index]
+(defmulti translated-row (fn [corpus _ _] (:code @corpus)))
+(defmethod translated-row :default [_ translation row-index]
   ^{:key (str "trans" row-index)}
   [:tr
    [:td [:a {:href "http://translate.google.com/" :target "_blank"} [:img {:src "img/attr1-2.png"}]]]
@@ -155,7 +156,8 @@
                                        ortphon-index lemma-index tip-field-indexes))))
                   tokens)))
 
-(defn single-result-rows [{{:keys [page-no translations]} :results-view :as a} m
+(defn single-result-rows [{{:keys [page-no translations]} :results-view :as a}
+                          {:keys [corpus] :as m}
                           ort-index phon-index lemma-index
                           ort-tip-indexes phon-tip-indexes res row-index]
   "Returns one or more rows representing a single search result."
@@ -190,7 +192,7 @@
                        (phonetic-row a m (:phon res-info) row-index))
         trans        (get @translations (str @page-no "_" row-index))
         translated   (when trans
-                       (translated-row trans row-index))
+                       (translated-row corpus trans row-index))
         ;; Show the separator row only if there is more than one other row for this result
         separator    (when (or phon-index trans)
                        (shared/separator-row row-index))]

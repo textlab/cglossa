@@ -7,4 +7,5 @@
             cglossa.corpora.norint-tekst
             cglossa.corpora.norint-opplest
             cglossa.corpora.ndc
-            cglossa.corpora.norm))
+            cglossa.corpora.norm
+            cglossa.corpora.saami))
