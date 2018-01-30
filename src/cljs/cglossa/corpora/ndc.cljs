@@ -7,7 +7,7 @@
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (defmethod result-links "ndc" [{{:keys [page-no translations]} :results-view :as a}
-                                        _ result row-index]
+                               _ result row-index]
   (let [translation-key (str @page-no "_" row-index)
         on-click        (fn [e]
                           (go
@@ -15,9 +15,9 @@
                                   url      "https://www.googleapis.com/language/translate/v2"
                                   text     (str/join " " (:full-text result))
                                   response (<! (http/get url {:with-credentials? false
-                                                              :query-params {:key    key
-                                                                             :target "en"
-                                                                             :q      text}}))
+                                                              :query-params      {:key    key
+                                                                                  :target "en"
+                                                                                  :q      text}}))
                                   trans    (get-in response [:body :data :translations 0 :translatedText])]
                               (swap! translations assoc translation-key trans))))]
     [:div {:style {:display "inline-block" :margin-left 7 :margin-right 1 :margin-bottom 2}}
