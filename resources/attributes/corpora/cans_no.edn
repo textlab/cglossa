@@ -1,7 +1,7 @@
 [[:descr "Description"
   ["x" nil]
   ["o" nil]
-  ["en" "English segment"]]
+  ["en.*" "English segment"]]
  [:nlex "Non-lexical"
   ["back-click" nil]
   ["breathing" nil]
