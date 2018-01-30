@@ -26,7 +26,7 @@
                 :disabled (not (nil? (get @translations translation-key)))}
       "Trans"]]))
 
-(defmethod translated-row :default [_ translation row-index]
+(defmethod translated-row "saami" [_ translation row-index]
   ^{:key (str "trans" row-index)}
   [:tr
    [:td "Translated by " [:a {:href "http://gtweb.uit.no/jorgal/index.nob.html?dir=sme-nob#" :target "_blank"} "Giellatekno Apertium"]]
