@@ -313,6 +313,9 @@ div.interval {
 .column-area {
     width: 100px;
 }
+.column-assignmentpart {
+    width: 80px;
+}
 .column-assignmenttype {
     width: 120px;
 }
@@ -401,7 +404,10 @@ div.interval {
     width: 60px;
 }
 .column-school {
-    width: 60px;
+    width: 90px;
+}
+.column-specialisation {
+    width: 120px;
 }
 .column-student {
     width: 110px;
@@ -432,4 +438,7 @@ div.interval {
 }
 .column-wordcount {
     width: 60px;
+}
+.column-worksheet {
+    width: 210px;
 }

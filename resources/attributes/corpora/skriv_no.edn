@@ -1,0 +1,14 @@
+[[:word "Annotering i korrigert tekst"
+  ["&&bilde" "bilde"]
+  ["&&inf" "ekstra infinitivsmerke"]
+  ["&&punkt" "kulepunkt"]
+  ["&&tabell" "tabell"]
+  ["&&sær" "særskriving"]]
+ [:orig "Annotering i originaltekst"
+  ["&&bilde" "bilde"]
+  ["&&inf" "manglende infinitivsmerke"]
+  ["&&punkt" "kulepunkt"]
+  ["&&tabell" "tabell"]
+  ["&&hv" "manglende hjelpeverb"]
+  ["&&kop" "manglende kopula"]
+  ["&&sam" "samskriving"]]]

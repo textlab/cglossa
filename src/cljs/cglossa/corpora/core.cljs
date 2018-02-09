@@ -8,4 +8,5 @@
             cglossa.corpora.norint-opplest
             cglossa.corpora.ndc
             cglossa.corpora.norm
-            cglossa.corpora.saami))
+            cglossa.corpora.saami
+            cglossa.corpora.skriv))
