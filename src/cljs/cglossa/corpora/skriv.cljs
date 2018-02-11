@@ -33,7 +33,7 @@
       [b/glyphicon {:glyph "file"}]]
      [b/button {:bs-size "xsmall" :data-toggle "tooltip"
                 :style   {:color "green" :font-size 10 :margin-left 3}
-                :title   "Oppgavetekst" :on-click on-click
+                :title   "Oppgavesvar" :on-click on-click
                 :href    (str "http://tekstlab.uio.no/skriv/oppgavesvar/" paper-id ".pdf")
                 :target  "_blank"}
       [b/glyphicon {:glyph "file"}]]]))
