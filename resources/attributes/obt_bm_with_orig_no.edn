@@ -5,7 +5,8 @@
  ["adj" "adjektiv" nil
   ["Type" [[:type "ord" "ordenstall"]
            [:person_type2 "pcp1" "presens partisipp"]
-           [:person_type2 "pcp2" "perfektum partisipp"]]
+           [:person_type2 "pcp2" "perfektum partisipp"]
+           [:extra1 "compound" "sammensetning"]]
    "Grad" [[:degr_dia "pos" "positiv"]
            [:degr_dia "comp" "komparativ"]
            [:degr_dia "sup" "superlativ"]]
@@ -43,7 +44,8 @@
  ["n" "substantiv" nil
   ["Type" [[:type "c" "fellesnavn"]
            [:type "p" "egennavn"]
-           [:type "noconj" "ubøyelig"]]
+           [:type "noconj" "ubøyelig"]
+           [:extra1 "compound" "sammensetning"]]
    "Kjønn" [[:gender "f" "hunkjønn"]
             [:gender "m" "hankjønn"]
             [:gender "n" "intetkjønn"]]
