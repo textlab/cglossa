@@ -23,7 +23,7 @@
           response     (<! (http/get (str (:code @corpus) "/play-video")
                                      {:query-params {:search-id    (:id @search)
                                                      :result-index result-index
-                                                     :context-size 50}}))]
+                                                     :context-size 40}}))]
       (when (= (:status response) 401)
         (reset! (:authenticated-user m) nil))
       (reset! showing-media-popup? true)
