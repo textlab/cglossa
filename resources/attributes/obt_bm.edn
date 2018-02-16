@@ -73,5 +73,4 @@
             [:tense_defin "past" "past tense"]]
    "Type" [[:tense_defin "inf" "infinitive"]
            [:person_type2 "pcp2" "past participle"]
-           [:type "noconj" "no inflection"]
-           [:extra "compound" "compound"]]]]]
+           [:type "noconj" "no inflection"]]]]]
