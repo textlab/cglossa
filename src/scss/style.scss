@@ -297,148 +297,151 @@ div.interval {
 
 /* Columns in the "Show texts" grid */
 .extra-text-column {
-    width: 100px;
+    min-width: 80px;
     text-align: center;
 }
 
 .column-age {
-    width: 60px;
+    min-width: 60px;
 }
 .column-agegroup {
-    width: 70px;
+    min-width: 70px;
 }
 .column-alias {
-    width: 170px;
+    min-width: 170px;
 }
 .column-area {
-    width: 100px;
+    min-width: 100px;
 }
 .column-assignmentpart {
-    width: 80px;
+    min-width: 80px;
 }
 .column-assignmenttype {
-    width: 120px;
+    min-width: 120px;
 }
 .column-birth {
-    width: 90px;
+    min-width: 90px;
 }
 .column-birth_year {
-    width: 80px;
+    min-width: 80px;
 }
 .column-category {
-    width: 80px;
+    min-width: 80px;
 }
 .column-collection {
-    width: 100px;
+    min-width: 100px;
 }
 .column-corpus_date {
-    width: 100px;
+    min-width: 100px;
 }
 .column-county {
-    width: 130px;
+    min-width: 130px;
 }
 .column-country {
-    width: 100px;
+    min-width: 100px;
 }
 .column-datatype {
-    width: 120px;
+    min-width: 120px;
 }
 .column-education {
-    width: 150px;
+    min-width: 150px;
 }
 .column-fylke {
-    width: 120px;
+    min-width: 120px;
 }
 .column-issnisbn {
-    width: 100px;
+    min-width: 100px;
 }
 .column-kommune_1960 {
-    width: 120px;
+    min-width: 120px;
 }
 .column-kommune_1978 {
-    width: 120px;
+    min-width: 120px;
 }
 .column-level {
-    width: 50px;
+    min-width: 50px;
 }
 .column-malform {
-    width: 80px;
+    min-width: 80px;
 }
 .column-mother_tongue {
-    width: 110px;
+    min-width: 110px;
 }
 .column-nativelanguage {
-    width: 100px;
+    min-width: 100px;
 }
 .column-num {
-    width: 110px;
+    min-width: 70px;
 }
 .column-occupation {
-    width: 150px;
+    min-width: 150px;
 }
 .column-other_languages {
-    width: 150px;
+    min-width: 150px;
 }
 .column-place {
-    width: 110px;
+    min-width: 110px;
 }
 .column-publisher {
-    width: 100px;
+    min-width: 100px;
 }
 .column-pubdate {
-    width: 100px;
+    min-width: 100px;
 }
 .column-pubplace {
-    width: 100px;
+    min-width: 100px;
 }
 .column-rec {
-    width: 90px;
+    min-width: 90px;
 }
 .column-recorded {
-    width: 90px;
+    min-width: 90px;
 }
 .column-region {
-    width: 100px;
+    min-width: 100px;
 }
 .column-sex {
-    width: 60px;
+    min-width: 60px;
 }
 .column-school {
-    width: 90px;
+    min-width: 90px;
 }
 .column-specialisation {
-    width: 120px;
+    min-width: 120px;
+}
+.column-startlevel {
+    min-width: 80px;
 }
 .column-student {
-    width: 110px;
+    min-width: 110px;
 }
 .column-supercategory {
-    width: 120px;
+    min-width: 120px;
 }
 .column-tapeno {
-    width: 110px;
+    min-width: 110px;
 }
 .column-tid {
-    width: 170px;
+    min-width: 170px;
 }
 .column-time_in_norway {
-    width: 100px;
+    min-width: 100px;
 }
 .column-title {
-    width: 200px;
+    min-width: 200px;
 }
 .column-translation {
-    width: 100px;
+    min-width: 100px;
 }
 .column-version {
-    width: 50px;
+    min-width: 50px;
 }
 .column-where_learned {
-    width: 150px;
+    min-width: 150px;
 }
 .column-wordcount {
-    width: 60px;
+    min-width: 60px;
 }
 .column-worksheet {
-    width: 210px;
+    min-width: 210px;
 }
