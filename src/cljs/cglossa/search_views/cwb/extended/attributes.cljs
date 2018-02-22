@@ -111,7 +111,7 @@
   (when-let [selected-language (:lang @wrapped-query)]
     (when-let [attr-specs (language-corpus-specific-attrs corpus selected-language)]
       (for [[attr header & attr-values] attr-specs]
-        ^{:key (str "csa-" (name attr))}
+        ^{:key (str "csa-" (name header))}
         [b/panel {:header header}
          (doall (for [[attr-value title tooltip] attr-values
                       :let [attr*     (name attr)
