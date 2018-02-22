@@ -1,6 +1,6 @@
 [[:nlex "Non-lexical"
   ["inandning" "inandning"]
-  ["skratt" "skratt"]
+  ["skrattar" "skrattar"]
   ["smack" "smack"]
   ["utandning" "utandning"]
   ["harkling" "harkling"]
@@ -10,15 +10,12 @@
   ["suckar" "suckar"]
   ["hostar" "hostar"]]
  [:descr "Description"
-  ["skrattande" "skrattande"]
+  ["skrattar" "skrattar"]
   ["inandning" "inandning"]
   ["osäkert" "osäkert"]
   ["utandning" "utandning"]
-  ["skratt" "skratt"]
-  ["viskande" "viskande"]
-  ["FO" "FO"]
   ["viskar" "viskar"]
-  ["gäspning" "gäspning"]
+  ["gäspar" "gäspar"]
   ["sjunger" "sjunger"]]
  [:descr "Non-standard forms"
   ["x" "x"]
