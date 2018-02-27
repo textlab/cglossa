@@ -10,6 +10,7 @@
                    [:defn "indef" "indefinite"]]
    "Gender" [[:gender "fem" "feminine"]
              [:gender "masc" "masculine"]
+             [:gender "neut" "neuter"]
              [:gender "masc:fem" "masculine/feminine"]
              [:gender "masc:fem:neut" "masculine/feminine/neuter"]
              [:gender "masc:neut" "masculine/neuter"]]
