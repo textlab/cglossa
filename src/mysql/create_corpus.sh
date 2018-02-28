@@ -5,7 +5,7 @@
 set -e
 
 if [ "$#" -ne 1 ] ; then
-   echo "Usage: $0 [OPTIONS] CORPUS_NAME"
+   echo "Usage: $0 CORPUS_NAME"
    exit
 fi
 
