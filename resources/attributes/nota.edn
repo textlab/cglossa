@@ -1,4 +1,4 @@
-[{:displayed-attrs [[:lemma "Lemma"] [:pos "Ordklasse"] [:pron "Uttale"]
+[{:displayed-attrs [[:lemma "Lemma"] [:pos "Ordklasse"]
                     [:gender "Kjønn"] [:num "Tall"] [:type "Type"] [:defn "Bestemthet"]
                     [:temp "Tempus"] [:pers "Person"] [:case "Kasus"] [:degr "Grad"]
                     [:descr "Beskrivelse"] [:nlex "Ikke-leksikalt"] [:voice "Diatese"]]}
