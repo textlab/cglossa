@@ -301,11 +301,17 @@ div.interval {
     text-align: center;
 }
 
+.column-abode {
+    min-width: 100px;
+}
+.column-abodereg {
+    min-width: 80px;
+}
 .column-age {
     min-width: 60px;
 }
 .column-agegroup {
-    min-width: 70px;
+    min-width: 110px;
 }
 .column-alias {
     min-width: 170px;
@@ -323,6 +329,12 @@ div.interval {
     min-width: 90px;
 }
 .column-birth_year {
+    min-width: 80px;
+}
+.column-bred {
+    min-width: 80px;
+}
+.column-bredreg {
     min-width: 80px;
 }
 .column-category {
@@ -343,11 +355,17 @@ div.interval {
 .column-datatype {
     min-width: 120px;
 }
+.column-edu {
+    min-width: 95px;
+}
 .column-education {
     min-width: 150px;
 }
 .column-fylke {
     min-width: 120px;
+}
+.column-genre {
+    min-width: 110px;
 }
 .column-issnisbn {
     min-width: 100px;
@@ -360,6 +378,12 @@ div.interval {
 }
 .column-level {
     min-width: 50px;
+}
+.column-longest {
+    min-width: 100px;
+}
+.column-longestreg {
+    min-width: 80px;
 }
 .column-malform {
     min-width: 80px;
@@ -382,6 +406,9 @@ div.interval {
 .column-place {
     min-width: 110px;
 }
+.column-pro {
+    min-width: 165px;
+}
 .column-publisher {
     min-width: 100px;
 }
@@ -399,6 +426,9 @@ div.interval {
 }
 .column-region {
     min-width: 100px;
+}
+.column-rep {
+    min-width: 110px;
 }
 .column-sex {
     min-width: 60px;
