@@ -15,7 +15,8 @@
   (or name (-> code (str/replace "_" " ") str/capitalize)))
 
 (defn- get-external-data [{:keys [corpus metadata-categories search] :as m}
-                          sort-column sort-ascending? results loading? mxpages cur-page page]
+                          sort-column sort-ascending? results loading? mxpages
+                          cur-page fetched-tids page]
   (reset! loading? true)
   (go (let [sort-column-id (and @sort-column (->> @metadata-categories
                                                   (filter #(= (:name %) @sort-column))
@@ -30,13 +31,16 @@
             {:keys [rows max-pages] :as body} (:body response)]
         (if (http/unexceptional-status? (:status response))
           (let [extra-col-name (:name (show-texts-extra-col-name corpus))
-                rows*          (for [row rows]
+                rows*          (for [row rows
+                                     :when (not (contains? @fetched-tids (get row 1)))]
                                  (let [standard-cols       (map (fn [cat]
                                                                   [(category-name cat)
                                                                    (get row (:id cat))])
                                                                 @metadata-categories)
                                        corpus-specific-col {extra-col-name
                                                             (show-texts-extra-col-comp corpus m row)}]
+                                   (.log js/console @fetched-tids)
+                                   (swap! fetched-tids conj (get row 1))
                                    (into {"__dummy" " "} (cons corpus-specific-col standard-cols))))]
             (when (= (:status response) 401)
               (reset! (:authenticated-user m) nil))
@@ -58,12 +62,14 @@
         current-page              (r/atom 0)
         loading?                  (r/atom false)
         max-pages                 (r/atom 0)
+        fetched-tids              (atom #{})
         external-results-per-page (r/atom 10)
         external-sort-column      (r/atom nil)
         external-sort-ascending   (r/atom true)
         get-data                  (partial get-external-data m
                                            external-sort-column external-sort-ascending
-                                           results loading? max-pages current-page)]
+                                           results loading? max-pages current-page
+                                           fetched-tids)]
     (r/create-class
       {:display-name
        "show-texts-modal"
