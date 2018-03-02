@@ -123,6 +123,7 @@
                                               (reset! external-sort-ascending ascending?)
                                               (reset! results [])
                                               (reset! fetched-pages #{})
+                                              (reset! fetched-tids #{})
                                               (reset! current-page 0))
                 :external-set-filter        #()
                 :external-current-page      @current-page
