@@ -1,0 +1,6 @@
+[[:word "Word-level annotation in corrected text"
+  ["&&SEP" "Incorrect word separation"]]
+ [:orig "Word-level annotation in original"
+  ["&&CON" "Incorrect word conjunction"]]
+ [:descr "Multiword annotation"
+  ["mentioned" "mentioned"]]]

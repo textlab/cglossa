@@ -386,6 +386,10 @@ div.interval {
     min-width: 120px;
     width: 120px;
 }
+.column-gender {
+    min-width: 65px;
+    width: 65px;
+}
 .column-genre {
     min-width: 110px;
     width: 110px;
@@ -402,9 +406,13 @@ div.interval {
     min-width: 120px;
     width: 120px;
 }
+.column-learning_start {
+    min-width: 75px;
+    width: 75px;
+}
 .column-level {
-    min-width: 50px;
-    width: 50px;
+    min-width: 55px;
+    width: 55px;
 }
 .column-longest {
     min-width: 100px;
@@ -439,9 +447,21 @@ div.interval {
     min-width: 150px;
     width: 150px;
 }
+.column-other_countries {
+    min-width: 65px;
+    width: 65px;
+}
 .column-other_languages {
     min-width: 150px;
     width: 150px;
+}
+.column-parent1_l1 {
+    min-width: 90px;
+    width: 90px;
+}
+.column-parent2_l1 {
+    min-width: 90px;
+    width: 90px;
 }
 .column-place {
     min-width: 110px;
@@ -463,6 +483,14 @@ div.interval {
 .column-pubplace {
     min-width: 100px;
     width: 100px;
+}
+.column-pupil_code {
+    min-width: 80px;
+    width: 80px;
+}
+.column-pupils_l1 {
+    min-width: 90px;
+    width: 90px;
 }
 .column-rec {
     min-width: 90px;
@@ -489,6 +517,10 @@ div.interval {
     min-width: 90px;
     width: 90px;
 }
+.column-school_year {
+    min-width: 95px;
+    width: 95px;
+}
 .column-speilvending {
     min-width: 105px;
     width: 105px;
@@ -513,9 +545,28 @@ div.interval {
     min-width: 110px;
     width: 110px;
 }
+.column-task_type {
+    min-width: 80px;
+    width: 80px;
+}
+.column-teacher_code {
+    min-width: 80px;
+    width: 80px;
+}
+.column-teacher_comments {
+    min-width: 90px;
+    width: 90px;
+}
+.column-text_format {
+    min-width: 65px;
+    width: 65px;
+}
+.column-text_status {
+    min-width: 70px;
+    width: 70px;
+}
 .column-tid {
     min-width: 170px;
-    width: 170px;
     width: 170px;
 }
 .column-time_in_norway {
