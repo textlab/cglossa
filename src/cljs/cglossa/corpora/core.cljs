@@ -9,4 +9,5 @@
             cglossa.corpora.ndc
             cglossa.corpora.norm
             cglossa.corpora.saami
-            cglossa.corpora.skriv))
+            cglossa.corpora.skriv
+            cglossa.corpora.trawl))
