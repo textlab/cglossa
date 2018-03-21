@@ -180,10 +180,12 @@ div.interval {
     td.left-context {
       width: 50%;
       text-align: right;
+      vertical-align: middle;
     }
 
     td.right-context {
       width: 50%;
+      vertical-align: middle;
     }
 
     td.aligned-text {
@@ -196,6 +198,7 @@ div.interval {
 
     td.match {
       font-weight: bold;
+      vertical-align: middle;
     }
   }
 }
