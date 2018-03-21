@@ -26,11 +26,10 @@
       return React.createElement("a", {key: index, title: attString, style: line.match ? {color: '#b00', fontWeight: 'bold', fontSize: '0.9em'} : {}}, line[this.props.mediaObj.displayAttribute], " ");
     },
     renderAnnotation: function(annotation, lineNo) {
-      var endTimecode, getStyle, i, segment, speaker, speakerBrev, textDivs, timecode;
+      var endTimecode, getStyle, i, segment, speaker, textDivs, timecode;
       timecode = annotation.from;
       endTimecode = annotation.to;
       speaker = annotation.speaker;
-      speakerBrev = speaker.replace(/^.*_/, "");
       segment = (function() {
         var _results;
         _results = [];
@@ -72,7 +71,7 @@
             style: getStyle()
             }, 
          React.createElement("div", {className: "waveformBtnDiv"}, React.createElement("button", {title: "Show waveform", className: "btn btn-xs btn-default", style: {marginRight: 10}, onClick: this.toggleWFplayer.bind(this, lineNo)}, React.createElement("img", {src: "img/speech/waveform.png", style: {width: 12}}))),
-         React.createElement("div", {className: "speakerDiv"}, React.createElement("a", {className: "speaker", title: speaker}, speakerBrev)),
+         React.createElement("div", {className: "speakerDiv"}, React.createElement("a", {className: "speaker", title: speaker}, speaker)),
          React.createElement("div", {className: "segmentDiv"}, segment)
        )
        );
