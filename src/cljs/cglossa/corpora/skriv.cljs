@@ -69,19 +69,29 @@
       {:on-click (fn [_] (reset! line-showing-metadata nil))
        :render   (fn [this]
                    (let [text-id       (get (js->clj (:rowData (r/props this))) "Tekst-ID")
-                         assignment-id (->> text-id (re-find #"^.+?_(.+)_") second)]
+                         assignment-id (->> text-id (re-find #"^.+?_(.+)_") second)
+                         pupil-id      (get (js->clj (:rowData (r/props this))) "Elevnummer")]
                      [:span [:div {:style {:display "inline-block" :margin-right 5}}
                              [:a {:href     ""
+                                  :title    "Elevinfo"
                                   :on-click (partial on-click (:rowData (r/props this)))}
                               [b/glyphicon {:glyph "info-sign"}]]
                              (metadata-overlay line-showing-metadata)]
                       [:a {:href   (str "http://tekstlab.uio.no/skriv/oppgavetekster/"
                                         assignment-id ".pdf")
                            :target "_blank"
+                           :title  "Oppgavetekst"
                            :style  {:margin-right 5 :color "orange"}}
                        [b/glyphicon {:glyph "file"}]]
                       [:a {:href   (str "http://tekstlab.uio.no/skriv/oppgavesvar/"
                                         text-id ".pdf")
                            :target "_blank"
-                           :style  {:color "green"}}
-                       [b/glyphicon {:glyph "file"}]]]))})))
+                           :title  "Oppgavesvar"
+                           :style  {:margin-right 5 :color "green"}}
+                       [b/glyphicon {:glyph "file"}]]
+                      [:a {:href   (str "http://tekstlab.uio.no/skriv/sporreskjema/"
+                                        pupil-id ".txt")
+                           :target "_blank"
+                           :title  "Spørreskjema"
+                           :style  {:color "red"}}
+                       [b/glyphicon {:glyph "tasks"}]]]))})))
