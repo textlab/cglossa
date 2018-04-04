@@ -268,11 +268,20 @@
 
 (defmethod geo-distr-queries "cwb_speech" [corpus search-id metadata-ids]
   (let [named-query  (cwb-query-name corpus search-id)
-        ;; Ask CQP for a table of phonetic form, informant code, and frequency. The result
+        ;; Ask CQP for a table of phonetic form (or orthographic form if the corpus does
+        ;; not contain phonetic forms), informant code, and frequency. The result
         ;; will be ordered by decreasing frequency.
+        has-phon?    (->> corpus
+                          :languages
+                          first
+                          :config
+                          :displayed-attrs
+                          (map first)
+                          (some #{:phon}))
+        attr         (if has-phon? "phon" "word")
         commands     [(str "set DataDirectory \"tmp\"")
                       (cwb-corpus-name corpus nil)
-                      (str "group " named-query " match who_name by match phon")]
+                      (str "group " named-query " match who_name by match " attr)]
         cwb-res      (run-cqp-commands corpus (filter identity (flatten commands)) false)
         ;; Get pairs of informant code and place name from MySQL
         tid-code     (if (empty? (-> (select metadata-category
