@@ -87,7 +87,7 @@
                       :dialog-class-name "show-texts-popup"}
              [b/modalheader {:close-button true}
               [b/modaltitle (if (= (:search-engine @corpus) "cwb_speech")
-                              "Informants"
+                              "Speakers"
                               "Corpus texts")]
               [text-selection a m]]
              [b/modalbody

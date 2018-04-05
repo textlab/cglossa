@@ -183,7 +183,7 @@
              :on-click (fn [e]
                          (reset! show-texts? true)
                          (.preventDefault e))}
-   (str "Show " (if (= (:search-engine @corpus) "cwb_speech") "informants" "texts"))])
+   (str "Show " (if (= (:search-engine @corpus) "cwb_speech") "speakers" "texts"))])
 
 (defn- language-select [wrapped-query languages queries]
   (let [selected-language     (or (:lang @wrapped-query) (-> languages first :code))

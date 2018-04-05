@@ -64,7 +64,7 @@
 
 (defn text-selection [{:keys [num-selected-texts num-selected-tokens text-selection-info]}
                       {:keys [corpus]}]
-  (let [tid-type    (if (= (:search-engine @corpus) "cwb_speech") "informants" "texts")
+  (let [tid-type    (if (= (:search-engine @corpus) "cwb_speech") "speakers" "texts")
         sel-texts   (if (or (nil? @num-selected-texts)
                             (= @num-selected-texts (:num-texts @corpus)))
                       "All "
