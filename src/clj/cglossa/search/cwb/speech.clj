@@ -107,7 +107,7 @@
     ;; the sequence of counts only contains the count we get by the single cpu.
     [hits cnt [cnt]]))
 
-(defn sort-context-within-sync [direction named-query sort-key]
+(defn sort-context-within-who [direction named-query sort-key]
   (let [tmpfile (str "\"tmp/" named-query "_sort_by_" sort-key \")
         bound   (case direction
                   "left" "lbound"
@@ -117,19 +117,19 @@
                   "right" "on matchend[1]")]
     [named-query
      "set ExternalSort on"
-     (str named-query "_" bound " = [" bound "(sync)]")
-     (str named-query "_n" bound " = [!" bound "(sync)] sort by word %c " match)
+     (str named-query "_" bound " = [" bound "(who)]")
+     (str named-query "_n" bound " = [!" bound "(who)] sort by word %c " match)
      (str "tabulate " named-query "_n" bound " match, matchend >" tmpfile)
      (str "tabulate " named-query "_" bound " match, matchend >>" tmpfile)
      (str "undump " named-query " <" tmpfile)]))
 
-(defn sort-within-sync [named-query sort-key]
+(defn sort-within-who [named-query sort-key]
   (cond
     (= sort-key "match")
     ["set ExternalSort on"
      (str "sort " named-query " by word %c")]
     (re-matches #"left|right" sort-key)
-    (sort-context-within-sync sort-key named-query sort-key)
+    (sort-context-within-who sort-key named-query sort-key)
     :else
     nil))
 
@@ -142,7 +142,7 @@
                      "set LD \"{{\""
                      "set RD \"}}\""
                      (displayed-attrs-command corpus queries attrs)
-                     (sort-within-sync named-query sort-key)
+                     (sort-within-who named-query sort-key)
                      (str "cat " named-query (when (and start end)
                                                (str " " start " " end)))]]
     (run-cqp-commands corpus (flatten commands) false)))
