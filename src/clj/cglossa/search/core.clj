@@ -27,7 +27,15 @@
                                      num-random-hits random-hits-seed
                                      (str "tabulate QUERY "
                                           (str/join ", " (map #(str "match .. matchend " (name %) (if freq-case-sensitive "" " %c")) freq-attr))
-                                          " >\"|LC_ALL=C awk '{f[$0]++}END{for(k in f){print f[k], k}}' |LC_ALL=C sort -nr\""))
+                                          " >\""
+                                          (when (= (:encoding corpus) "utf-8")
+                                            ;; For some strange reason, CQP sometimes encodes
+                                            ;; attribute values in latin1 even if the corpus
+                                            ;; is UTF-8 encoded, so we need to fix that. And for some
+                                            ;; equally strange reason, translating just one non-ascii
+                                            ;; character automagically fixes all the others as well
+                                            " |LC_ALL=C sed `echo 'y/\\xe3\\xa6/æ/'`")
+                                          " |LC_ALL=C awk '{f[$0]++}END{for(k in f){print f[k], k}}' |LC_ALL=C sort -nr\""))
         s          (search-by-id search-id*)]
     {:search     s
      :results    hits
