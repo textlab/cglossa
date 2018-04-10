@@ -11,7 +11,7 @@
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (defmethod result-links "trawl" [_ _ result _]
-  (let [assignment-id (second (re-find #"^.+?_(.+)_" (:s-id result)))
+  (let [assignment-id (second (re-find #"^.+?_(.+)_V\d" (:s-id result)))
         paper-id      (second (re-find #"(.+)\.s\d" (:s-id result)))
         comm-paper-id (str/replace paper-id "ORIG" "COMM")
         on-click      (fn [e]
