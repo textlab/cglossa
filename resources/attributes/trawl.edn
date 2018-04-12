@@ -1,6 +1,6 @@
 [{:displayed-attrs [[:lemma "Lemma"] [:orig "Original form"] [:descr "Annotation"]
                     [:pos "Part of speech"] [:type "Type"] [:degr_dia "Degree or Voice"]
-                    [:tense_defin "Tense or Definiteness"]
+                    [:tense_defin "Tense"]
                     [:person_type2 "Person or extended type info"] [:number "Number"]]}
  ["adj" "adjective" nil
   ["Degree" [[:degr_dia "pos" "positive"]
