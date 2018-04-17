@@ -29,7 +29,7 @@
                 (map-indexed (fn [row-index val]
                                ;; Since each row in the input tsv file represents a corpus text, and
                                ;; the texts table is truncated before import, we can use
-                               ;; (inc row-index) as text id. The metadata value is calculated as
+                               ;; (inc row-index) as text id. The metadata value id is calculated as
                                ;; the sum of the number of unique values in previous columns plus
                                ;; the rank of the value in the sorted set of values for this column
                                ;; plus one.
