@@ -19,6 +19,7 @@
                            (fields :id [:text_value :text])
                            (modifier "SQL_CALC_FOUND_ROWS")
                            (where conditions)
+                           (order :text_value)
                            (limit lim)
                            (offset offs))
         total      (-> (korma.core/exec-raw "SELECT FOUND_ROWS() AS total" :results) first :total)]
@@ -70,6 +71,7 @@
                   (where-selected-values selected-ids)
                   (where {:metadata_category_id category-id})
                   (filter-value value-filter)
+                  (order :text_value)
                   (limit lim)
                   (offset offs)
                   (select))
