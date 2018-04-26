@@ -197,7 +197,7 @@
           ? "http://localhost/" + mediaObj.mov.path.replace(/^media\//, '') + "/" + this.props.mediaType + "/"
           : "http://www.tekstlab.uio.no/glossa2/" + mediaObj.mov.path + "/" + this.props.mediaType + "/";
       supplied = mediaObj.mov.supplied;
-      $("#movietitle").text(mediaObj.title);
+      $("#movietitle").text(mov);
       lastLine = parseInt(mediaObj.lastLine);
       ext = this.props.mediaType === "audio" ? ".mp3" : ".mp4";
       $playerNode = $node.find(".jp-jplayer");
