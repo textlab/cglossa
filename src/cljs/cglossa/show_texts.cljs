@@ -39,7 +39,6 @@
                                                                 @metadata-categories)
                                        corpus-specific-col {extra-col-name
                                                             (show-texts-extra-col-comp corpus m row)}]
-                                   (.log js/console @fetched-tids)
                                    (swap! fetched-tids conj (get row 1))
                                    (into {"__dummy" " "} (cons corpus-specific-col standard-cols))))]
             (when (= (:status response) 401)
