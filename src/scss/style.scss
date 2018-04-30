@@ -354,8 +354,8 @@ div.interval {
     width: 80px;
 }
 .column-category {
-    min-width: 80px;
-    width: 80px;
+    min-width: 85px;
+    width: 85px;
 }
 .column-collection {
     min-width: 100px;
@@ -476,12 +476,12 @@ div.interval {
     width: 165px;
 }
 .column-publisher {
-    min-width: 100px;
-    width: 100px;
+    min-width: 120px;
+    width: 120px;
 }
 .column-pubdate {
-    min-width: 100px;
-    width: 100px;
+    min-width: 50px;
+    width: 50px;
 }
 .column-pubplace {
     min-width: 100px;
@@ -544,6 +544,14 @@ div.interval {
     min-width: 120px;
     width: 120px;
 }
+.column-supcat {
+    min-width: 80px;
+    width: 80px;
+}
+.column-supclass {
+    min-width: 90px;
+    width: 90px;
+}
 .column-tapeno {
     min-width: 110px;
     width: 110px;
@@ -581,8 +589,8 @@ div.interval {
     width: 200px;
 }
 .column-translation {
-    min-width: 100px;
-    width: 100px;
+    min-width: 80px;
+    width: 80px;
 }
 .column-version {
     min-width: 50px;
