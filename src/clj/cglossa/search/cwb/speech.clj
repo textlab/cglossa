@@ -207,7 +207,11 @@
 
 
 (defn- extract-media-info [corpus result]
-  (let [result*           (fix-brace-positions result)
+  (let [result*           (-> result
+                              ;; Remove any material from the previous or following transcription
+                              (str/replace #"^(.*\{\{.+)</trans>.*" "$1")
+                              (str/replace #"^.*<trans>(.*\{\{.+)" "$1")
+                              fix-brace-positions)
         timestamps        (find-timestamps result*)
         starttimes        (map first timestamps)
         endtimes          (map last timestamps)
@@ -233,7 +237,7 @@
                      (str "set Context " context-size " who_start")
                      "set LD \"{{\""
                      "set RD \"}}\""
-                     "show +who_start +who_stop +who_name +who_avfile"
+                     "show +who_start +who_stop +who_name +who_avfile +trans"
                      (str "cat " named-query " " result-index " " result-index)]
         results     (run-cqp-commands corpus (flatten commands) false)]
     (extract-media-info corpus (first results))))
