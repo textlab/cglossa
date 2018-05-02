@@ -92,7 +92,7 @@
    "set PrintStructures \"s_id\""
    "set LD \"{{\""
    "set RD \"}}\""
-   (displayed-attrs-command corpus queries attrs)
+   (str (displayed-attrs-command corpus queries attrs) " +text")
    (aligned-languages-command corpus queries)
    (when sort-key
      (sort-command named-query sort-key))])
@@ -306,12 +306,15 @@
         (fn [lines]
           (let [ls (map
                      (fn [line]
-                       ;; Get rid of spaces in multiword expressions. Assuming that attribute
-                       ;; values never contain spaces, we can further assume that if we find
-                       ;; several spaces between slashes, only the first one separates tokens
-                       ;; and the remaining ones are actually inside the token and should be
-                       ;; replaced by underscores.
                        (-> line
+                           ;; Remove any material from the previous or following text
+                           (str/replace #"^(.*\{\{.+)</text>.*" "$1")
+                           (str/replace #"^(\s*\d+:\s*<.+?>:\s*).*<text>(.*\{\{.+)" "$1$2")
+                           ;; Get rid of spaces in multiword expressions. Assuming that attribute
+                           ;; values never contain spaces, we can further assume that if we find
+                           ;; several spaces between slashes, only the first one separates tokens
+                           ;; and the remaining ones are actually inside the token and should be
+                           ;; replaced by underscores.
                            ;; Fractions containing spaces (e.g. "1 / 2") need to be handled
                            ;; separately because the presence of a slash confuses the normal
                            ;; regexes
