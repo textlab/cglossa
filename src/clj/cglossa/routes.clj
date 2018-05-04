@@ -57,7 +57,26 @@
           {:status 500
            :body   (.toString e#)})))
 
-(deftemplate page (io/resource "index.html") [])
+(deftemplate page (io/resource "index.html") [corpus-code]
+  [:#corpus-info-header]
+  (fn [node]
+    (let [google-analytics-id (or (-> (kdb/with-db core-db
+                                        (select corpus
+                                                (fields :google_analytics_id)
+                                                (where {:code corpus-code})))
+                                      first
+                                      :google_analytics_id)
+                                  "ID")]
+      [{:tag     :script
+        :attrs   {:async true
+                  :src   (str "https://www.googletagmanager.com/gtag/js?id="
+                              google-analytics-id)}
+        :content []}
+       {:tag     :script
+        :content (str "window.dataLayer = window.dataLayer || [];"
+                      "function gtag(){dataLayer.push(arguments);}"
+                      "gtag('js', new Date());"
+                      "gtag('config', '" google-analytics-id "');")}])))
 (deftemplate front (io/resource "front.html") []
   [:#corpus-entry] (clone-for [corp (->> (kdb/with-db core-db (select corpus
                                                                       (fields :code :name)
@@ -188,4 +207,4 @@
 ;; NOTE: Since this route does not specify anything other than the fact that the URL only contains
 ;; one part, it should be the last route we attempt to match to avoid "swallowing" other URLs
 (defroutes corpus-home
-  (GET "/:corpus-code" [] (page)))
+  (GET "/:corpus-code" [corpus-code] (page corpus-code)))
