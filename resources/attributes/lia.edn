@@ -19,8 +19,9 @@
  ["verb" "verb" nil
   ["Tempus/modus" [[:temp "pret" "preteritum"]
                    [:temp "pres" "presens"]
-                   [:temp "pres:inf" "presens/infinitiv"]
-                   [:temp "pret:perf-part" "preteritum/perfektum partisipp"]]
+                   [:temp "inf" "infinitiv"]
+                   [:temp "imp" "imperativ"]
+                   [:temp "perf-part" "perfektum partisipp"]]
    "Diatese" [[:voice "pass" "passiv"]]]]
  ["pron" "pronomen" nil
   ["Kjønn" [[:gender "fem" "hunkjønn"]
