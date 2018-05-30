@@ -1,3 +1,30 @@
+@font-face {
+  font-family: LMR;
+  src: url('fonts/Lapidaria-MenotecRegular/lapidaria-menotecregular.woff') format('woff');
+}
+
+@font-face {
+  font-family: AMC;
+  src: url('fonts/andron-mega-corpus-regular.woff') format('woff');
+}
+
+@font-face {
+  font-family: AMC;
+  font-style: italic;
+  src: url('fonts/andron-mega-corpus-italic.woff') format('woff');
+}
+
+@font-face {
+  font-family: AMC;
+  font-weight: bold;
+  src: url('fonts/andron-mega-corpus-semibold.woff') format('woff');
+}
+
+@font-face {
+  font-family: AMC-SC;
+  src: url('fonts/andron-mega-corpus-sc-regular.woff') format('woff');
+}
+
 body {
   padding-top: 70px;
 }

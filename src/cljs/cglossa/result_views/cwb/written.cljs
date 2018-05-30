@@ -5,7 +5,7 @@
             [cglossa.results :refer [concordance-table]]
             [cglossa.result-views.cwb.shared :as shared]))
 
-(defn- process-field [displayed-field-index origcorr-index lemma-index field]
+(defn- process-field [displayed-field-index origcorr-index lemma-index font-family field]
   "Processes a pre-match, match, or post-match field."
   (as-> field $
         (str/split $ #"\s+")
@@ -35,8 +35,11 @@
                             ^{:key index}
                             [:span {:data-toggle "tooltip"
                                     :title       tip-text
-                                    :data-html   true}
-                             (get attrs displayed-field-index) " "])
+                                    :data-html   true
+                                    :style       {:font-family font-family}
+                                    :dangerouslySetInnerHTML
+                                                 {:__html (str (get attrs displayed-field-index)
+                                                               " ")}}])
                           ;; With multi-word expressions, the non-last parts become simple strings
                           ;; without any attributes (i.e., no slashes) when we split the text on
                           ;; whitespace. Just print out those non-last parts and leave the tooltip
@@ -44,7 +47,7 @@
                           ^{:key index} [:span token " "]))
                       $)))
 
-(defn- non-first-multilingual [orig-index lemma-index index line]
+(defn- non-first-multilingual [orig-index lemma-index index font-family line]
   ;; Extract the IDs of all s-units (typically sentences)
   ;; and put them in front of their respective s-units.
   (let [matches    (re-seq #"<(\w+_id)\s*(.+?)>(.*?)</\1>" line)
@@ -52,7 +55,7 @@
                      (map (fn [m]
                             (list [:span.aligned-id (nth m 2)] ": " (nth m 3)))
                           matches)
-                     (process-field 0 orig-index lemma-index line))]
+                     (process-field 0 orig-index lemma-index font-family line))]
     ^{:key index} [:tr [:td] [:td {:col-span 3} components]]))
 
 (defn- extract-fields [res]
@@ -77,10 +80,12 @@
   "Returns one or more rows representing a single search result."
   (let [[main-line & other-lines] (:text res)
         [s-id fields] (extract-fields main-line)
-        [pre match post] (map (partial process-field word-index orig-index lemma-index) fields)
+        font-family (:font-family @(:corpus m))
+        [pre match post] (map (partial process-field word-index orig-index lemma-index font-family)
+                              fields)
         [orig-pre orig-match orig-post] (when orig-index
                                           (map (partial process-field orig-index
-                                                        word-index lemma-index)
+                                                        word-index lemma-index font-family)
                                                fields))
         res-info {:word {:s-id       s-id
                          :pre-match  pre
@@ -94,8 +99,10 @@
         orig     (when orig-index
                    [(original-row a m (:orig res-info) index)
                     (shared/separator-row index)])
+        font-family (:font-family @(:corpus m))
         others   (when (seq other-lines)
-                   (conj (vec (map-indexed (partial non-first-multilingual orig-index lemma-index)
+                   (conj (vec (map-indexed (partial non-first-multilingual orig-index
+                                                    lemma-index font-family)
                                            other-lines))
                          (shared/separator-row index)))]
     ;; Assume that we have EITHER an attribute with original text OR several other langage rows
