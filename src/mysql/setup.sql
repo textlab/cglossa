@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS `corpus` (
 `languages` text,
 `multicpu_bounds` text,
 `remote_urls` text,
+`font_family` varchar(255),
 `google_analytics_id` text,
 `hidden` bool default false
 ) ENGINE=InnoDB;
