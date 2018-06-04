@@ -1,14 +1,20 @@
 (ns cglossa.corpora.norchron
   (:require [clojure.string :as str]
             [reagent.core :as r]
+            [cljs.core.async :refer [<!]]
+            [cljs-http.client :as http]
             [cglossa.react-adapters.bootstrap :as b]
-            [cglossa.results :refer [result-links]]))
+            [cglossa.results :refer [result-links]])
+  (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (def ^:private show-document (r/atom nil))
 
 (defn- document-popup []
-  (let [hide #(reset! show-document nil)
-        text-id  (re-find #"^[^\.]+" @show-document)]
+  (let [hide    #(reset! show-document nil)
+        text-id (re-find #"^[^\.]+" @show-document)
+        {:keys [body]} (go (<! (http/get (str "/norchron/docs/"
+                                              text-id
+                                              ".xml.html"))))]
     [:div.show-norchron-document-popup
      [b/modal {:show              true
                :on-hide           hide
