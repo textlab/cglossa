@@ -325,6 +325,30 @@ div.interval {
     margin-right: 20px;
 }
 
+.show-norchron-document-popup {
+    width: auto;
+    max-height: 650px;
+    overflow: auto;
+    margin-left: 20px;
+    margin-right: 20px;
+
+    .lb {
+      color: #29a2c3;
+      text-indent: 0;
+      position: absolute;
+      left: 0px;
+      font-size: 10pt;
+      display: inline;
+      vertical-align: baseline;
+    }
+
+    .pb {
+      color: #29a2c3;
+      font-size: 10pt;
+      line-height: 170%;
+    }
+}
+
 /* Columns in the "Show texts" grid */
 .extra-text-column {
     min-width: 90px;
