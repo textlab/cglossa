@@ -1,5 +1,5 @@
 (function() {
-  window.WFplayer = React.createClass({
+  window.WFplayer = createReactClass({
     displayName: "WFplayer",
 
     componentDidMount: function() {

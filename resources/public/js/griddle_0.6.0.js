@@ -115,7 +115,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _property = __webpack_require__(111);
 	var _get = __webpack_require__(96);
 
-	var Griddle = React.createClass({
+	var Griddle = createReactClass({
 	    displayName: 'Griddle',
 
 	    statics: {
@@ -218,10 +218,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        };
 	    },
 	    propTypes: {
-	        isMultipleSelection: React.PropTypes.bool,
-	        selectedRowIds: React.PropTypes.oneOfType([React.PropTypes.arrayOf(React.PropTypes.number), React.PropTypes.arrayOf(React.PropTypes.string)]),
-	        uniqueIdentifier: React.PropTypes.string,
-	        onSelectionChange: React.PropTypes.func
+	        isMultipleSelection: PropTypes.bool,
+	        selectedRowIds: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.number), PropTypes.arrayOf(PropTypes.string)]),
+	        uniqueIdentifier: PropTypes.string,
+	        onSelectionChange: PropTypes.func
 	    },
 	    defaultFilter: function defaultFilter(results, filter) {
 	        var that = this;
@@ -1000,7 +1000,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var ColumnProperties = __webpack_require__(5);
 	var RowProperties = __webpack_require__(166);
 
-	var GridTable = React.createClass({
+	var GridTable = createReactClass({
 	  displayName: 'GridTable',
 
 	  getDefaultProps: function getDefaultProps() {
@@ -1293,7 +1293,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var ColumnProperties = __webpack_require__(5);
 	var assign = __webpack_require__(155);
 
-	var DefaultHeaderComponent = React.createClass({
+	var DefaultHeaderComponent = createReactClass({
 	    displayName: 'DefaultHeaderComponent',
 
 	    render: function render() {
@@ -1301,7 +1301,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	});
 
-	var GridTitle = React.createClass({
+	var GridTitle = createReactClass({
 	    displayName: 'GridTitle',
 
 	    getDefaultProps: function getDefaultProps() {
@@ -6763,7 +6763,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var ColumnProperties = __webpack_require__(5);
 	var pick = __webpack_require__(161);
 
-	var GridRowContainer = React.createClass({
+	var GridRowContainer = createReactClass({
 	  displayName: 'GridRowContainer',
 
 	  getDefaultProps: function getDefaultProps() {
@@ -7143,7 +7143,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var React = __webpack_require__(2);
 
-	var GridFilter = React.createClass({
+	var GridFilter = createReactClass({
 	    displayName: "GridFilter",
 
 	    getDefaultProps: function getDefaultProps() {
@@ -7174,7 +7174,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var assign = __webpack_require__(155);
 
 	//needs props maxPage, currentPage, nextFunction, prevFunction
-	var GridPagination = React.createClass({
+	var GridPagination = createReactClass({
 	    displayName: 'GridPagination',
 
 	    getDefaultProps: function getDefaultProps() {
@@ -7247,7 +7247,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var without = __webpack_require__(175);
 	var find = __webpack_require__(123);
 
-	var GridSettings = React.createClass({
+	var GridSettings = createReactClass({
 	    displayName: 'GridSettings',
 
 	    getDefaultProps: function getDefaultProps() {
@@ -7530,7 +7530,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var React = __webpack_require__(2);
 
-	var GridNoData = React.createClass({
+	var GridNoData = createReactClass({
 	    displayName: "GridNoData",
 
 	    getDefaultProps: function getDefaultProps() {
@@ -7566,7 +7566,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var toPairs = __webpack_require__(189);
 	var without = __webpack_require__(175);
 
-	var GridRow = React.createClass({
+	var GridRow = createReactClass({
 	    displayName: 'GridRow',
 
 	    getDefaultProps: function getDefaultProps() {
@@ -8326,7 +8326,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var React = __webpack_require__(2);
 
-	var CustomRowComponentContainer = React.createClass({
+	var CustomRowComponentContainer = createReactClass({
 	  displayName: "CustomRowComponentContainer",
 
 	  getDefaultProps: function getDefaultProps() {
@@ -8382,7 +8382,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var React = __webpack_require__(2);
 
-	var CustomPaginationContainer = React.createClass({
+	var CustomPaginationContainer = createReactClass({
 	  displayName: "CustomPaginationContainer",
 
 	  getDefaultProps: function getDefaultProps() {
@@ -8420,7 +8420,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var React = __webpack_require__(2);
 
-	var CustomFilterContainer = React.createClass({
+	var CustomFilterContainer = createReactClass({
 	  displayName: "CustomFilterContainer",
 
 	  getDefaultProps: function getDefaultProps() {

@@ -1,6 +1,6 @@
 // Modified version of https://github.com/iamdanfox/react-maps
 
-var GeoDistributionMap = React.createClass({
+var GeoDistributionMap = createReactClass({
 
   // initialize local variables
   getInitialState: function() {

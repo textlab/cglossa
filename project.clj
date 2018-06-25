@@ -17,9 +17,13 @@
                  [com.cognitect/transit-clj "0.8.295"]
                  [compojure "1.5.1"]
                  [enlive "1.1.6"]
-                 [reagent "0.6.0"]
+                 [reagent "0.7.0"]
                  [cljsjs/jquery "2.2.4-0"]
-                 [cljsjs/react-bootstrap "0.30.6-0"]
+                 [cljsjs/create-react-class "15.6.3-0"]
+                 [cljsjs/prop-types "15.6.1-0"]
+                 [cljsjs/react "15.6.2-1"]
+                 [cljsjs/react-dom "15.6.2-1"]
+                 [cljsjs/react-bootstrap "0.31.5-0"]
                  [environ "1.1.0"]
                  [http-kit "2.2.0"]
                  [cljs-http "0.1.42"]
@@ -101,7 +105,7 @@
                                            {:file     "resources/public/js/griddle_0.6.0.js"
                                             :file-min "resources/public/js/griddle_0.6.0.min.js"
                                             :provides ["griddle"]
-                                            :requires ["cljsjs.react" "underscore"]}
+                                            :requires ["cljsjs.react" "cljsjs.prop-types" "underscore"]}
                                            {:file     "resources/public/js/geo_distribution_map.js"
                                             :provides ["geo-distribution-map"]
                                             :requires ["cljsjs.react"]}]

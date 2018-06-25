@@ -40,4 +40,6 @@
         "Tabs"
         "Tab"
         "Table"
+        "ToggleButton"
+        "ToggleButtonGroup"
         "Tooltip")

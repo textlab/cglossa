@@ -3,11 +3,11 @@
 /** @jsx React.DOM */
 
 (function() {
-  window.TextBox = React.createClass({displayName: "TextBox",
+  window.TextBox = createReactClass({displayName: "TextBox",
     propTypes: {
-      mediaObj: React.PropTypes.object.isRequired,
-      startAtLine: React.PropTypes.number.isRequired,
-      endAtLine: React.PropTypes.number.isRequired
+      mediaObj: PropTypes.object.isRequired,
+      startAtLine: PropTypes.number.isRequired,
+      endAtLine: PropTypes.number.isRequired
     },
     getInitialState: function() {
       return {
@@ -110,11 +110,11 @@
     }
   });
 
-  window.Jplayer = React.createClass({displayName: "Jplayer",
+  window.Jplayer = createReactClass({displayName: "Jplayer",
     propTypes: {
-      mediaObj: React.PropTypes.object,
-      mediaType: React.PropTypes.string,
-      hasLocalMedia: React.PropTypes.bool
+      mediaObj: PropTypes.object,
+      mediaType: PropTypes.string,
+      hasLocalMedia: PropTypes.bool
     },
     getStartLine: function(mediaObj) {
       var minStart, startAt;
