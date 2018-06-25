@@ -212,14 +212,14 @@
     [:form.table-display {:style {:margin "10px 0px 15px -35px"}}
      [:div.table-row {:style {:margin-bottom 10}}
       [remove-row-btn show-remove-row-btn? wrapped-query]
-      [b/formcontrol
-       {:style            {:width 500}
-        :class-name       "query-term-input col-sm-12"
-        :group-class-name "table-cell"
-        :type             input-type
-        :default-value    displayed-query
-        :on-change        #(on-text-changed % wrapped-query phonetic? original?)
-        :on-key-down      #(on-key-down % a m)}]]]))
+      [b/formgroup {:class-name "table-cell"}
+       [b/formcontrol
+        {:style            {:width 500}
+         :class-name       "query-term-input col-sm-12"
+         :type             input-type
+         :default-value    displayed-query
+         :on-change        #(on-text-changed % wrapped-query phonetic? original?)
+         :on-key-down      #(on-key-down % a m)}]]]]))
 
 ;;; The three different CWB interfaces: simple, extended and cqp
 

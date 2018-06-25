@@ -15,7 +15,26 @@
                       (reset! show-document nil)
                       (reset! row-index-shown nil))
                text-id (re-find #"^[^\.]+" @show-document)
-               modal-body (r/atom nil)]
+               modal-body (r/atom nil)
+               views (r/atom [:dipl])
+               on-view-change (fn [vals]
+                                (reset! views vals)
+                                (let [facs (js/$ ".norchron-doc-facs")
+                                      dipl (js/$ ".norchron-doc-dipl")
+                                      norm (js/$ ".norchron-doc-norm")
+                                      img  (js/$ ".norchron-doc-img")]
+                                  (if (some #(= "facs" %) vals)
+                                    (.show (js/$ facs))
+                                    (.hide (js/$ facs)))
+                                  (if (some #(= "dipl" %) vals)
+                                    (.show (js/$ dipl))
+                                    (.hide (js/$ dipl)))
+                                  (if (some #(= "norm" %) vals)
+                                    (.show (js/$ norm))
+                                    (.hide (js/$ norm)))
+                                  (if (some #(= "img" %) vals)
+                                    (.show (js/$ img))
+                                    (.hide (js/$ img)))))]
     (go (let [{:keys [body]} (<! (http/get (str "/norchron/data/"
                                                 text-id
                                                 ".xml.html")))]
@@ -26,8 +45,19 @@
                :dialog-class-name "show-norchron-document-popup"}
       [b/modalheader {:close-button true}
        [b/modaltitle (str "Document " text-id)]]
-      [b/modalbody [:div {:style {:padding 25 :position "relative"}
-                          :dangerouslySetInnerHTML {:__html @modal-body}}]]
+      [b/modalbody [:span
+                    [b/buttontoolbar
+                     [b/togglebuttongroup
+                      {:bs-size   "small"
+                       :type      "checkbox"
+                       :value     @views
+                       :on-change on-view-change}
+                      [b/togglebutton {:value "facs"} "Facsimile"]
+                      [b/togglebutton {:value "dipl"} "Diplomatic"]
+                      [b/togglebutton {:value "norm"} "Normalized"]
+                      [b/togglebutton {:value "img"} "Photographic facsimile"]]]
+                    [:div {:style                   {:display "table-row"}
+                           :dangerouslySetInnerHTML {:__html @modal-body}}]]]
       [b/modalfooter
        [b/button {:on-click hide} "Close"]]]]))
 

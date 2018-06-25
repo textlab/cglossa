@@ -275,6 +275,10 @@ div.interval {
   margin-left: 0;
 }
 
+.btn-default.active {
+  border-color: #adadad;
+}
+
 .pagination {
   margin-top: 0;
   margin-bottom: 10px;
@@ -347,6 +351,13 @@ div.interval {
       font-size: 10pt;
       line-height: 170%;
     }
+}
+
+.norchron-doc {
+    font-family: AMC;
+    position: relative;
+    margin: 20px;
+    padding: 25px;
 }
 
 /* Columns in the "Show texts" grid */
