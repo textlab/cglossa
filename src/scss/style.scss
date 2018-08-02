@@ -358,6 +358,14 @@ div.interval {
     position: relative;
     margin: 20px;
     padding: 25px;
+
+    .abbr-exp {
+      font-style: italic;
+    }
+
+    .pc {
+      margin-left: -3px;
+    }
 }
 
 /* Columns in the "Show texts" grid */
