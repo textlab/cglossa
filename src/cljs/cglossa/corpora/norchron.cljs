@@ -52,9 +52,12 @@
                        :type      "checkbox"
                        :value     @views
                        :on-change on-view-change}
-                      [b/togglebutton {:value "facs"} "Facsimile"]
-                      [b/togglebutton {:value "dipl"} "Diplomatic"]
-                      [b/togglebutton {:value "norm"} "Normalized"]
+                      (when (and @modal-body (str/includes? @modal-body "norchron-doc-facs"))
+                        [b/togglebutton {:value "facs"} "Facsimile"])
+                      (when (and @modal-body (str/includes? @modal-body "norchron-doc-dipl"))
+                        [b/togglebutton {:value "dipl"} "Diplomatic"])
+                      (when (and @modal-body (str/includes? @modal-body "norchron-doc-norm"))
+                        [b/togglebutton {:value "norm"} "Normalized"])
                       [b/togglebutton {:value "img"} "Photographic facsimile"]]]
                     [:div {:style                   {:display "table-row"}
                            :dangerouslySetInnerHTML {:__html @modal-body}}]]]
