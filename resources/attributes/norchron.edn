@@ -1,2 +1,2 @@
-[{:displayed-attrs [[:lemma "Lemma"] [:wordclass "Wordclass"]
+[{:displayed-attrs [[:lemma "Lemma"] [:orig "Diplomatic"] [:wordclass "Wordclass"]
                     [:msa "Morphosyntactic features"]]}]
