@@ -357,7 +357,6 @@ div.interval {
     font-family: AMC;
     position: relative;
     margin: 20px;
-    padding: 25px;
 
     .abbr-exp {
       font-style: italic;
@@ -366,6 +365,11 @@ div.interval {
     .pc {
       margin-left: -3px;
     }
+}
+
+.norchron-doc-facs, .norchron-doc-dipl, .norchron-doc-norm {
+    position: relative;
+    padding-left: 30px;
 }
 
 /* Columns in the "Show texts" grid */

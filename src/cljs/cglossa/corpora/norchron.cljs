@@ -24,16 +24,16 @@
                                       norm (js/$ ".norchron-doc-norm")
                                       img  (js/$ ".norchron-doc-img")]
                                   (if (some #(= "facs" %) vals)
-                                    (.show (js/$ facs))
+                                    (.css (js/$ facs) "display" "table-cell")
                                     (.hide (js/$ facs)))
                                   (if (some #(= "dipl" %) vals)
-                                    (.show (js/$ dipl))
+                                    (.css (js/$ dipl) "display" "table-cell")
                                     (.hide (js/$ dipl)))
                                   (if (some #(= "norm" %) vals)
-                                    (.show (js/$ norm))
+                                    (.css (js/$ norm) "display" "table-cell")
                                     (.hide (js/$ norm)))
                                   (if (some #(= "img" %) vals)
-                                    (.show (js/$ img))
+                                    (.css (js/$ img) "display" "table-cell")
                                     (.hide (js/$ img)))))]
     (go (let [{:keys [body]} (<! (http/get (str "/norchron/data/"
                                                 text-id
@@ -59,8 +59,7 @@
                       (when (and @modal-body (str/includes? @modal-body "norchron-doc-norm"))
                         [b/togglebutton {:value "norm"} "Normalized"])
                       [b/togglebutton {:value "img"} "Photographic facsimile"]]]
-                    [:div {:style                   {:display "table-row"}
-                           :dangerouslySetInnerHTML {:__html @modal-body}}]]]
+                    [:div {:dangerouslySetInnerHTML {:__html @modal-body}}]]]
       [b/modalfooter
        [b/button {:on-click hide} "Close"]]]]))
 
