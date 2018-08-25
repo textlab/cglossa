@@ -330,7 +330,7 @@ div.interval {
 }
 
 .show-norchron-document-popup {
-    width: auto;
+    width: 1300px;
     max-height: 650px;
     overflow: auto;
     margin-left: 20px;
@@ -351,6 +351,14 @@ div.interval {
       font-size: 10pt;
       line-height: 170%;
     }
+
+    .facsimile-image {
+      width: 300px;
+    }
+
+    .facsimile-image-td {
+      vertical-align: top;
+    }
 }
 
 .norchron-doc {
@@ -370,6 +378,7 @@ div.interval {
 .norchron-doc-facs, .norchron-doc-dipl, .norchron-doc-norm {
     position: relative;
     padding-left: 30px;
+    min-width: 250px;
 }
 
 /* Columns in the "Show texts" grid */
