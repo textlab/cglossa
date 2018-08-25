@@ -24,16 +24,16 @@
                                       norm (js/$ ".norchron-doc-norm")
                                       img  (js/$ ".norchron-doc-img")]
                                   (if (some #(= "facs" %) vals)
-                                    (.css (js/$ facs) "display" "table-cell")
+                                    (.show (js/$ facs))
                                     (.hide (js/$ facs)))
                                   (if (some #(= "dipl" %) vals)
-                                    (.css (js/$ dipl) "display" "table-cell")
+                                    (.show (js/$ dipl))
                                     (.hide (js/$ dipl)))
                                   (if (some #(= "norm" %) vals)
-                                    (.css (js/$ norm) "display" "table-cell")
+                                    (.show (js/$ norm))
                                     (.hide (js/$ norm)))
                                   (if (some #(= "img" %) vals)
-                                    (.css (js/$ img) "display" "table-cell")
+                                    (.show (js/$ img))
                                     (.hide (js/$ img)))))]
     (go (let [{:keys [body]} (<! (http/get (str "/norchron/data/"
                                                 text-id
