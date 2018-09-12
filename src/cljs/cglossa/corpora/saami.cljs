@@ -13,7 +13,9 @@
         on-click        (fn [e]
                           (go
                             (let [url      "https://gtweb.uit.no/apy/translate"
-                                  text     (str/join " " (:full-text result))
+                                  text     (str (str/join " "
+                                                          (:full-text result))
+                                                " ¥")
                                   response (<! (http/get url {:with-credentials? false
                                                               :query-params      {:langpair "sme|nob"
                                                                                   :q        text}}))
