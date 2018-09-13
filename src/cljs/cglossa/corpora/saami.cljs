@@ -13,9 +13,12 @@
         on-click        (fn [e]
                           (go
                             (let [url      "https://gtweb.uit.no/apy/translate"
-                                  text     (str (str/join " "
-                                                          (:full-text result))
-                                                " ¥")
+                                  tokens   (->> (:full-text result)
+                                                (remove #(re-find #"#" %))
+                                                (remove #(re-find #"%" %))
+                                                (remove #(re-find #"^\+" %))
+                                                (remove #(re-find #"\-$" %)))
+                                  text     (str (str/join " " tokens) " ¥")
                                   response (<! (http/get url {:with-credentials? false
                                                               :query-params      {:langpair "sme|nob"
                                                                                   :q        text}}))
