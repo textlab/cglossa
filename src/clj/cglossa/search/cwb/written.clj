@@ -307,6 +307,9 @@
           (let [ls (map
                      (fn [line]
                        (-> line
+                           ;; When the match is the last token in a text, the </text> tag is
+                           ;; included within the braces due to a CQP bug, so we need to fix it
+                           (str/replace #"</text>\}\}" "}}</text>")
                            ;; Remove any material from the previous or following text
                            (str/replace #"^(.*\{\{.+)</text>.*" "$1")
                            (str/replace #"^(\s*\d+:\s*<.+?>:\s*).*<text>(.*\{\{.+)" "$1$2")
