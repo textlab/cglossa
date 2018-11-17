@@ -10,9 +10,11 @@
              [:degr_dia "comp" "comparative"]
              [:degr_dia "sup" "superlative"]]
    "Type" [[:person_type2 "wh" "wh-"]]]]
- ["conj" "conjunction" nil []]
+ ["conj" "conjunction" nil
+  ["Type" [[:type "coord" "coordinative"]]]]
  ["det" "determiner" nil
-  ["Type" [[:person_type2 "wh" "wh-"]]]]
+  ["Type" [[:person_type2 "wh" "wh-"]
+           [:type "pre" "pre"]]]]
  ["n" "noun" nil
   ["Type" [[:type "p" "proper noun"]
            [:type "c" "common noun"]]

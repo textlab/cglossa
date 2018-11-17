@@ -1,0 +1,62 @@
+[{:displayed-attrs [[:lemma "Lemma"] [:pos "Part of speech"] [:type "Type"]
+                    [:degr_dia "Degree or Voice"] [:tense_defin "Tense or Definiteness"]
+                    [:mood_case "Mood or Case"]]}
+
+["\\(\\(Kompositions-Ertgleid\\)\\)" "Kompositions-Ertgleid" nil []]
+["\\(\\(vergleichspartikel\\)\\)" "vergleichspartikel" nil
+ ["Type" [[:type "..ohne_Satz.." "ohne Satz"]]]]
+["adj" "adjective" nil
+ ["Type" [[:type "attr" "attributive"]
+          [:type "adv" "adv"]]]]
+["adv" "adverb" nil
+ ["Type" [[:type "pred" "pred"]]]]
+["art" "article" nil []]
+["conj" "conjunction" nil
+ ["Type" [[:type "..underordende.." "subordinating"]
+          [:type "..sideordnende.." "coordinating"]
+          [:degr_dia "..mit_.zu._und_infinitiv.." "mit \"zu\" und infinitiv"]
+          [:degr_dia "..mit_Satz.." "mit Satz"]]]]
+["foreign" "foreign" nil []]
+["intj" "interjection" nil []]
+["n" "noun" nil
+ ["Type" [[:type "c" "common noun"]
+          [:type "p" "proper noun"]]]]
+["nonword" "non-word" nil []]
+["number" "number" nil []]
+["part" "particle" nil
+ ["Type" [[:type "infmark" "infinitive marker"]
+          [:type "neg" "negation"]
+          [:type "reply" "reply"]
+          [:type "..abgetrenner_Verbzuzatz_--_.er_kommt._an.." "abgetrenner Verbzuzatz -- [er kommt] an"]]]]
+["postp" "postposition" nil []]
+["prep" "preposition" nil
+ ["Type" [[:type "left" "left"]
+          [:type "right" "right"]
+          [:type "with_art" "with article"]]]]
+["pron" "pronoun" nil
+ ["Type" [[:type "dem" "demonstrative"]
+          [:type "poss" "possesive"]
+          [:type "pers" "personal"]
+          [:type "rel" "relative"]
+          [:type "adv" "adverbial"]
+          [:type "inter" "interrogative"]
+          [:type "indef" "indefinite"]
+          [:degr_dia "reflex" "reflexiv"]
+          [:degr_dia "..attribuirendes.." "attribuirendes"]
+          [:degr_dia "..irreflexiv.." "irreflexiv"]
+          [:degr_dia "..substituirendes.." "substituirendes"]
+          [:degr_dia "..adverbiales.." "adverbiales"]]
+          [:tense_defin "..med_det.." "med det"]]]
+["punct" "punctuation" nil
+ ["Type" [[:type "brack" "brack"]
+          [:type "comma" "comma"]
+          [:type "sent" "sent"]]]]
+["v" "verb" nil
+ ["Type" [[:type "m" "modal verb"]
+          [:type "a" "auxiliary verb"]
+          [:type "v" "full verb"]]
+  "Form" [[:tense_defin "imper" "imperative"]
+          [:tense_defin "part_perf" "perfect participle"]
+          [:tense_defin "finit" "finite"]
+          [:tense_defin "infin" "infinitive"]]
+  "Other" [[:mood_case "mit_zu" "mit zu"]]]]]
