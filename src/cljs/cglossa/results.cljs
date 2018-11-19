@@ -33,7 +33,7 @@
     ;; (since we show a spinner over the result table until we have found some results)
     [spinner-overlay {:spin? (or (not (empty? @fetching-pages))
                                  (and @searching? (seq @results)))
-                      :top 10}]]])
+                      :top   10}]]])
 
 (defn- last-page-no [total]
   (-> (/ total page-size) Math/ceil int))
@@ -138,7 +138,7 @@
    "Download"])
 
 (defn- download-popup
-  [{{:keys [num-random-hits]} :search-view
+  [{{:keys [num-random-hits]}                                              :search-view
     {:keys [cpu-counts context-size showing-download-popup? downloading?]} :results-view}
    {:keys [corpus search] :as m}]
   (r/with-let
@@ -152,15 +152,15 @@
                 (go
                   (let [{:keys [format headers? attrs]} @form-field-vals
                         results-ch (http/post (str (:code @corpus) "/download-results")
-                                              {:json-params {:search-id    (:id @search)
-                                                             :cpu-counts   (vec @cpu-counts)
-                                                             :format       format
-                                                             :headers?     headers?
-                                                             :attrs        (keep
-                                                                             (fn [[k v]]
-                                                                               (when v (first k)))
-                                                                             attrs)
-                                                             :context-size @context-size
+                                              {:json-params {:search-id       (:id @search)
+                                                             :cpu-counts      (vec @cpu-counts)
+                                                             :format          format
+                                                             :headers?        headers?
+                                                             :attrs           (keep
+                                                                                (fn [[k v]]
+                                                                                  (when v (first k)))
+                                                                                attrs)
+                                                             :context-size    @context-size
                                                              :num-random-hits @num-random-hits}})
                         results    (<! results-ch)
                         {file-url :body} results]
