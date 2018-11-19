@@ -218,24 +218,38 @@
                                        page-no
                                        fetching-pages]} :results-view :as a}
                               m]
-  [:div.pull-right {:style {:font-size 13 :display "inline-block" :margin-right 15 :margin-top 3}}
-   "Context: "
-   [:input.form-control.input-sm
-    {:type        "text"
-     :style       {:display "inline-block" :width 28 :height 25 :padding 5}
-     :value       @context-size
-     :on-click    #(.select (.-target %))
-     :on-change   #(reset! context-size (.-target.value %))
-     :on-key-down (fn [e]
-                    (when (= "Enter" (.-key e))
-                      ;; Remove all the result pages we have fetched so far, since they need
-                      ;; to be re-fetched with the new context size.
-                      (reset! results nil)
-                      ;; Ignore any result page requests that may be currently in flight
-                      (reset! fetching-pages #{})
-                      ;; Fetch the current result page using the new context size
-                      (fetch-result-window! a m @page-no)))}]
-   " words"])
+  ;; To avoid messing with the input text as the user is typing, we store the input as is
+  ;; in a local atom. When the user presses Enter, we validate the input, resetting it to the
+  ;; default value on error, and set the resulting value both in the "global" context-size atom
+  ;; and in the local selected-context-size atom to make sure the resulting value is displayed
+  (r/with-let [selected-context-size (r/atom @context-size)]
+    [:div.pull-right {:style {:font-size 13 :display "inline-block" :margin-right 15 :margin-top 3}}
+     "Context: "
+     [:input.form-control.input-sm
+      {:type        "text"
+       :style       {:display "inline-block" :width 28 :height 25 :padding 5}
+       :value       @selected-context-size
+       :on-click    #(.select (.-target %))
+       :on-change   #(reset! selected-context-size (.-target.value %))
+       :on-key-down (fn [e]
+                      (when (= "Enter" (.-key e))
+                        (reset! context-size
+                                (let [default-size  15
+                                      max-size      50
+                                      selected-size (js/parseInt @selected-context-size)]
+                                  (cond
+                                    (or (js/isNaN selected-size) (< selected-size 0)) default-size
+                                    (> selected-size max-size) max-size
+                                    :else selected-size)))
+                        (reset! selected-context-size @context-size)
+                        ;; Remove all the result pages we have fetched so far, since they need
+                        ;; to be re-fetched with the new context size.
+                        (reset! results nil)
+                        ;; Ignore any result page requests that may be currently in flight
+                        (reset! fetching-pages #{})
+                        ;; Fetch the current result page using the new context size
+                        (fetch-result-window! a m @page-no)))}]
+     " words"]))
 
 
 (defn- pagination [{{:keys [results total page-no paginator-page-no
