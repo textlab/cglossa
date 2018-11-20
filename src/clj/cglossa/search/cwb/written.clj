@@ -76,13 +76,13 @@
     ;; step, and reduce the number of hits retrieved to
     ;; the corresponding proportion of the number of random
     ;; hits we have asked for.
-    (let [nrandom (let [proportion (float (/ (inc (- endpos startpos))
-                                             corpus-size))]
-                    (int (Math/ceil (* num-random-hits proportion))))
+    (let [nrandom  (let [proportion (float (/ (inc (- endpos startpos))
+                                              corpus-size))]
+                     (int (Math/ceil (* num-random-hits proportion))))
           seed-str (when random-hits-seed
                      (str "randomize " random-hits-seed))]
-        [seed-str
-         (str "reduce " named-query " to " nrandom)])))
+      [seed-str
+       (str "reduce " named-query " to " nrandom)])))
 
 (defn- cqp-init [corpus queries context-size sort-key attrs named-query construct-save-commands]
   ["set DataDirectory \"tmp\""
@@ -178,30 +178,30 @@
                                          new-sum)))
                                    0
                                    cpu-counts)
-        last-file     (loop [sum        0
-                             counts     cpu-counts
-                             file-index 0]
-                        (let [new-sum (+ sum (first counts))]
-                          ;; If either the end index can be found in the current file (meaning
-                          ;; that if we add the current count to the sum, we exceed the end
-                          ;; index) or there are no more files, the current file should be the
-                          ;; last one we fetch results from.
-                          (if (or (and end (> new-sum end))
-                                  (nil? (next counts)))
-                            file-index
-                            ;; Otherwise, continue with the next file
-                            (recur new-sum
-                                   (next counts)
-                                   (inc file-index)))))]
+        last-file (loop [sum        0
+                         counts     cpu-counts
+                         file-index 0]
+                    (let [new-sum (+ sum (first counts))]
+                      ;; If either the end index can be found in the current file (meaning
+                      ;; that if we add the current count to the sum, we exceed the end
+                      ;; index) or there are no more files, the current file should be the
+                      ;; last one we fetch results from.
+                      (if (or (and end (> new-sum end))
+                              (nil? (next counts)))
+                        file-index
+                        ;; Otherwise, continue with the next file
+                        (recur new-sum
+                               (next counts)
+                               (inc file-index)))))]
     [first-file first-start last-file]))
 
 (defn- get-nonzero-files [corpus cpu-counts named-query first-file last-file]
   ;; Generate the names of the files containing saved CQP queries
-  (let [files (vec (flatten (map-indexed
-                              (fn [i cpu-bounds]
-                                (mapv #(str named-query "_" (inc i) "_" %)
-                                      (range (count cpu-bounds))))
-                              (:multicpu_bounds corpus))))
+  (let [files      (vec (flatten (map-indexed
+                                   (fn [i cpu-bounds]
+                                     (mapv #(str named-query "_" (inc i) "_" %)
+                                           (range (count cpu-bounds))))
+                                   (:multicpu_bounds corpus))))
         ;; Select the range of files that contains the range of results we are asking for
         ;; and remove files that don't actually contain any results
         file-range (filter identity (list (or first-file 0)
@@ -243,11 +243,11 @@
                                     " match[-1] word, match word, match[1] word, match, matchend"
                                     (if (= i 0) " >" " >>")
                                     "\"" result-positions-filename "\""))
-                              nonzero-files)]
+                             nonzero-files)]
             script        (filter identity (flatten commands))]
         (run-cqp-commands corpus script false)))
     (when-let [sort-opt (case sort-key
-                          "left"  "-k1"
+                          "left" "-k1"
                           "match" "-k2"
                           "right" "-k3"
                           nil)]
@@ -274,26 +274,26 @@
                        (str "cat " named-query (when (and start end)
                                                  (str " " start " " end)))]]
       (run-cqp-commands corpus (flatten commands) false))
-  ;else
-    (let [named-query   (cwb-query-name corpus (:id search))
-          nres-1        (when (and start end)
-                          (- end start))
+    ;else
+    (let [named-query (cwb-query-name corpus (:id search))
+          nres-1      (when (and start end)
+                        (- end start))
           [nonzero-files indexes] (get-files-indexes corpus start end cpu-counts named-query nres-1)
-          scripts       (map
-                          (fn [result-file [start end]]
-                            (let [commands [(cqp-init corpus queries context-size nil attrs named-query nil)
-                                            (str "cat " result-file (when (and start end)
-                                                                      (str " " start " " end)))]]
-                              (filter identity (flatten commands))))
-                          nonzero-files
-                          indexes)
-          all-res       (run-cqp-scripts corpus scripts)
+          scripts     (map
+                        (fn [result-file [start end]]
+                          (let [commands [(cqp-init corpus queries context-size nil attrs named-query nil)
+                                          (str "cat " result-file (when (and start end)
+                                                                    (str " " start " " end)))]]
+                            (filter identity (flatten commands))))
+                        nonzero-files
+                        indexes)
+          all-res     (run-cqp-scripts corpus scripts)
           ;; Since we asked for 'end' number of results even from the last file, we may have got
           ;; more than we asked for (when adding up all results from all files), so make sure we
           ;; only return the desired number of results if it was specified.
-          res           (if nres-1
-                          (take (inc nres-1) all-res)
-                          all-res)]
+          res         (if nres-1
+                        (take (inc nres-1) all-res)
+                        all-res)]
       [res nil])))
 
 (defmethod transform-results :default [_ queries results]
