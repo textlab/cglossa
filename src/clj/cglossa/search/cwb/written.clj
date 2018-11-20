@@ -85,17 +85,27 @@
        (str "reduce " named-query " to " nrandom)])))
 
 (defn- cqp-init [corpus queries context-size sort-key attrs named-query construct-save-commands]
-  ["set DataDirectory \"tmp\""
-   (cwb-corpus-name corpus queries)
-   construct-save-commands
-   (str "set Context " context-size " word")
-   "set PrintStructures \"s_id\""
-   "set LD \"{{\""
-   "set RD \"}}\""
-   (str (displayed-attrs-command corpus queries attrs) " +text")
-   (aligned-languages-command corpus queries)
-   (when sort-key
-     (sort-command named-query sort-key))])
+  (let [default-size     15
+        max-size         50
+        cs               (if (string? context-size)
+                           (try
+                             (Integer/parseInt context-size)
+                             (catch java.lang.NumberFormatException _ default-size))
+                           context-size)
+        adj-context-size (cond (<= 0 cs max-size) cs
+                               (> cs max-size) max-size
+                               :else default-size)]
+    ["set DataDirectory \"tmp\""
+     (cwb-corpus-name corpus queries)
+     construct-save-commands
+     (str "set Context " adj-context-size " word")
+     "set PrintStructures \"s_id\""
+     "set LD \"{{\""
+     "set RD \"}}\""
+     (str (displayed-attrs-command corpus queries attrs) " +text")
+     (aligned-languages-command corpus queries)
+     (when sort-key
+       (sort-command named-query sort-key))]))
 
 (defmethod run-queries :default [corpus search-id queries metadata-ids step
                                  page-size last-count context-size sort-key
