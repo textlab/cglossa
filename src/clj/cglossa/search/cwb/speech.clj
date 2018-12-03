@@ -23,6 +23,7 @@
 (defn- accumulate-bounds [bounds]
   (->> bounds
        (map :bounds)
+       (filter #(not (str/blank? %)))
        (mapcat #(str/split % #":"))
        (map #(str/split % #"-"))
        (map (fn [b]
@@ -64,7 +65,8 @@
   ;; not be searchable, so when no metadata is selected, we search within the bounds for all
   ;; speakers (which does not include the interviewers if they should be excluded from search).
   (let [bounds (select text
-                       (fields (position-fields-for-outfile corpus positions-filename)))]))
+                       (fields (position-fields-for-outfile corpus positions-filename))
+                       (where (not (or (= :bounds nil) (= :bounds "")))))]))
 
 (defmethod position-fields-for-outfile "cwb_speech" [_ positions-filename]
   (korma/raw (str "replace(replace(`bounds`, '-', '\t'), ':', '\n') INTO OUTFILE '"
@@ -250,19 +252,19 @@
         (fn [lines]
           (let [avfile (second (re-find #"<who_avfile (.+?)>" (first lines)))
                 ls     (map
-                         (fn [line]
-                           (-> line
-                               (str/replace #"<who_avfile .+?>" "")
-                               ;; Get rid of spaces in multiword expressions. Assuming that
-                               ;; attribute values never contain spaces, we can further
-                               ;; assume that if we find several spaces between slashes,
-                               ;; only the first one separates tokens and the remaining
-                               ;; ones are actually inside the token and should be
-                               ;; replaced by underscores.
-                               (str/replace #" ([^/<>\s]+) ([^/<>\s]+) ([^/<>\s]+)(/\S+/)"
-                                            " $1_$2_$3$4")
-                               (str/replace #" ([^/<>\s]+) ([^/<>\s]+)(/\S+/)"
-                                            " $1_$2$3")))
+                         #(let [line (str/replace % #"<who_avfile .+?>" "")]
+                           ;; Get rid of spaces in multiword expressions. Assuming that
+                           ;; attribute values never contain spaces, we can further
+                           ;; assume that if we find several spaces between slashes,
+                           ;; only the first one separates tokens and the remaining
+                           ;; ones are actually inside the token and should be
+                           ;; replaced by underscores.
+                           (loop [current-line line]
+                             (let [modified-line
+                                   (str/replace current-line #" ([^/<>\s]+) ([^/<>\s]+)(/\S+/)" " $1_$2$3")]
+                               (if (= current-line modified-line)
+                                 current-line
+                                 (recur modified-line)))))
                          lines)]
             {:text   ls
              :audio? (contains? (:audio-files corpus) avfile)
