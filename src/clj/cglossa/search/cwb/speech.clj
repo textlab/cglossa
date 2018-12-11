@@ -12,7 +12,7 @@
                                                construct-query-commands token-count-matching-metadata
                                                print-empty-metadata-selection-positions
                                                position-fields-for-outfile
-                                               order-position-fields displayed-attrs-command
+                                               order-position-fields where-limits displayed-attrs-command
                                                aligned-languages-command text join-metadata
                                                where-metadata]]
             [cglossa.db.metadata :refer [metadata-category metadata-value]]
@@ -64,9 +64,10 @@
   ;; Speech corpora may include material (typically speech by interviewers) that should
   ;; not be searchable, so when no metadata is selected, we search within the bounds for all
   ;; speakers (which does not include the interviewers if they should be excluded from search).
-  (let [bounds (select text
-                       (fields (position-fields-for-outfile corpus positions-filename))
-                       (where (not (or (= :bounds nil) (= :bounds "")))))]))
+  (let [bounds (-> (select* text)
+                   (fields (position-fields-for-outfile corpus positions-filename))
+                   (where-limits corpus nil nil)
+                   (select))]))
 
 (defmethod position-fields-for-outfile "cwb_speech" [_ positions-filename]
   (korma/raw (str "replace(replace(`bounds`, '-', '\t'), ':', '\n') INTO OUTFILE '"
@@ -75,6 +76,10 @@
 (defmethod order-position-fields "cwb_speech" [sql _]
   ;; We cannot order bounds in speech corpora, since they are hardcoded as sequences in the DB...
   sql)
+
+(defmethod where-limits "cwb_speech" [sql _ startpos endpos]
+  (-> sql
+      (where (not (or (= :bounds nil) (= :bounds ""))))))
 
 (defmethod run-queries "cwb_speech" [corpus search-id queries metadata-ids _
                                      page-size _ _ sort-key num-random-hits random-hits-seed cmd]
