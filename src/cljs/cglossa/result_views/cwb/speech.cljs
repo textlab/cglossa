@@ -134,7 +134,7 @@
                               [:span dt]
                               [:sup nil (first links) (second links) nil]])
                            dt)]
-      ^{:key index}
+      ^{:key (str index tip-text)}
       [:span {:data-toggle "tooltip"
               :title       tip-text
               :data-html   true}
