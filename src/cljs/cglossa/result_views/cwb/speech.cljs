@@ -158,7 +158,7 @@
 
 (defn single-result-rows [{{:keys [page-no translations]} :results-view :as a}
                           {:keys [corpus] :as m}
-                          ort-index phon-index lemma-index
+                          hide-phon ort-index phon-index lemma-index
                           ort-tip-indexes phon-tip-indexes res row-index]
   "Returns one or more rows representing a single search result."
   (let [line         (first (:text res))
@@ -187,14 +187,14 @@
                              :pre-match  phon-pre
                              :match      phon-match
                              :post-match phon-post}}
-        orthographic (orthographic-row a m (:ort res-info) row-index (nil? phon-index))
-        phonetic     (when phon-index
+        orthographic (orthographic-row a m (:ort res-info) row-index hide-phon)
+        phonetic     (when (not hide-phon)
                        (phonetic-row a m (:phon res-info) row-index))
         trans        (get @translations (str @page-no "_" row-index))
         translated   (when trans
                        (translated-row corpus trans row-index))
         ;; Show the separator row only if there is more than one other row for this result
-        separator    (when (or phon-index trans)
+        separator    (when (or (not hide-pron) trans)
                        (shared/separator-row row-index))]
     (filter identity (list orthographic translated phonetic separator))))
 
@@ -255,6 +255,7 @@
                 ;; since the first attribute ('word') is not in the list because it is shown by
                 ;; default by CQP
                 phon-index        (first (keep-indexed #(when (= %2 :phon) (inc %1)) attrs))
+                hide-phon         (or (nil? phon-index) (->> @corpus :languages first :config :hide-phon))
                 lemma-index       (first (keep-indexed #(when (= %2 :lemma) (inc %1)) attrs))
                 remaining-indexes (remove #(#{ort-index phon-index lemma-index} %)
                                           (range (inc (count attrs))))
@@ -264,6 +265,6 @@
                 phon-tip-indexes  (into (filterv identity [ort-index lemma-index])
                                         remaining-indexes)]
             (doall (map (partial single-result-rows a m
-                                 ort-index phon-index lemma-index ort-tip-indexes phon-tip-indexes)
+                                 hide-phon ort-index phon-index lemma-index ort-tip-indexes phon-tip-indexes)
                         res
                         (range (count res)))))]]]])))

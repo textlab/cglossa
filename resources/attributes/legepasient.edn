@@ -1,7 +1,8 @@
 [{:displayed-attrs [[:lemma "Lemma"] [:phon "Comment"] [:pos "Part-of-speech"]
                     [:gender "Gender"] [:num "Number"] [:type "Type"] [:defn "Definiteness"]
                     [:temp "Tense"] [:pers "Person"] [:case "Case"] [:degr "Degree"]
-                    [:descr "Description"] [:nlex "Non-lexical"] [:mood "Mood"] [:voice "Voice"]]}
+                    [:descr "Description"] [:nlex "Non-lexical"] [:mood "Mood"] [:voice "Voice"]]
+  :hide-phon true}
  ["noun" "noun" nil
   ["Number" [[:num "pl" "plural"]
              [:num "sg" "singular"]
