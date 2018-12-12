@@ -236,12 +236,15 @@
                          media-obj-lines speakers corpus movie-loc)))
 
 
-(defn play-video [corpus-code search-id result-index context-size]
+(defn play-video [corpus-code search-id result-index context-size context-unit]
   (let [corpus      (get-corpus {:code corpus-code})
         named-query (cwb-query-name corpus search-id)
+        unit-str    (case context-unit
+                          "episode" "episode"
+                          "who_start")
         commands    [(str "set DataDirectory \"tmp\"")
                      (str/upper-case (:code corpus))
-                     (str "set Context " context-size " who_start")
+                     (str "set Context " context-size " " unit-str)
                      "set LD \"{{\""
                      "set RD \"}}\""
                      "show +who_start +who_stop +who_name +who_avfile +trans"

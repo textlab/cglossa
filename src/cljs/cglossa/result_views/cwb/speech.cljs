@@ -20,10 +20,12 @@
                           {:keys [corpus search] :as m}]
   (go
     (let [result-index (+ (* page-size (dec @page-no)) index)
+          config       (->> @corpus :languages first :config)
           response     (<! (http/get (str (:code @corpus) "/play-video")
                                      {:query-params {:search-id    (:id @search)
                                                      :result-index result-index
-                                                     :context-size 25}}))]
+                                                     :context-size (or (config :video-context-size) 25)
+                                                     :context-unit (or (config :video-context-unit) "who_start")}}))]
       (when (= (:status response) 401)
         (reset! (:authenticated-user m) nil))
       (reset! showing-media-popup? true)

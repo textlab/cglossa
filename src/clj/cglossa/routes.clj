@@ -187,8 +187,8 @@
   (GET "/:corpus-code/result-metadata" [corpus-code text-id]
     (transit-response (result-metadata corpus-code text-id) false))
 
-  (GET "/:corpus-code/play-video" [corpus-code search-id result-index context-size]
-    (transit-response (play-video corpus-code search-id result-index context-size) false))
+  (GET "/:corpus-code/play-video" [corpus-code search-id result-index context-size context-unit]
+    (transit-response (play-video corpus-code search-id result-index context-size context-unit) false))
 
   (POST "/:corpus-code/geo-distr" [corpus-code search-id metadata-ids]
     (transit-response (geo-distr corpus-code search-id metadata-ids) false))
