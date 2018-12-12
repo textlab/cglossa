@@ -194,7 +194,7 @@
         translated   (when trans
                        (translated-row corpus trans row-index))
         ;; Show the separator row only if there is more than one other row for this result
-        separator    (when (or (not hide-pron) trans)
+        separator    (when (or (not hide-phon) trans)
                        (shared/separator-row row-index))]
     (filter identity (list orthographic translated phonetic separator))))
 
