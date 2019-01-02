@@ -2,7 +2,7 @@
   (:require [reagent.core :as r]
             [cglossa.react-adapters.bootstrap :as b]
             [cglossa.shared :refer [search!]]
-            [cglossa.search-views.shared :refer [has-lemma? has-phonetic? has-original?]]
+            [cglossa.search-views.shared :refer [has-lemma? has-phonetic? get-phonetic has-original?]]
             [cglossa.search-views.cwb.extended.shared :refer [language-data language-menu-data
                                                               language-config
                                                               language-corpus-specific-attrs
@@ -156,11 +156,11 @@
                          (reset! text "")))
           items      {:spec-word     [:option {:value "word" :key "word"} "Specify word form"]
                       :spec-lemma    [:option {:value "lemma" :key "lemma"} "Specify lemma"]
-                      :spec-phon     [:option {:value "phon" :key "phon"} "Specify phonetic form"]
+                      :spec-phon     [:option {:value "phon" :key "phon"} (str "Specify " (str/lower-case (get-phonetic @corpus)))]
                       :spec-orig     [:option {:value "orig" :key "orig"} "Specify original form"]
                       :exclude-word  [:option {:value "!word" :key "!word"} "Exclude word form"]
                       :exclude-lemma [:option {:value "!lemma" :key "!lemma"} "Exclude lemma"]
-                      :exclude-phon  [:option {:value "!phon" :key "!phon"} "Exclude phonetic form"]
+                      :exclude-phon  [:option {:value "!phon" :key "!phon"} (str "Exclude " (str/lower-case (get-phonetic @corpus)))]
                       :exclude-orig  [:option {:value "!orig" :key "!orig"} "Exclude original form"]}
           sel-items  (cond
                        (has-phonetic? @corpus)
