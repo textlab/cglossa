@@ -76,7 +76,7 @@
  ["konj" "konjunksjon" nil []]
  ["inf-merke" "infinitivsmerke" nil []]
  ["sbu" "subjunksjon" nil []]
- ["sånn-word" "sånn-ord" nil []]
+ ["sånn" "sånn-ord" nil []]
  ["ukjent" "ukjent" nil []]
  ["adv:sbu" "adverb/subjunksjon" nil []]
  ["konj:prep:adv" "konjunksjon/preposisjon/adverb" nil []]
@@ -85,6 +85,4 @@
  ["prep:sbu" "preposisjon/subjunksjon" nil []]
  ["pron:det" "pronomen/determinativ" nil []]
  ["verb:subst" "verb/substantiv" nil []]
- ["pause" "pause" nil []]
- ["__UNDEF__" "comments" nil
-  ]]
+ ["pause" "pause" nil []]]]
