@@ -154,13 +154,18 @@
                                     (conj vals val)
                                     (set [val]))))
                          (reset! text "")))
+          phon-attr  (get-phonetic @corpus)
           items      {:spec-word     [:option {:value "word" :key "word"} "Specify word form"]
                       :spec-lemma    [:option {:value "lemma" :key "lemma"} "Specify lemma"]
-                      :spec-phon     [:option {:value "phon" :key "phon"} (str "Specify " (str/lower-case (get-phonetic @corpus)))]
+                      :spec-phon     [:option {:value "phon" :key "phon"} (str "Specify " (if phon-attr
+                                                                                            (str/lower-case phon-attr)
+                                                                                            "phonetic"))]
                       :spec-orig     [:option {:value "orig" :key "orig"} "Specify original form"]
                       :exclude-word  [:option {:value "!word" :key "!word"} "Exclude word form"]
                       :exclude-lemma [:option {:value "!lemma" :key "!lemma"} "Exclude lemma"]
-                      :exclude-phon  [:option {:value "!phon" :key "!phon"} (str "Exclude " (str/lower-case (get-phonetic @corpus)))]
+                      :exclude-phon  [:option {:value "!phon" :key "!phon"} (str "Exclude " (if phon-attr
+                                                                                              (str/lower-case phon-attr)
+                                                                                              "phonetic"))]
                       :exclude-orig  [:option {:value "!orig" :key "!orig"} "Exclude original form"]}
           sel-items  (cond
                        (has-phonetic? @corpus)
