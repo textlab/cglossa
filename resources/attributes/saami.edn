@@ -1,7 +1,8 @@
 [{:displayed-attrs [[:lemma "Lemma"] [:pos "Part of speech"] [:subclass "Subclass"]
                     [:grade "Grade"] [:number "Number"] [:case "Case"] [:attribute "Attribute"]
                     [:person_number "Person/number"] [:mood "Mood"] [:tense "Tense"]
-                    [:nominal_verb_form "Nominal verb form"]]}
+                    [:nominal_verb_form "Nominal verb form"] [:derivation "Derivation"]
+                    [:descr "Description"] [:nlex "Non-lexical"]]}
  ["adjective" "adjective" nil
   ["subclass" [[:subclass "ordinal" "ordinal"]]
    "grade" [[:grade "comperative" "comparative"]

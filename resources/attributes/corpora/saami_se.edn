@@ -1,0 +1,17 @@
+[[:descr "Description"
+  ["v" "whispering"]
+  ["n" "loan word"]
+  ["u" "unclear"]
+  ["x" "dialect"]
+  ["d" "derivation"]
+  ["h" "compound with loan word"]
+  ["l" "laughter"]
+  ["g" "yawning"]
+  ["s" "groaning"]]
+ [:nlex "Non-lexical"
+  ["%k" "hawking"]
+  ["%l" "laughter"]
+  ["%o" "onomatopoetic"]
+  ["%y" "groaning"]
+  ["%u" "unclear"]
+  ["%s" "groaning"]]]
