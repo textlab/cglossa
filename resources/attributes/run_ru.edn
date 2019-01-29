@@ -1,0 +1,138 @@
+[{:displayed-attrs [[:lemma "Lemma"] [:pos "pos"] [:type "type"] [:degr_dia "degr_dia"] [:tense_defin "tense_defin"] [:mood_case "mood_case"] [:person_type2 "person_type2"] [:number "number"] [:gender "gender"] [:extra1 "extra1"] [:extra2 "extra2"]]}
+
+["Adjective" "Adjective" nil [
+  "Degree" [
+    [:degr_dia "positive" "positive"]
+    [:degr_dia "comparative" "comparative"]]
+  "Number" [
+    [:mood_case "plural" "plural"]
+    [:mood_case "singular" "singular"]]
+  "Definiteness" [
+    [:number "full-art" "full-art"]
+    [:number "short-art" "short-art"]]
+  "Case" [
+    [:person_type2 "genitive" "genitive"]
+    [:person_type2 "instrumental" "instrumental"]
+    [:person_type2 "nominative" "nominative"]
+    [:person_type2 "accusative" "accusative"]
+    [:person_type2 "dative" "dative"]
+    [:person_type2 "locative" "locative"]]
+  "Gender" [
+    [:tense_defin "feminine" "feminine"]
+    [:tense_defin "neuter" "neuter"]
+    [:tense_defin "masculine" "masculine"]]
+  "Qualificative" [
+    [:type "qualificative" "qualificative"]]]]
+["Adposition" "Adposition" nil [
+  "Case" [
+    [:tense_defin "genitive" "genitive"]
+    [:tense_defin "n" "n"]
+    [:tense_defin "instrumental" "instrumental"]
+    [:tense_defin "accusative" "accusative"]
+    [:tense_defin "dative" "dative"]
+    [:tense_defin "locative" "locative"]]
+  "Type" [
+    [:type "preposition" "preposition"]
+    [:type "c" "c"]]]]
+["Adverb" "Adverb" nil []]
+["Conjunction" "Conjunction" nil []]
+["Interjection" "Interjection" nil []]
+["Noun" "Noun" nil [
+  "Gender" [
+    [:degr_dia "feminine" "feminine"]
+    [:degr_dia "masculine" "masculine"]
+    [:degr_dia "neuter" "neuter"]
+    [:degr_dia "common" "common"]]
+  "Case" [
+    [:mood_case "genitive" "genitive"]
+    [:mood_case "instrumental" "instrumental"]
+    [:mood_case "nominative" "nominative"]
+    [:mood_case "m" "m"]
+    [:mood_case "accusative" "accusative"]
+    [:mood_case "vocative" "vocative"]
+    [:mood_case "dative" "dative"]
+    [:mood_case "locative" "locative"]]
+  "Animate" [
+    [:person_type2 "yes" "yes"]
+    [:person_type2 "no" "no"]]
+  "Number" [
+    [:tense_defin "plural" "plural"]
+    [:tense_defin "singular" "singular"]]
+  "Type" [
+    [:type "proper" "proper"]
+    [:type "common" "common"]]]]
+["Numeral" "Numeral" nil [
+  "Gender" [
+    [:degr_dia "feminine" "feminine"]
+    [:degr_dia "neuter" "neuter"]
+    [:degr_dia "masculine" "masculine"]]
+  "Case" [
+    [:mood_case "genitive" "genitive"]
+    [:mood_case "instrumental" "instrumental"]
+    [:mood_case "nominative" "nominative"]
+    [:mood_case "accusative" "accusative"]
+    [:mood_case "dative" "dative"]
+    [:mood_case "locative" "locative"]]
+  "Number" [
+    [:tense_defin "plural" "plural"]
+    [:tense_defin "singular" "singular"]]
+  "Type" [
+    [:type "cardinal" "cardinal"]
+    [:type "ordinal" "ordinal"]]]]
+["Particle" "Particle" nil []]
+["Pronoun" "Pronoun" nil [
+  "Person" [
+    [:degr_dia "first" "first"]
+    [:degr_dia "second" "second"]
+    [:degr_dia "third" "third"]]
+  "Animacy" [
+    [:gender "yes" "yes"]
+    [:gender "no" "no"]]
+  "Number" [
+    [:mood_case "plural" "plural"]
+    [:mood_case "singular" "singular"]]
+  "Case" [
+    [:person_type2 "genitive" "genitive"]
+    [:person_type2 "instrumental" "instrumental"]
+    [:person_type2 "nominative" "nominative"]
+    [:person_type2 "accusative" "accusative"]
+    [:person_type2 "dative" "dative"]
+    [:person_type2 "locative" "locative"]]
+  "Gender" [
+    [:tense_defin "feminine" "feminine"]
+    [:tense_defin "neuter" "neuter"]
+    [:tense_defin "masculine" "masculine"]]]]
+["Verb" "Verb" nil [
+  "Verb Form" [
+    [:degr_dia "gerund" "gerund"]
+    [:degr_dia "indicative" "indicative"]
+    [:degr_dia "infinitive" "infinitive"]
+    [:degr_dia "participle" "participle"]
+    [:degr_dia "imperative" "imperative"]]
+  "Definiteness" [
+    [:extra1 "full-art" "full-art"]
+    [:extra1 "short-art" "short-art"]]
+  "Aspect" [
+    [:extra2 "progressive" "progressive"]
+    [:extra2 "perfective" "perfective"]]
+  "Voice" [
+    [:gender "medial" "medial"]
+    [:gender "active" "active"]
+    [:gender "passive" "passive"]]
+  "Person" [
+    [:mood_case "first" "first"]
+    [:mood_case "second" "second"]
+    [:mood_case "third" "third"]]
+  "Gender" [
+    [:number "feminine" "feminine"]
+    [:number "masculine" "masculine"]
+    [:number "neuter" "neuter"]]
+  "Number" [
+    [:person_type2 "plural" "plural"]
+    [:person_type2 "singular" "singular"]]
+  "Tense" [
+    [:tense_defin "present" "present"]
+    [:tense_defin "future" "future"]
+    [:tense_defin "past" "past"]]
+  "Type" [
+    [:type "main" "main"]]]]]

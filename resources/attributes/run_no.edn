@@ -1,0 +1,88 @@
+[{:displayed-attrs [[:lemma "Lemma"] [:pos "pos"] [:type "type"] [:degr_dia "degr_dia"] [:tense_defin "tense_defin"] [:mood_case "mood_case"] [:person_type2 "person_type2"] [:number "number"] [:gender "gender"] [:extra1 "extra1"] [:extra2 "extra2"]]}
+
+["adj" "adjective" nil [
+  "degree" [
+    [:degr_dia "sup" "superlative"]
+    [:degr_dia "comp" "comparative"]
+    [:degr_dia "pos" "positive"]]
+  "gender" [
+    [:gender "f" "feminine"]
+    [:gender "m" "masculine"]]
+  "case" [
+    [:mood_case "gen" "genitive"]]
+  "number" [
+    [:number "pl" "plural"]
+    [:number "sg" "singular"]]
+  "definiteness" [
+    [:tense_defin "indef" "indefinite"]
+    [:tense_defin "def" "definite"]]]]
+["adv" "adverb" nil []]
+["conj" "conjunction" nil []]
+["det" "determiner" nil [
+  "gender" [
+    [:gender "f" "feminine"]
+    [:gender "m" "masculine"]]
+  "case" [
+    [:mood_case "gen" "genitive"]]
+  "number" [
+    [:number "pl" "plural"]
+    [:number "sg" "singular"]]
+  "definiteness" [
+    [:tense_defin "indef" "indefinite"]
+    [:tense_defin "def" "definite"]]
+  "type" [
+    [:type "emph" "emphatic"]
+    [:type "dem" "demonstrative"]
+    [:type "question" "interrogative"]
+    [:type "poss" "possessive"]
+    [:type "quant" "quantifier"]]]]
+["infmark" "infinitive marker" nil []]
+["interj" "interjection" nil []]
+["n" "noun" nil [
+  "gender" [
+    [:gender "f" "feminine"]
+    [:gender "m" "masculine"]]
+  "case" [
+    [:mood_case "gen" "genitive"]]
+  "number" [
+    [:number "pl" "plural"]
+    [:number "sg" "singular"]]
+  "definiteness" [
+    [:tense_defin "indef" "indefinite"]
+    [:tense_defin "def" "definite"]]
+  "type" [
+    [:type "p" "proper noun"]
+    [:type "c" "common noun"]]]]
+["prep" "preposition" nil []]
+["pron" "pronoun" nil [
+  "gender" [
+    [:gender "f" "feminine"]
+    [:gender "m" "masculine"]]
+  "case" [
+    [:mood_case "acc" "accusative"]
+    [:mood_case "nom" "nominative"]]
+  "number" [
+    [:number "pl" "plural"]
+    [:number "sg" "singular"]]
+  "person" [
+    [:person_type2 "1" "1st person"]
+    [:person_type2 "2" "2nd person"]
+    [:person_type2 "3" "3rd person"]]
+  "defin" [
+    [:tense_defin "def" "definite"]]
+  "type" [
+    [:type "question" "interrogative"]
+    [:type "hum" "human"]
+    [:type "refl" "reflexive"]
+    [:type "pers" "personal"]]]]
+["subj" "subjunction" nil []]
+["unknown" "unknown" nil []]
+["v" "verb" nil [
+  "voice" [
+    [:degr_dia "pass" "passive"]]
+  "mood" [
+    [:mood_case "imp" "imperative"]]
+  "tense" [
+    [:tense_defin "past" "past"]
+    [:tense_defin "pres" "present"]
+    [:tense_defin "inf" "infinitive"]]]]]
