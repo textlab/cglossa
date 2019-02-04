@@ -65,14 +65,14 @@
       })(this);
       textDivs = [];
       innerDivs = [];
-      if(typeof(this.props.mediaObj) !== 'undefined') {
+      if(this.props.mediaObj.mov.movieLoc !== '_') {
           innerDivs.push(
-           React.createElement("div", {className: "waveformBtnDiv"}, React.createElement("button", {title: "Show waveform", className: "btn btn-xs btn-default", style: {marginRight: 10}, onClick: this.toggleWFplayer.bind(this, lineNo)}, React.createElement("img", {src: "img/speech/waveform.png", style: {width: 12}})))
+           React.createElement("div", {key: "waveformBtnDiv", className: "waveformBtnDiv"}, React.createElement("button", {title: "Show waveform", className: "btn btn-xs btn-default", style: {marginRight: 10}, onClick: this.toggleWFplayer.bind(this, lineNo)}, React.createElement("img", {src: "img/speech/waveform.png", style: {width: 12}})))
           );
       }
       innerDivs.push(
-         React.createElement("div", {className: "speakerDiv"}, React.createElement("a", {className: "speaker", title: speaker}, speaker)),
-         React.createElement("div", {className: "segmentDiv"}, segment)
+         React.createElement("div", {key: "speakerDiv", className: "speakerDiv"}, React.createElement("a", {className: "speaker", title: speaker}, speaker)),
+         React.createElement("div", {key: "segmentDiv", className: "segmentDiv"}, segment)
       );
       textDivs.push(React.createElement("div", {className: 'textDiv ' + timecode.replace(/\./,"_"),
             id: 'jp-' + lineNo, 
