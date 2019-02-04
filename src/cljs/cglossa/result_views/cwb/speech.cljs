@@ -59,12 +59,13 @@
            [b/button {:bs-size  "xsmall" :title "Play audio"
                       :style    {:margin-left 2 :margin-top 2 :margin-bottom 2}
                       :on-click #(show-media-player row-index "jplayer" "audio" a m)}
-            [b/glyphicon {:glyph "volume-up"}]]
-           ^{:key :waveform-btn}
-           [b/button {:bs-size  "xsmall" :title "Show waveform"
-                      :style    {:margin-left 2 :margin-top 2 :margin-bottom 2}
-                      :on-click #(show-media-player row-index "wfplayer" "audio" a m)}
-            [:img {:src "img/speech/waveform.png" :style {:width 12}}]]))])
+            [b/glyphicon {:glyph (if (= audio? "nosound") "search" "volume-up")}]]
+           (when (= audio? "sound")
+             ^{:key :waveform-btn}
+             [b/button {:bs-size  "xsmall" :title "Show waveform"
+                        :style    {:margin-left 2 :margin-top 2 :margin-bottom 2}
+                        :on-click #(show-media-player row-index "wfplayer" "audio" a m)}
+              [:img {:src "img/speech/waveform.png" :style {:width 12}}]])))])
 
 (defn- orthographic-row [a {:keys [corpus] :as m} result row-index show-audio-video?]
   ^{:key (str "ort" row-index)}

@@ -255,7 +255,10 @@
 
 (defmethod transform-results "cwb_speech" [corpus queries results]
   (when results
-    (let [num-langs (->> queries (map :lang) set count)]
+    (let [num-langs (->> queries (map :lang) set count)
+          ;; If true, indicates that it should be possible to open the audio player, but
+          ;; with no sound
+          nosound? (fs/exists? (str "media/" (:code corpus) "/audio/_.mp3"))]
       (map
         (fn [lines]
           (let [avfile (second (re-find #"<who_avfile (.+?)>" (first lines)))
@@ -275,7 +278,10 @@
                                  (recur modified-line)))))
                          lines)]
             {:text   ls
-             :audio? (contains? (:audio-files corpus) avfile)
+             :audio? (cond
+                       nosound? "nosound"
+                       (contains? (:audio-files corpus) avfile) "sound"
+                       :else false)
              :video? (contains? (:video-files corpus) avfile)}))
         (partition num-langs results)))))
 
