@@ -74,13 +74,22 @@
         ;; We need to take num-random-hits results because the saved search results may
         ;; contain slightly more due to rounding (when multi-cpu, multi-step search has been used)
         rows     (for [line (if num-random-hits (take num-random-hits results) results)]
-                   (if (re-find #"^\s*-->\w+:" line)
-                     ; Non-first line of a multilingual result: Return as is
-                     [nil nil line nil nil]
-                     ;; In all other cases, extract corpus position, sentence/utterance ID,
-                     ;; left context, match and right context from the result line
-                     (rest (re-find #"^\s*(\d+):\s*<.+?\s(.+?)>:\s*(.*?)\s*\{\{(.+?)\}\}\s*(.*)"
-                                    line))))]
+                   (cond (re-find #"^\s*-->\w+:" line)
+                         ; Non-first line of a multilingual result: Return as is
+                         [nil nil line nil nil]
+
+                         ;; In all other cases, extract corpus position, sentence/utterance ID,
+                         ;; left context, match and right context from the result line
+
+                         ; For speech corpora, the who_avfile attribute is included in the
+                         ; PrintStructures, so make sure we ignore that
+                         (str/includes? line "<who_avfile ")
+                         (rest (re-find #"^\s*(\d+):\s*<who_name\s(.+?)><who_avfile.+?>:\s*(.*?)\s*\{\{(.+?)\}\}\s*(.*)"
+                                        line))
+
+                         :else
+                         (rest (re-find #"^\s*(\d+):\s*<.+?\s(.+?)>:\s*(.*?)\s*\{\{(.+?)\}\}\s*(.*)"
+                                        line))))]
     (case format
       "excel" (download/excel-file search-id headers? rows)
       "tsv" (download/csv-file :tsv search-id headers? rows)
