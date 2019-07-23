@@ -166,19 +166,12 @@
   (cons [:word "Word form"] (->> @corpus :languages first :config :displayed-attrs)))
 
 (defn stats!
-  ([a {:keys [corpus] :as m}]
-    ;; Do three search steps only if multicpu_bounds is defined for this corpus
-   (stats! a m (if (:multicpu-bounds @corpus) 3 1)))
   ([{{:keys [queries num-random-hits random-hits-seed]}              :search-view
      {:keys [total context-size
              sort-key freq-attr
              freq-attr-sorted freq-res
-             freq-case-sensitive] {:keys [geo-data]} :geo-map} :results-view
-     searching?                                                :searching?
-     show-results?                                             :show-results?
-     :as                                                       a}
-    {:keys [corpus search] :as m}
-    nsteps]
+             freq-case-sensitive]} :results-view}
+    {:keys [corpus search] :as m}]
    (let [first-query          (:query (first @queries))
          freq-attr-sorted-val (filter #((first %) @freq-attr) (all-displayed-attrs corpus))]
      (reset! freq-attr-sorted freq-attr-sorted-val)
@@ -217,10 +210,7 @@
                      ;; because we have started another search
                      [val ch] (async/alts! [cancel-search-ch results-ch] :priority true)]
                  (when (= ch results-ch)
-                   (let [{:keys [status success] {resp-search     :search
-                                                  resp-results    :results
-                                                  resp-count      :count
-                                                  resp-cpu-counts :cpu-counts} :body} val]
+                   (let [{:keys [status] {resp-results    :results} :body} val]
                      (when (= status 401)
                        (reset! (:authenticated-user m) nil))
                      (reset! freq-res resp-results)
