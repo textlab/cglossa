@@ -166,7 +166,7 @@
   (cons [:word "Word form"] (->> @corpus :languages first :config :displayed-attrs)))
 
 (defn stats!
-  ([{{:keys [queries num-random-hits random-hits-seed]}              :search-view
+  ([{{:keys [queries num-random-hits random-hits-seed]} :search-view
      {:keys [total context-size
              sort-key freq-attr
              freq-attr-sorted freq-res
@@ -184,15 +184,16 @@
        (let [q            (queries->param @corpus @queries)
              url          (str (:code @corpus) "/stats")
              sel-metadata (selected-metadata-ids search)
-             params       {:queries      q
-                           :metadata-ids sel-metadata
-                           :page-size    page-size
-                           :context-size @context-size
-                           :sort-key     @sort-key
-                           :num-random-hits  @num-random-hits
-                           :random-hits-seed @random-hits-seed
-                           :freq-attr    (map first freq-attr-sorted-val)
-                           :freq-case-sensitive @freq-case-sensitive}]
+             params       {:queries             q
+                           :metadata-ids        sel-metadata
+                           :page-size           page-size
+                           :context-size        @context-size
+                           :sort-key            @sort-key
+                           :num-random-hits     @num-random-hits
+                           :random-hits-seed    @random-hits-seed
+                           :freq-attr           (map first freq-attr-sorted-val)
+                           :freq-case-sensitive @freq-case-sensitive
+                           :format              format}]
          (go
            ;; Wait for the search to finish before fetching geo-map data
            (<! (let [json-params (cond-> params
@@ -210,7 +211,7 @@
                      ;; because we have started another search
                      [val ch] (async/alts! [cancel-search-ch results-ch] :priority true)]
                  (when (= ch results-ch)
-                   (let [{:keys [status] {resp-results    :results} :body} val]
+                   (let [{:keys [status] {resp-results :results} :body} val]
                      (when (= status 401)
                        (reset! (:authenticated-user m) nil))
                      (reset! freq-res resp-results)
@@ -218,7 +219,7 @@
 
 (defn search!
   ([a {:keys [corpus] :as m}]
-    ;; Do three search steps only if multicpu_bounds is defined for this corpus
+   ;; Do three search steps only if multicpu_bounds is defined for this corpus
    (search! a m (if (:multicpu-bounds @corpus) 3 1)))
   ([{{:keys [queries num-random-hits random-hits-seed]}                :search-view
      {:keys [total context-size sort-key] {:keys [geo-data]} :geo-map} :results-view
