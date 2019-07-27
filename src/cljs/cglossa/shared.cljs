@@ -170,8 +170,9 @@
      {:keys [total context-size
              sort-key freq-attr
              freq-attr-sorted freq-res
-             freq-case-sensitive]} :results-view}
-    {:keys [corpus search] :as m}]
+             freq-case-sensitive]}                      :results-view}
+    {:keys [corpus search] :as m}
+    format]
    (let [first-query          (:query (first @queries))
          freq-attr-sorted-val (filter #((first %) @freq-attr) (all-displayed-attrs corpus))]
      (reset! freq-attr-sorted freq-attr-sorted-val)
@@ -214,7 +215,11 @@
                    (let [{:keys [status] {resp-results :results} :body} val]
                      (when (= status 401)
                        (reset! (:authenticated-user m) nil))
-                     (reset! freq-res resp-results)
+                     (if (#{:excel :tsv :csv} format)
+                       (do
+                         (aset js/window "location" (:body val))
+                         (reset! freq-res nil))
+                       (reset! freq-res resp-results))
                      (promise-chan nil)))))))))))
 
 (defn search!

@@ -2,7 +2,8 @@
   (require [dk.ative.docjure.spreadsheet :as s]
            [me.raynes.fs :as fs]
            [clojure.data.csv :as csv]
-           [clojure.java.io :as io]))
+           [clojure.java.io :as io]
+           [clojure.string :as str]))
 
 (defn excel-file [search-id headers? rows]
   (let [wb         (s/create-workbook "Search results"
@@ -37,3 +38,33 @@
     (with-open [file (io/writer (str "resources/public/tmp/" filename))]
       (csv/write-csv file rows* :separator (if (= type :tsv) \tab \,)))
     (str "tmp/" filename)))
+
+(defn stats-excel-file [search-id headers rows]
+  (let [headers* (cons "frequency" headers)
+        rows* (map #(str/split % #"\s+") rows)
+        wb         (s/create-workbook "Frequency list"
+                                      (if (seq headers*)
+                                        (cons headers* rows*)
+                                        rows*))
+        sheet      (s/select-sheet "Frequency list" wb)
+        header-row (when (seq headers)
+                     (first (s/row-seq sheet)))
+        filename   (fs/temp-name (str "glossa-stats-" search-id "-") ".xlsx")]
+    (when header-row
+      (s/set-row-style! header-row (s/create-cell-style! wb {:background :yellow,
+                                                             :font       {:bold true}})))
+    (s/save-workbook! (str "resources/public/tmp/" filename) wb)
+    (str "tmp/" filename)))
+
+(defn stats-csv-file [format search-id headers rows]
+  (let [filename (fs/temp-name (str "glossa-stats-" search-id "-") (str "." format))
+        headers* (cons "frequency" headers)
+        rows* (map #(str/split % #"\s+") rows)
+        rows**    (if headers*
+                   (cons headers*
+                         rows*)
+                   rows*)]
+    (with-open [file (io/writer (str "resources/public/tmp/" filename))]
+      (csv/write-csv file rows** :separator (if (= format "tsv") \tab \,)))
+    (str "tmp/" filename)))
+

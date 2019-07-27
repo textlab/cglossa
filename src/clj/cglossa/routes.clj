@@ -172,13 +172,15 @@
                                      step page-size last-count context-size sort-key
                                      num-random-hits random-hits-seed) false))
 
-  (POST "/:corpus-code/stats" [corpus-code search-id queries metadata-ids step page-size last-count
+  (POST "/:corpus-code/stats" [corpus-code search-id queries metadata-ids
                                context-size sort-key num-random-hits random-hits-seed
-                               freq-attr freq-case-sensitive]
-    (transit-response (stats-corpus corpus-code search-id queries metadata-ids
-                                    step page-size last-count context-size sort-key
-                                    num-random-hits random-hits-seed freq-attr freq-case-sensitive)
-                      false))
+                               freq-attr freq-case-sensitive format]
+    (let [res (stats-corpus corpus-code search-id queries metadata-ids
+                            context-size sort-key num-random-hits random-hits-seed
+                            freq-attr freq-case-sensitive format)]
+      (if (= format "json")
+        (transit-response res false)
+        {:status 200 :body res})))
 
   (GET "/:corpus-code/results" [corpus-code search-id start end cpu-counts context-size sort-key]
     (transit-response (results corpus-code search-id start end cpu-counts context-size sort-key)

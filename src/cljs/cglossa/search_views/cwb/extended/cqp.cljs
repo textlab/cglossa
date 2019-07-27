@@ -359,8 +359,18 @@
                               :style     {:margin-left -18}
                               :on-change #(on-case-sensitive-checkbox-changed %)}] "Case sensitive"]]
 
-     [b/button {:bs-size "small" :style {:margin-top 5 :margin-bottom 10} :on-click #(stats! a m)}
+     [b/button {:bs-size "small" :style {:margin-top 5 :margin-bottom 10} :on-click #(stats! a m :json)}
       "Update stats"]
+     [:div {:style {:display "inline-block" :margin-left 20}} "Download:"]
+     [b/button {:bs-size "small" :style {:margin-top 5 :margin-bottom 10 :margin-left 5}
+                :on-click #(stats! a m :excel)}
+      "Excel"]
+     [b/button {:bs-size "small" :style {:margin-top 5 :margin-bottom 10 :margin-left 5}
+                :on-click #(stats! a m :tsv)}
+      "Tab-separated"]
+     [b/button {:bs-size "small" :style {:margin-top 5 :margin-bottom 10 :margin-left 5}
+                :on-click #(stats! a m :csv)}
+      "Comma-separated"]
      [b/table {:bordered true}
       [:tbody
        [:tr

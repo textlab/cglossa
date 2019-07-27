@@ -17,9 +17,9 @@
    results."
   (fn [corpus _ _] (:search_engine corpus)))
 
-(defn stats-corpus [corpus-code search-id queries metadata-ids step page-size last-count
+(defn stats-corpus [corpus-code search-id queries metadata-ids
                     context-size sort-key num-random-hits random-hits-seed freq-attr
-                    freq-case-sensitive]
+                    freq-case-sensitive format]
   (let [corpus     (get-corpus {:code corpus-code})
         search-id* (or search-id (:generated_key (create-search! corpus-code queries)))
         [hits cnt cnts] (run-queries corpus search-id* queries metadata-ids 1
@@ -37,12 +37,15 @@
                                             " |LC_ALL=C sed `echo 'y/\\xe3\\xa6/æ/'`")
                                           " |LC_ALL=C awk '{f[$0]++}END{for(k in f){print f[k], k}}' |LC_ALL=C sort -nr\""))
         s          (search-by-id search-id*)]
-    {:search     s
-     :results    hits
-     ;; Sum of the number of hits found by the different cpus in this search step
-     :count      cnt
-     ;; Number of hits found by each cpus in this search step
-     :cpu-counts cnts}))
+    (case format
+      "json" {:search     s
+              :results    hits
+              ;; Sum of the number of hits found by the different cpus in this search step
+              :count      cnt
+              ;; Number of hits found by each cpus in this search step
+              :cpu-counts cnts}
+      "excel" (download/stats-excel-file search-id freq-attr hits)
+      ("tsv" "csv") (download/stats-csv-file format search-id freq-attr hits))))
 
 (defn results [corpus-code search-id start end cpu-counts context-size sort-key]
   (let [corpus      (get-corpus {:code corpus-code})
