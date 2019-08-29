@@ -2,6 +2,7 @@
   "Require namespaces for corpus-specific code here."
   (:require cglossa.corpora.amerikanorsk
             cglossa.corpora.cans
+            cglossa.corpora.cans2
             cglossa.corpora.elenor
             cglossa.corpora.ndc
             cglossa.corpora.norint-tekst
