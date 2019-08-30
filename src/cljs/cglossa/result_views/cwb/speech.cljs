@@ -95,7 +95,7 @@
   ^{:key (str "trans" row-index)}
   [:tr
    [:td [:a {:href "http://translate.google.com/" :target "_blank"} [:img {:src "img/attr1-2.png"}]]]
-   [:td {:col-span 3 :style {:color "#737373"}} translation]])
+   [:td {:col-span 3 :style {:color "#737373"} :dangerouslySetInnerHTML translation} ]])
 
 (defn- process-token [token index displayed-field-index ortphon-index lemma-index tip-field-indexes]
   (when-not (str/blank? token)
