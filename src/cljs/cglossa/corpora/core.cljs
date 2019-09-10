@@ -4,6 +4,7 @@
             cglossa.corpora.cans
             cglossa.corpora.cans2
             cglossa.corpora.elenor
+            cglossa.corpora.lia-norsk
             cglossa.corpora.ndc
             cglossa.corpora.norint-tekst
             cglossa.corpora.norint-opplest
