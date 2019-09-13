@@ -68,6 +68,34 @@
     (str/join " " ["" "from" nplaces place-text "in" ncountries country-text])))
 
 
+(defmethod text-selection-info "ndc2" [_ selected-metadata-ids]
+  ;; Korma doesn't seem to support any way to express count(distinct...) apart from
+  ;; inserting a raw string.
+  (let [cnt          (raw "COUNT(DISTINCT `c`.`id`) AS ncountries, COUNT(DISTINCT `p`.`id`) AS nplaces")
+        c            (-> (select* [metadata-value :c])
+                         (fields cnt)
+                         (join :inner [metadata-value-text :j0] (= :j0.metadata_value_id :c.id))
+                         (join :inner [metadata-value-text :j00] (= :j00.text_id :j0.text_id))
+                         (join :inner [metadata-value :p] (= :j00.metadata_value_id :p.id))
+                         (where {:c.metadata_category_id
+                                 (subselect metadata-category
+                                            (fields :id)
+                                            (where {:code "country"}))})
+                         (where {:p.metadata_category_id
+                                 (subselect metadata-category
+                                            (fields :id)
+                                            (where {:code "geo"}))})
+                         (join-selected-values selected-metadata-ids)
+                         (where-selected-values selected-metadata-ids)
+                         select
+                         first)
+        nplaces      (:nplaces c)
+        ncountries   (:ncountries c)
+        place-text   (if (> nplaces 1) "places" "place")
+        country-text (if (> ncountries 1) "countries" "country")]
+    (str/join " " ["" "from" nplaces place-text "in" ncountries country-text])))
+
+
 (defmethod text-selection-info "amerikanorsk" [_ selected-metadata-ids]
   ;; Korma doesn't seem to support any way to express count(distinct...) apart from
   ;; inserting a raw string.
