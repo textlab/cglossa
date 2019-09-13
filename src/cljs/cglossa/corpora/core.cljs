@@ -6,6 +6,7 @@
             cglossa.corpora.elenor
             cglossa.corpora.lia-norsk
             cglossa.corpora.ndc
+            cglossa.corpora.ndc2
             cglossa.corpora.norint-tekst
             cglossa.corpora.norint-opplest
             cglossa.corpora.norm
