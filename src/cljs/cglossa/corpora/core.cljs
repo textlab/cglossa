@@ -3,6 +3,7 @@
   (:require cglossa.corpora.amerikanorsk
             cglossa.corpora.cans
             cglossa.corpora.cans2
+            cglossa.corpora.cans3
             cglossa.corpora.elenor
             cglossa.corpora.lia-norsk
             cglossa.corpora.ndc
