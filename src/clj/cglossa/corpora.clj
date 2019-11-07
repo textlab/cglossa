@@ -231,6 +231,25 @@
         place-text   (if (> nplaces 1) "places" "place")]
     (str/join " " ["" "from" nplaces place-text])))
 
+(defmethod text-selection-info "saami" [_ selected-metadata-ids]
+  ;; Korma doesn't seem to support any way to express count(distinct...) apart from
+  ;; inserting a raw string.
+  (let [cnt          (raw "COUNT(DISTINCT `p`.`id`) AS nplaces")
+        c            (-> (select* [metadata-value :p])
+                         (fields cnt)
+                         (join :inner [metadata-value-text :j0] (= :j0.metadata_value_id :p.id))
+                         (where {:p.metadata_category_id
+                                 (subselect metadata-category
+                                            (fields :id)
+                                            (where {:code "geo"}))})
+                         (join-selected-values selected-metadata-ids)
+                         (where-selected-values selected-metadata-ids)
+                         select
+                         first)
+        nplaces      (:nplaces c)
+        place-text   (if (> nplaces 1) "places" "place")]
+    (str/join " " ["" "from" nplaces place-text])))
+
 (defmethod text-selection-info "talko2" [_ selected-metadata-ids]
   ;; Korma doesn't seem to support any way to express count(distinct...) apart from
   ;; inserting a raw string.
