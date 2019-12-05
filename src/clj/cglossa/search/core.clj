@@ -21,7 +21,7 @@
                     context-size sort-key num-random-hits random-hits-seed freq-attr
                     freq-case-sensitive format]
   (let [corpus     (get-corpus {:code corpus-code})
-        search-id* (or search-id (:generated_key (create-search! corpus-code queries)))
+        search-id* (or search-id (:generated_key (create-search! corpus-code queries metadata-ids)))
         [hits cnt cnts] (run-queries corpus search-id* queries metadata-ids 1
                                      1000000 nil context-size sort-key
                                      num-random-hits random-hits-seed

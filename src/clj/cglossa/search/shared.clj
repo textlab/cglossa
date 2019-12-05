@@ -20,12 +20,13 @@
   (fn [corpus _ _] (:search_engine corpus)))
 
 
-(defn create-search! [corpus-code queries]
+(defn create-search! [corpus-code queries metadata-ids]
   (kdb/with-db core-db
     (let [{corpus-id :id} (first (select corpus (fields :id) (where {:code corpus-code})))]
       (insert search (values {:corpus_id corpus-id
                               :user_id   1
-                              :queries   (pr-str queries)})))))
+                              :queries   (pr-str queries)
+                              :metadata_value_ids (str metadata-ids)})))))
 
 
 (defn search-by-id [id]
@@ -36,7 +37,7 @@
 (defn search-corpus [corpus-code search-id queries metadata-ids step page-size last-count
                      context-size sort-key num-random-hits random-hits-seed]
   (let [corpus     (get-corpus {:code corpus-code})
-        search-id* (or search-id (:generated_key (create-search! corpus-code queries)))
+        search-id* (or search-id (:generated_key (create-search! corpus-code queries metadata-ids)))
         [hits cnt cnts] (run-queries corpus search-id* queries metadata-ids step
                                      page-size last-count context-size sort-key
                                      num-random-hits random-hits-seed nil)
