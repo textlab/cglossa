@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS `search` (
 `user_id` int unsigned NOT NULL,
 `corpus_id` smallint unsigned NOT NULL,
 `queries` text NOT NULL,
-`metadata_value_ids` text
+`metadata_value_ids` text,
+`created_at` timestamp default current_timestamp
 ) ENGINE=InnoDB;
 
 CREATE TABLE `session` (
