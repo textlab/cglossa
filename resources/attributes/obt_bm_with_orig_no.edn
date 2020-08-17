@@ -10,6 +10,8 @@
    "Grad" [[:degr_dia "pos" "positiv"]
            [:degr_dia "comp" "komparativ"]
            [:degr_dia "sup" "superlativ"]]
+   "Tall" [[:number "sg" "entall"]
+             [:number "pl" "flertall"]]
    "Kjønn" [[:gender "f" "hunkjønn"]
             [:gender "m/f" "hunkjønn eller hankjønn"]
             [:gender "n" "intetkjønn"]]]]

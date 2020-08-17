@@ -7,6 +7,8 @@
   ["Degree" [[:grad_dia "pos" "positive"]
              [:grad_dia "komp" "comparative"]
              [:grad_dia "sup" "superlative"]]
+   "Number" [[:tall "ent" "singular"]
+             [:tall "fl" "plural"]]
    "Gender" [[:kjonn "f" "feminine"]
              [:kjonn "m/f" "feminine or masculine"]
              [:kjonn "n" "neuter"]]]]

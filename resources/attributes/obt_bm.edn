@@ -10,6 +10,8 @@
    "Degree" [[:degr_dia "pos" "positive"]
              [:degr_dia "comp" "comparative"]
              [:degr_dia "sup" "superlative"]]
+   "Number" [[:number "sg" "singular"]
+             [:number "pl" "plural"]]
    "Gender" [[:gender "f" "feminine"]
              [:gender "m/f" "feminine or masculine"]
              [:gender "n" "neuter"]]]]
