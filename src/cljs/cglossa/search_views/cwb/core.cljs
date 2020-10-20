@@ -306,13 +306,13 @@
                   :title    "Search for grammatical categories etc."
                   :on-click #(set-view :extended %)}
               "Extended"])
-           " | "
-           (if (= view cqp)
-             [:b "CQP query"]
-             [:a {:href     ""
-                  :title    "CQP expressions"
-                  :on-click #(set-view :cqp %)}
-              "CQP query"])
+           ;" | "
+           ;(if (= view cqp)
+           ;  [:b "CQP query"]
+           ;  [:a {:href     ""
+           ;       :title    "CQP expressions"
+           ;       :on-click #(set-view :cqp %)}
+           ;   "CQP query"])
            [search-button a m (if (= @view-type :extended) 81 233)]]
 
           ; Now create a cursor into the queries ratom for each search expression
