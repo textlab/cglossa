@@ -146,9 +146,10 @@
 ; Components
 ;;;;;;;;;;;;;
 
-(defn- search-button [{:keys [orig-queries] :as a} m margin-left]
+(defn- search-button [{:keys [orig-queries searching?] :as a} m margin-left]
   [b/button {:bs-style "success"
              :style    {:margin-left margin-left}
+             :disabled @searching?
              :on-click (fn [_]
                          (reset! orig-queries nil)
                          (search! a m))}
