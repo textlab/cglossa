@@ -317,20 +317,23 @@
    (str " " (if speech? "Segment" "Sentence") " initial")])
 
 (defn segment-final-checkbox [wrapped-query speech?]
-  [:label.checkbox-inline {:style {:padding-left 18}}
-   [:input {:type      "checkbox"
-            :style     {:margin-left -18}
-            :checked   (:segment-final? @wrapped-query)
-            :on-change (fn [e]
-                         (let [query     (:query @wrapped-query)
-                               checked?  (.-target.checked e)
-                               s-tag     (if speech? "</who>" "</s>")
-                               new-query (if checked?
-                                           (str query s-tag)
-                                           (str/replace query (re-pattern (str s-tag "$")) ""))]
-                           (swap! wrapped-query
-                                  assoc :query new-query :segment-final? checked?)))}]
-   (str " " (if speech? "Segment" "Sentence") " final")])
+  ;; For now, just hide the whole thing for written corpora. A better solution would be to
+  ;; insert an end-of-sentence token at the end of the query, of course.
+  (when speech?
+    [:label.checkbox-inline {:style {:padding-left 18}}
+     [:input {:type      "checkbox"
+              :style     {:margin-left -18}
+              :checked   (:segment-final? @wrapped-query)
+              :on-change (fn [e]
+                           (let [query     (:query @wrapped-query)
+                                 checked?  (.-target.checked e)
+                                 s-tag     (if speech? "</who>" "</s>")
+                                 new-query (if checked?
+                                             (str query s-tag)
+                                             (str/replace query (re-pattern (str s-tag "$")) ""))]
+                             (swap! wrapped-query
+                                    assoc :query new-query :segment-final? checked?)))}]
+     (str " " (if speech? "Segment" "Sentence") " final")]))
 
 (defn headword-search-checkbox [wrapped-query]
   [b/checkbox
