@@ -104,16 +104,35 @@
        [:input {:type      "checkbox"
                 :style     {:margin-left -18}
                 :title     "Start of word"
-                :checked   (:start? term-val)
-                :on-change #(swap! wrapped-term assoc :start? (.-target.checked %))
+                :checked   (boolean (:start? term-val))
+                :on-change #(let [checked? (.-target.checked %)]
+                               (swap! wrapped-term assoc :start? checked?)
+                               (when checked?
+                                 (swap! wrapped-term dissoc :end?)
+                                 (swap! wrapped-term dissoc :middle?)))
                 }] "Start"]
       [:label.checkbox-inline {:style {:padding-left 23}}
        [:input {:type      "checkbox"
                 :style     {:margin-left -18}
                 :title     "End of word"
-                :checked   (:end? term-val)
-                :on-change #(swap! wrapped-term assoc :end? (.-target.checked %))
-                }] "End"]]
+                :checked   (boolean (:end? term-val))
+                :on-change #(let [checked? (.-target.checked %)]
+                               (swap! wrapped-term assoc :end? checked?)
+                               (when checked?
+                                 (swap! wrapped-term dissoc :start?)
+                                 (swap! wrapped-term dissoc :middle?)))
+                }] "End"]
+      [:label.checkbox-inline {:style {:padding-left 23}}
+        [:input {:type      "checkbox"
+                 :style     {:margin-left -18}
+                 :title     "Middle of word"
+                 :checked   (boolean (:middle? term-val))
+                 :on-change #(let [checked? (.-target.checked %)]
+                               (swap! wrapped-term assoc :middle? checked?)
+                               (when checked?
+                                 (swap! wrapped-term dissoc :start?)
+                                 (swap! wrapped-term dissoc :end?)))
+                 }] "Middle"]]
      [:div
       (when phon-display-name
         [:label.checkbox-inline {:style {:padding-left 18}}

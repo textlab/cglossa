@@ -82,12 +82,19 @@
 
 
 (defn- process-first-form [term name op val]
-  (cond-> (assoc term :form (unescape-form val))
+  (let [t
+        (cond-> (assoc term :form (unescape-form val))
           (= name "lemma") (assoc :lemma? true)
           (= name "phon") (assoc :phonetic? true)
           (= name "orig") (assoc :original? true)
           (re-find #".+\.\*$" val) (assoc :start? true)
-          (re-find #"^\.\*.+" val) (assoc :end? true)))
+          (re-find #"^\.\*.+" val) (assoc :end? true))]
+    (if (and (:start? t) (:end? t))
+      (-> t
+          (dissoc :start?)
+          (dissoc :end?)
+          (assoc :middle? true))
+      t)))
 
 
 (defn- process-other-forms [term name op val]
@@ -177,9 +184,15 @@
                      (assoc :start? true)
 
                      (re-find #"^\.\*.+" form)
-                     (assoc :end? true))]
+                     (assoc :end? true))
+        term* (if (and (:start? term) (:end? term))
+                (-> term
+                    (dissoc :start?)
+                    (dissoc :end?)
+                    (assoc :middle? true))
+                term)]
     (reset! interval [nil nil])
-    (conj terms term)))
+    (conj terms term*)))
 
 
 (defn query->terms [query corpus-specific-attrs]
@@ -233,7 +246,7 @@
         s-tag   (if (= (:search-engine corpus) "cwb_speech") "who" "s")
         terms*  (filter identity terms) ; nil means term should be removed
         parts   (for [{:keys [interval form lemma? phonetic? original?
-                              start? end? features extra-forms corpus-specific-attrs]} terms*]
+                              start? end? middle? features extra-forms corpus-specific-attrs]} terms*]
                   (let [attr         (cond
                                        lemma? "lemma"
                                        phonetic? "phon"
@@ -251,7 +264,8 @@
                                                true (str/replace #"[\.\*\+\?\^\$\{\}\(\)\|\[\]\\]"
                                                                  "\\$&")
                                                start? (str ".*")
-                                               end? (#(str ".*" %))))
+                                               end? (#(str ".*" %))
+                                               middle? (#(str ".*" % ".*"))))
                         main         (when form*
                                        (str attr "=\"" form* "\"" (when-not phonetic? " %c")))
                         feats        (when (seq features)
