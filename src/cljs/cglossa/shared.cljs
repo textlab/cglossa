@@ -76,53 +76,58 @@
                          {:keys [search] :as m}
                          url search-params nsteps]
   (go
-    (dotimes [step nsteps]
-      (let [json-params (cond-> search-params
-                                true (assoc :step (inc step))
-                                @total (assoc :last-count @total)
-                                ;; If the currently specified queries differ from the ones on
-                                ;; the search that was last received from the server, leave the
-                                ;; ID blank in order to generate a new search; otherwise regard
-                                ;; this request as a refinement of the latest search and hence
-                                ;; keep its ID. Note that the search id is reset when the
-                                ;; metadata selection is changed.
-                                (= (:queries @search) (str @queries)) (assoc :search-id (:id @search)))
-            ;; Fire off a search query
-            results-ch  (http/post url {:json-params json-params})
-            ;; Wait for either the results of the query or a message to cancel the query
-            ;; because we have started another search
-            [val ch] (async/alts! [cancel-search-ch results-ch] :priority true)]
-        (when (= ch results-ch)
-          (let [{:keys [status success] {resp-search     :search
-                                         resp-results    :results
-                                         resp-count      :count
-                                         resp-cpu-counts :cpu-counts} :body} val]
-            (when (= status 401)
-              (reset! (:authenticated-user m) nil))
-            (if-not success
-              (.log js/console status)
-              (do
-                (swap! search merge resp-search)
-                ;; Add the number of hits found by each cpu core in this search step
-                (swap! cpu-counts concat resp-cpu-counts)
-                ;; Only the first request actually returns results; the others just save the
-                ;; results on the server to be fetched on demand and return an empty result list
-                ;; (but a non-zero resp-count), unless the first result did not find enough
-                ;; results to fill up two result pages - in that case, later requests will
-                ;; continue filling them. Thus, we set the results if we either receive a
-                ;; non-empty list of results or a resp-count of zero (meaning that there were
-                ;; actually no matches).
-                (if (or (seq resp-results) (zero? resp-count))
-                  (let [old-results (apply concat (map second @results))]
-                    (reset! results (into {} (map (fn [page-index res]
-                                                    [(inc page-index)
-                                                     (map (partial cleanup-result m) res)])
-                                                  (range)
-                                                  (partition-all page-size
-                                                                 (concat old-results
-                                                                         resp-results)))))
-                    (reset! total (or resp-count (count resp-results))))
-                  (reset! total resp-count))))))))
+    (try
+      (dotimes [step nsteps]
+        (let [json-params (cond-> search-params
+                            true (assoc :step (inc step))
+                            @total (assoc :last-count @total)
+                            ;; If the currently specified queries differ from the ones on
+                            ;; the search that was last received from the server, leave the
+                            ;; ID blank in order to generate a new search; otherwise regard
+                            ;; this request as a refinement of the latest search and hence
+                            ;; keep its ID. Note that the search id is reset when the
+                            ;; metadata selection is changed.
+                            (= (:queries @search) (str @queries)) (assoc :search-id (:id @search)))
+              ;; Fire off a search query
+              results-ch  (http/post url {:json-params json-params})
+              ;; Wait for either the results of the query or a message to cancel the query
+              ;; because we have started another search
+              [val ch] (async/alts! [cancel-search-ch results-ch] :priority true)]
+          (when (= ch results-ch)
+            (let [{:keys [status success] {resp-search     :search
+                                           resp-results    :results
+                                           resp-count      :count
+                                           resp-cpu-counts :cpu-counts} :body} val]
+              (when (string? resp-results)
+                (throw (js/Error. resp-results)))
+              (when (= status 401)
+                (reset! (:authenticated-user m) nil))
+              (if-not success
+                (.log js/console status)
+                (do
+                  (swap! search merge resp-search)
+                  ;; Add the number of hits found by each cpu core in this search step
+                  (swap! cpu-counts concat resp-cpu-counts)
+                  ;; Only the first request actually returns results; the others just save the
+                  ;; results on the server to be fetched on demand and return an empty result list
+                  ;; (but a non-zero resp-count), unless the first result did not find enough
+                  ;; results to fill up two result pages - in that case, later requests will
+                  ;; continue filling them. Thus, we set the results if we either receive a
+                  ;; non-empty list of results or a resp-count of zero (meaning that there were
+                  ;; actually no matches).
+                  (if (or (seq resp-results) (zero? resp-count))
+                    (let [old-results (apply concat (map second @results))]
+                      (reset! results (into {} (map (fn [page-index res]
+                                                      [(inc page-index)
+                                                       (map (partial cleanup-result m) res)])
+                                                    (range)
+                                                    (partition-all page-size
+                                                                   (concat old-results
+                                                                           resp-results)))))
+                      (reset! total (or resp-count (count resp-results))))
+                    (reset! total resp-count))))))))
+      (catch :default e
+        (js/alert e)))
     (reset! searching? false)))
 
 (defn selected-metadata-ids [search]

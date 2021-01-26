@@ -1,5 +1,7 @@
 (ns cglossa.search.shared
-  (:require [cglossa.db.corpus :refer [get-corpus]]
+  (:require [clojure.string :as str]
+            [cglossa.db.corpus :refer [get-corpus]]
+            [me.raynes.conch.low-level :as sh]
             [korma.db :as kdb]
             [korma.core :refer [defentity table select fields where insert values]]
             [cglossa.shared :refer [core-db]]))
@@ -33,19 +35,27 @@
   (kdb/with-db core-db
     (first (select search (where {:id id})))))
 
+(def max-cqp-processes 16)
 
 (defn search-corpus [corpus-code search-id queries metadata-ids step page-size last-count
                      context-size sort-key num-random-hits random-hits-seed]
-  (let [corpus     (get-corpus {:code corpus-code})
-        search-id* (or search-id (:generated_key (create-search! corpus-code queries metadata-ids)))
-        [hits cnt cnts] (run-queries corpus search-id* queries metadata-ids step
-                                     page-size last-count context-size sort-key
-                                     num-random-hits random-hits-seed nil)
-        results    (transform-results corpus queries hits)
-        s          (search-by-id search-id*)]
-    {:search     s
-     :results    results
-     ;; Sum of the number of hits found by the different cpus in this search step
-     :count      cnt
-     ;; Number of hits found by each cpus in this search step
-     :cpu-counts cnts}))
+  (let [cqp-procs  (sh/proc "pgrep" "cqp")
+        out        (sh/stream-to-string cqp-procs :out)
+        ncqp-procs (-> out str/split-lines count)]
+    (if (< ncqp-procs max-cqp-processes)
+      (let [corpus     (get-corpus {:code corpus-code})
+            search-id* (or search-id (:generated_key (create-search! corpus-code queries metadata-ids)))
+            [hits cnt cnts] (run-queries corpus search-id* queries metadata-ids step
+                                         page-size last-count context-size sort-key
+                                         num-random-hits random-hits-seed nil)
+            results    (transform-results corpus queries hits)
+            s          (search-by-id search-id*)]
+        {:search     s
+         :results    results
+         ;; Sum of the number of hits found by the different cpus in this search step
+         :count      cnt
+         ;; Number of hits found by each cpus in this search step
+         :cpu-counts cnts})
+      (do
+        (println "TOO MANY CQP PROCESSES: " ncqp-procs "; aborting search at " (str (java.time.LocalDateTime/now)))
+        {:results "The server is busy. Please try again."}))))
