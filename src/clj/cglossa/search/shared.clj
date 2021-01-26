@@ -42,7 +42,10 @@
   (let [cqp-procs  (sh/proc "pgrep" "cqp")
         out        (sh/stream-to-string cqp-procs :out)
         ncqp-procs (-> out str/split-lines count)]
-    (if (< ncqp-procs max-cqp-processes)
+    ;; If this is the first search step, we check that we don't already exceed the max number
+    ;; of CQP processes before starting the search. If we are at step 2 or 3, we should finish
+    ;; what we started.
+    (if (or (< ncqp-procs max-cqp-processes) (> step 1))
       (let [corpus     (get-corpus {:code corpus-code})
             search-id* (or search-id (:generated_key (create-search! corpus-code queries metadata-ids)))
             [hits cnt cnts] (run-queries corpus search-id* queries metadata-ids step
