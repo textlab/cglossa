@@ -35,7 +35,7 @@
   (kdb/with-db core-db
     (first (select search (where {:id id})))))
 
-(def max-cqp-processes 16)
+(def max-cqp-processes 24)
 
 (defn search-corpus [corpus-code search-id queries metadata-ids step page-size last-count
                      context-size sort-key num-random-hits random-hits-seed]
