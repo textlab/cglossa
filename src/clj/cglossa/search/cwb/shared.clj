@@ -224,7 +224,7 @@
                         (map #(str % \;))
                         (str/join \newline))
         encoding   (:encoding corpus "UTF-8")
-        cqp        (sh/proc "cqp" "-c" :env {"LC_ALL" (locale-encoding encoding)})
+        cqp        (sh/proc "nice" "cqp" "-c" :env {"LC_ALL" (locale-encoding encoding)})
 
         ;; Run the CQP commands and capture the output
         out        (do
