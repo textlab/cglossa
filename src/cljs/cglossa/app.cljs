@@ -38,7 +38,7 @@
                                    (reset! authenticated-user nil)))}
         "Log out"]])]
    [:img.navbar-right.hidden-xs {:src "img/logo.png" :style {:margin-top 13}}]
-   [:img.navbar-right.hidden-xs {:src "img/clarino_duo-219.png" :style {:width 80 :margin-top 15}}]
+   [:img.navbar-right.hidden-xs {:src "img/clarino-green-sml.png" :style {:width 80 :margin-top 10}}]
    ])
 
 (defn- main-area [{:keys [show-results?] :as a} m]
