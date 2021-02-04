@@ -35,19 +35,23 @@
   (kdb/with-db core-db
     (first (select search (where {:id id})))))
 
-(def max-cqp-processes 24)
+;; If the number of running CQP processes exceeds this number, we do not allow a new
+;; search in a corpus that does parallel search using all cpus to be started.
+(def max-cqp-processes 16)
 
 (defn search-corpus [corpus-code search-id queries metadata-ids step page-size last-count
                      context-size sort-key num-random-hits random-hits-seed]
   (let [cqp-procs  (sh/proc "pgrep" "cqp")
         out        (sh/stream-to-string cqp-procs :out)
-        ncqp-procs (-> out str/split-lines count)]
-    ;; If this is the first search step, we check that we don't already exceed the max number
+        ncqp-procs (-> out str/split-lines count)
+        corpus     (get-corpus {:code corpus-code})]
+    ;; If we are searching a corpus that does parallel search with multiple cpus and
+    ;; this is the first search step, we check that we don't already exceed the max number
     ;; of CQP processes before starting the search. If we are at step 2 or 3, we should finish
-    ;; what we started.
-    (if (or (< ncqp-procs max-cqp-processes) (> step 1))
-      (let [corpus     (get-corpus {:code corpus-code})
-            search-id* (or search-id (:generated_key (create-search! corpus-code queries metadata-ids)))
+    ;; what we started. Corpora that don't use multiple cpus are assumed to be small and
+    ;; should cause problems even with a lot of CQP processes.
+    (if (or (nil? (:multicpu_bounds corpus)) (< ncqp-procs max-cqp-processes) (> step 1))
+      (let [search-id* (or search-id (:generated_key (create-search! corpus-code queries metadata-ids)))
             [hits cnt cnts] (run-queries corpus search-id* queries metadata-ids step
                                          page-size last-count context-size sort-key
                                          num-random-hits random-hits-seed nil)
