@@ -1,5 +1,6 @@
 (ns cglossa.search.shared
   (:require [clojure.string :as str]
+            [taoensso.timbre :as timbre]
             [cglossa.db.corpus :refer [get-corpus]]
             [me.raynes.conch.low-level :as sh]
             [korma.db :as kdb]
@@ -64,5 +65,5 @@
          ;; Number of hits found by each cpus in this search step
          :cpu-counts cnts})
       (do
-        (println "TOO MANY CQP PROCESSES: " ncqp-procs "; aborting search at " (str (java.time.LocalDateTime/now)))
+        (timbre/error (str "TOO MANY CQP PROCESSES: " ncqp-procs "; aborting search at " (str (java.time.LocalDateTime/now))))
         {:results "The server is busy. Please try again."}))))
