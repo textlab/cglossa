@@ -20,7 +20,7 @@
 (defn- header [{:keys [show-results?]} {:keys [corpus authenticated-user]}]
   [b/navbar {:fixed-top true}
    [b/navbar-brand
-    [:a {:href "./"} "Glossa"]]
+    [:a {:target "_blank" :href "https://www.hf.uio.no/iln/english/about/organization/text-laboratory/services/glossa/index.html"} "Glossa"]]
    [b/navbar-text
     [b/navbar-link {:href "./"
                     :style {:color "#337ab7"}}
