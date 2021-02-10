@@ -56,8 +56,10 @@
                          (map #(str/replace % "\"" "__QUOTE__") $)
                          ;; Escape other special characters using a regex from
                          ;; https://developer.mozilla.org/en-US/docs/Web/JavaScript/
-                         ;;   Guide/Regular_Expressions
-                         (map #(str/replace % #"[\.\*\+\?\^\$\{\}\(\)\|\[\]\\]" "\\$&") $)
+                         ;;   Guide/Regular_Expressions, except that an asterisk (truncation)
+                         ;; is replaced by .*
+                         (map #(str/replace % #"[\.\+\?\^\$\{\}\(\)\|\[\]\\]" "\\$&") $)
+                         (map #(str/replace % #"\*" ".*") $)
                          (map #(if (= % "")
                                  ""
                                  (str "[" attr "=\"" % "\"" (when-not phonetic? " %c") "]"))
@@ -239,7 +241,9 @@
                             (str/replace #"\s*\[\]\s*" " .* ")
                             (str/replace #"^\s*\.\*\s*$" "")
                             (str/replace #"^!" "")
-                            (str/replace "__QUOTE__" "\""))
+                            (str/replace "__QUOTE__" "\"")
+                            ;; Replace .* or .+ by a single asterisk, used for truncation in the simple view
+                            (str/replace #"\.[\*\+]" "*"))
         on-text-changed (fn [event wrapped-query phonetic? original?]
                           (let [value (.-target.value event)
                                 query (if (= value "")
