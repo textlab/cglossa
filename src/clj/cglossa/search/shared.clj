@@ -38,7 +38,7 @@
 
 ;; If the number of running CQP processes exceeds this number, we do not allow a new
 ;; search in a corpus that does parallel search using all cpus to be started.
-(def max-cqp-processes 16)
+(def max-cqp-processes 8)
 
 (defn search-corpus [corpus-code search-id queries metadata-ids step page-size last-count
                      context-size sort-key num-random-hits random-hits-seed]
