@@ -119,7 +119,8 @@
     propTypes: {
       mediaObj: PropTypes.object,
       mediaType: PropTypes.string,
-      hasLocalMedia: PropTypes.bool
+      hasLocalMedia: PropTypes.bool,
+      hasAudio: PropTypes.bool
     },
     getStartLine: function(mediaObj) {
       var minStart, startAt;
@@ -277,7 +278,7 @@
     },
     render: function() {
       return React.createElement("div", {style: {position: 'relative'}}, 
-      React.createElement("div", {style: {float: 'right', width: 480}}, 
+      this.props.hasAudio && React.createElement("div", {style: {float: 'right', width: 480}}, 
       React.createElement("div", {className: "jp-video jp-video-270p", id: "jp_container_1"}, 
          React.createElement("div", {className: "jp-type-single"}, 
              React.createElement("div", {className: "jp-jplayer", style: this.props.mediaType == 'audio' ? {display: 'none'} : {width: 480, height: 270}}, 

@@ -246,7 +246,8 @@
                        [:> js/WFplayer {:media-obj @media-obj}]
                        [:> js/Jplayer {:media-obj       @media-obj
                                        :media-type      @current-media-type
-                                       :has-local-media (-> @corpus :extra-info :local-media?)}])]
+                                       :has-local-media (-> @corpus :extra-info :local-media?)
+                                       :has-audio (and (not (nil? res)) (= (:audio? (first res)) "sound"))}])]
         [b/modalfooter
          [b/button {:on-click hide-player} "Close"]]]
        [:div.row>div.col-sm-12.search-result-table-container
