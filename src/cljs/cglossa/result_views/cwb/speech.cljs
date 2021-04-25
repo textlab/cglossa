@@ -56,7 +56,7 @@
       [b/glyphicon {:glyph "film"}]])
    (when audio?
      (list ^{:key :audio-btn}
-           [b/button {:bs-size  "xsmall" :title "Play audio"
+           [b/button {:bs-size  "xsmall" :title (if (= audio? "nosound") "Show more context" "Play audio")
                       :style    {:margin-left 2 :margin-top 2 :margin-bottom 2}
                       :on-click #(show-media-player row-index "jplayer" "audio" a m)}
             [b/glyphicon {:glyph (if (= audio? "nosound") "search" "volume-up")}]]
